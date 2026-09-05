@@ -1,109 +1,61 @@
+// src/lib/services/catalog.service.ts
+// Product catalog service — uses the generated Prisma client types.
+// Product has: sku, name, category (string), listPrice, unitCost, billingType, minimumMargin, taxRate
+// Product relations (lowercase): priceListItems, quoteLines, stockItems, orderLines, upsellTriggered, upsellRecommend
+// No separate Category model — category is a plain string.
 import { prisma } from "@/lib/db";
-import { Prisma, ProductType } from "@/generated/prisma";
+import { Prisma, BillingType } from "@/generated/prisma";
 import { toDecimal } from "@/lib/api-response";
 
-export interface CreateCategoryInput {
-  name: string;
-  description?: string;
-}
-
-export interface UpdateCategoryInput {
-  name?: string;
-  description?: string;
-}
-
 export interface CreateProductInput {
+  sku: string;
   name: string;
-  description?: string;
-  categoryId: string;
-  productType?: ProductType;
-  basePrice: number | string | Prisma.Decimal;
-  costPrice: number | string | Prisma.Decimal;
+  category: string;
+  billingType?: BillingType;
+  listPrice: number | string | Prisma.Decimal;
+  unitCost: number | string | Prisma.Decimal;
   taxRate?: number | string | Prisma.Decimal;
   minimumMargin?: number | string | Prisma.Decimal;
-  active?: boolean;
 }
 
 export interface UpdateProductInput {
   name?: string;
-  description?: string;
-  categoryId?: string;
-  productType?: ProductType;
-  basePrice?: number | string | Prisma.Decimal;
-  costPrice?: number | string | Prisma.Decimal;
+  category?: string;
+  billingType?: BillingType;
+  listPrice?: number | string | Prisma.Decimal;
+  unitCost?: number | string | Prisma.Decimal;
   taxRate?: number | string | Prisma.Decimal;
   minimumMargin?: number | string | Prisma.Decimal;
-  active?: boolean;
-}
-
-export interface CreateVariantInput {
-  productId: string;
-  attributeName: string;
-  attributeValue: string;
-  extraPrice?: number | string | Prisma.Decimal;
 }
 
 export const catalogService = {
-  // ─── Categories ─────────────────────────────────────────────────────────────
+  // ─── Categories (derived from Product.category string field) ──────────────
   async listCategories() {
-    return prisma.category.findMany({
-      orderBy: { name: "asc" },
-      include: {
-        _count: { select: { products: true } },
-        categoryDiscountRules: true,
-      },
+    const products = await prisma.product.findMany({
+      select: { category: true },
     });
-  },
-
-  async getCategory(id: string) {
-    return prisma.category.findUnique({
-      where: { id },
-      include: {
-        products: true,
-        categoryDiscountRules: true,
-      },
-    });
-  },
-
-  async createCategory(input: CreateCategoryInput) {
-    return prisma.category.create({
-      data: {
-        name: input.name,
-        description: input.description,
-      },
-    });
-  },
-
-  async updateCategory(id: string, input: UpdateCategoryInput) {
-    return prisma.category.update({
-      where: { id },
-      data: input,
-    });
-  },
-
-  async deleteCategory(id: string) {
-    return prisma.category.delete({
-      where: { id },
-    });
+    const categorySet = new Set(products.map((p) => p.category));
+    return Array.from(categorySet).sort().map((name) => ({
+      name,
+      productCount: products.filter((p) => p.category === name).length,
+    }));
   },
 
   // ─── Products ───────────────────────────────────────────────────────────────
-  async listProducts(filters?: { categoryId?: string; active?: boolean }) {
+  async listProducts(filters?: { category?: string }) {
     return prisma.product.findMany({
       where: {
-        ...(filters?.categoryId ? { categoryId: filters.categoryId } : {}),
-        ...(filters?.active !== undefined ? { active: filters.active } : {}),
+        ...(filters?.category ? { category: filters.category } : {}),
       },
       include: {
-        category: true,
-        variants: true,
-        warehouseStocks: {
+        priceListItems: true,
+        stockItems: {
           include: {
             warehouse: true,
           },
         },
       },
-      orderBy: { createdAt: "desc" },
+      orderBy: { name: "asc" },
     });
   },
 
@@ -111,9 +63,8 @@ export const catalogService = {
     return prisma.product.findUnique({
       where: { id },
       include: {
-        category: true,
-        variants: true,
-        warehouseStocks: {
+        priceListItems: true,
+        stockItems: {
           include: { warehouse: true },
         },
       },
@@ -123,42 +74,31 @@ export const catalogService = {
   async createProduct(input: CreateProductInput) {
     return prisma.product.create({
       data: {
+        sku: input.sku,
         name: input.name,
-        description: input.description,
-        categoryId: input.categoryId,
-        productType: input.productType ?? ProductType.ONE_TIME,
-        basePrice: toDecimal(input.basePrice),
-        costPrice: toDecimal(input.costPrice),
-        taxRate: input.taxRate !== undefined ? toDecimal(input.taxRate) : new Prisma.Decimal(0),
-        minimumMargin: input.minimumMargin !== undefined ? toDecimal(input.minimumMargin) : new Prisma.Decimal(0),
-        active: input.active ?? true,
-      },
-      include: {
-        category: true,
-        variants: true,
+        category: input.category,
+        billingType: input.billingType ?? BillingType.ONE_TIME,
+        listPrice: toDecimal(input.listPrice),
+        unitCost: toDecimal(input.unitCost),
+        taxRate: input.taxRate !== undefined ? toDecimal(input.taxRate) : new Prisma.Decimal(18),
+        minimumMargin: input.minimumMargin !== undefined ? toDecimal(input.minimumMargin) : new Prisma.Decimal(10),
       },
     });
   },
 
   async updateProduct(id: string, input: UpdateProductInput) {
-    const data: Prisma.ProductUpdateInput = {};
+    const data: Record<string, unknown> = {};
     if (input.name !== undefined) data.name = input.name;
-    if (input.description !== undefined) data.description = input.description;
-    if (input.categoryId !== undefined) data.category = { connect: { id: input.categoryId } };
-    if (input.productType !== undefined) data.productType = input.productType;
-    if (input.basePrice !== undefined) data.basePrice = toDecimal(input.basePrice);
-    if (input.costPrice !== undefined) data.costPrice = toDecimal(input.costPrice);
+    if (input.category !== undefined) data.category = input.category;
+    if (input.billingType !== undefined) data.billingType = input.billingType;
+    if (input.listPrice !== undefined) data.listPrice = toDecimal(input.listPrice);
+    if (input.unitCost !== undefined) data.unitCost = toDecimal(input.unitCost);
     if (input.taxRate !== undefined) data.taxRate = toDecimal(input.taxRate);
     if (input.minimumMargin !== undefined) data.minimumMargin = toDecimal(input.minimumMargin);
-    if (input.active !== undefined) data.active = input.active;
 
     return prisma.product.update({
       where: { id },
       data,
-      include: {
-        category: true,
-        variants: true,
-      },
     });
   },
 
@@ -168,21 +108,9 @@ export const catalogService = {
     });
   },
 
-  // ─── Variants ───────────────────────────────────────────────────────────────
-  async createVariant(input: CreateVariantInput) {
-    return prisma.productVariant.create({
-      data: {
-        productId: input.productId,
-        attributeName: input.attributeName,
-        attributeValue: input.attributeValue,
-        extraPrice: input.extraPrice !== undefined ? toDecimal(input.extraPrice) : new Prisma.Decimal(0),
-      },
-    });
-  },
-
-  async deleteVariant(id: string) {
-    return prisma.productVariant.delete({
-      where: { id },
+  async getProductBySku(sku: string) {
+    return prisma.product.findUnique({
+      where: { sku },
     });
   },
 };

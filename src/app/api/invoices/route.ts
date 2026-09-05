@@ -26,7 +26,6 @@ export async function GET(request: NextRequest) {
   try {
     const { invoices, total } = await listInvoices({
       status: status ?? undefined,
-      customerId,
       limit,
       offset,
     });

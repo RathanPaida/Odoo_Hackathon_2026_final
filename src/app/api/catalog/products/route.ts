@@ -7,11 +7,13 @@ import { apiError, apiSuccess } from "@/lib/api-response";
 export async function GET(req: NextRequest) {
   try {
     const searchParams = req.nextUrl.searchParams;
-    const categoryId = searchParams.get("categoryId") || undefined;
+    const category = searchParams.get("category") || undefined;
     const activeParam = searchParams.get("active");
     const active = activeParam !== null ? activeParam === "true" : undefined;
 
-    const products = await catalogService.listProducts({ categoryId, active });
+    const products = await catalogService.listProducts({
+      category: category ?? undefined,
+    });
     return apiSuccess(products);
   } catch (error: any) {
     return apiError("FETCH_FAILED", error.message || "Failed to fetch products.", 500);

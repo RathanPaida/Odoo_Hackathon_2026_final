@@ -1,17 +1,18 @@
+// src/lib/services/recommendations.ts
 import { prisma } from "@/lib/db";
 import { Prisma } from "@/generated/prisma";
 
 export async function getRecommendationsForQuote(quotationId: string) {
-  const quotation = await prisma.quotation.findUnique({
+  const quote = await prisma.quote.findUnique({
     where: { id: quotationId },
     include: { lines: { include: { product: true } } },
   });
 
-  if (!quotation || quotation.lines.length === 0) return [];
+  if (!quote || quote.lines.length === 0) return [];
 
   // Get categories of products currently in the quote
-  const currentCategories = Array.from(new Set(quotation.lines.map((l) => l.product.categoryId)));
-  const currentProductIds = new Set(quotation.lines.map((l) => l.productId));
+  const currentCategories = Array.from(new Set(quote.lines.map((l) => l.product.category)));
+  const currentProductIds = new Set(quote.lines.map((l) => l.productId));
 
   // Find UpsellRules triggered by these categories
   const rules = await prisma.upsellRule.findMany({
@@ -37,15 +38,14 @@ export async function getRecommendationsForQuote(quotationId: string) {
     // Don't recommend something they already have in the cart
     if (currentProductIds.has(p.id)) continue;
 
-    const listPrice = Number(p.basePrice);
-    const cost = Number(p.costPrice);
+    const listPrice = Number(p.listPrice);
+    const cost = Number(p.unitCost);
     
     const marginAmt = listPrice - cost;
-    const marginPct = (marginAmt / listPrice) * 100;
+    const marginPct = listPrice > 0 ? (marginAmt / listPrice) * 100 : 0;
 
     // Filter: only recommend where expectedMargin >= product.minimumMargin
-    // @ts-ignore
-    if (marginPct < (Number(p.minimumMargin) || 0)) continue;
+    if (marginPct < Number(p.minimumMargin || 0)) continue;
 
     // Normalize inputs to a 0-1 scale for scoring
     const coPurchaseScore = rule.priority ? (10 / rule.priority) / 10 : 0.5; // Lower priority number = better
@@ -57,8 +57,8 @@ export async function getRecommendationsForQuote(quotationId: string) {
     recommendations.push({
       productId: p.id,
       productName: p.name,
-      sku: p.id.substring(0, 8), // Placeholder since SKU was dropped
-      listPrice: p.basePrice,
+      sku: p.sku,
+      listPrice: p.listPrice,
       score: score.toFixed(2),
       reason: `Frequently purchased with ${rule.triggerCategory}`,
       promotion: promotionScore > 0,

@@ -1,8 +1,9 @@
-// src/app/dashboard/page.tsx
+// src/app/dashboard/page.tsx - // src/app/dashboard/page.tsx
 // Main dashboard — redirects to role-specific pages or shows overview.
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth/session";
 import { LogoutButton } from "@/components/LogoutButton";
+import styles from "./dashboard.module.css";
 
 export const dynamic = "force-dynamic";
 
@@ -17,28 +18,28 @@ export default async function DashboardPage() {
   if (user.role === "ADMIN") redirect("/dashboard/admin");
 
   return (
-    <main className="surface-page min-h-screen px-6 py-10">
-      <div className="mx-auto max-w-3xl">
-        <header className="flex items-center justify-between mb-8">
-          <div>
-            <h1 className="text-3xl font-semibold tracking-tight text-[var(--foreground)]">DealFlow360</h1>
-            <p className="text-sm text-[var(--muted-foreground)]">Welcome back, {user.name}</p>
+    <main className={styles.page}>
+      <div className={styles.container}>
+        <header className={styles.header}>
+          <div className={styles.headerLeft}>
+            <h1 className={styles.title}>DealFlow360</h1>
+            <p className={styles.subtitle}>Welcome back, {user.name}</p>
           </div>
-          <LogoutButton />
+          <div className={styles.headerActions}>
+            <LogoutButton />
+          </div>
         </header>
 
-        <section className="surface-paper-card p-6">
-          <h2 className="text-lg font-medium text-[var(--foreground)] mb-2">Session</h2>
-          <dl className="grid grid-cols-[120px_1fr] gap-y-2 text-sm">
-            <dt className="text-[var(--muted-foreground)]">Name</dt>
-            <dd>{user.name}</dd>
-            <dt className="text-[var(--muted-foreground)]">Email</dt>
-            <dd>{user.email}</dd>
-            <dt className="text-[var(--muted-foreground)]">Role</dt>
+        <section className={`${styles.card} ${styles.animateFadeIn}`}>
+          <h2 className={styles.cardTitle}>Session Info</h2>
+          <dl className="grid grid-cols-[120px_1fr] gap-y-2 text-sm mt-4">
+            <dt className="text-[#94a3b8]">Name</dt>
+            <dd className="text-[#f1f5f9]">{user.name}</dd>
+            <dt className="text-[#94a3b8]">Email</dt>
+            <dd className="text-[#f1f5f9]">{user.email}</dd>
+            <dt className="text-[#94a3b8]">Role</dt>
             <dd>
-              <span className="rounded-md bg-[var(--primary)]/15 px-2 py-0.5 text-xs font-medium text-[var(--primary)]">
-                {user.role}
-              </span>
+              <span className={styles.roleBadge}>{user.role}</span>
             </dd>
           </dl>
         </section>

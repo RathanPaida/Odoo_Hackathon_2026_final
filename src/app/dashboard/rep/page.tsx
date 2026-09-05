@@ -1,6 +1,8 @@
+// src/app/dashboard/rep/page.tsx 
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth/session";
 import { LogoutButton } from "@/components/LogoutButton";
+import styles from "../dashboard.module.css";
 
 export const dynamic = "force-dynamic";
 
@@ -9,33 +11,37 @@ export default async function RepDashboardPage() {
   if (!user || user.role !== "SALES_REP") redirect("/login");
 
   return (
-    <main className="min-h-screen px-6 py-10 bg-[var(--paper)]">
-      <div className="mx-auto max-w-4xl">
-        <header className="flex items-center justify-between mb-8">
-          <div>
-            <h1 className="text-3xl font-semibold">Sales Representative</h1>
-            <p className="text-sm text-[var(--muted-foreground)]">Welcome back, {user.name}</p>
+    <main className={styles.page}>
+      <div className={styles.container}>
+        <header className={styles.header}>
+          <div className={styles.headerLeft}>
+            <h1 className={styles.title}>Sales Representative</h1>
+            <p className={styles.subtitle}>Welcome back, {user.name}</p>
           </div>
-          <LogoutButton />
+          <div className={styles.headerActions}>
+            <LogoutButton />
+          </div>
         </header>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className={`${styles.cardGrid} ${styles.cardGrid2}`}>
           <a
             href="/dashboard/rep/quotes"
-            className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-6 hover:shadow-md transition-shadow no-underline"
+            className={styles.navLink}
           >
-            <h2 className="text-lg font-medium mb-2">📄 Quotations</h2>
-            <p className="text-sm text-[var(--muted-foreground)]">
+            <span className={styles.navIcon}>📄</span>
+            <h2 className={styles.navTitle}>Quotations</h2>
+            <p className={styles.navDescription}>
               Manage your active quotes, add lines, and track approvals.
             </p>
           </a>
 
           <a
             href="/dashboard/rep/customers"
-            className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-6 hover:shadow-md transition-shadow no-underline"
+            className={styles.navLink}
           >
-            <h2 className="text-lg font-medium mb-2">🏢 Customers</h2>
-            <p className="text-sm text-[var(--muted-foreground)]">
+            <span className={styles.navIcon}>🏢</span>
+            <h2 className={styles.navTitle}>Customers</h2>
+            <p className={styles.navDescription}>
               View customer directory, create new customers, and update tiers.
             </p>
           </a>

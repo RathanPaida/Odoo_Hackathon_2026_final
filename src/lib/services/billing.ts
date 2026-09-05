@@ -1,6 +1,8 @@
 // src/lib/services/billing.ts
 // Spec §16 — hybrid billing: one-time invoice + recurring subscription schedule.
 // Money is always Prisma.Decimal. Never use JS number for money.
+//
+// Uses generated Prisma client types.
 import { Prisma } from "@/generated/prisma";
 import { prisma } from "@/lib/db";
 import { writeAudit } from "@/lib/audit";
@@ -29,10 +31,7 @@ export interface InvoiceLineItem {
 export interface CreateInvoiceResult {
   invoiceId: string;
   invoiceNumber: string;
-  invoiceType: string;
-  subtotal: Prisma.Decimal;
-  taxAmount: Prisma.Decimal;
-  totalAmount: Prisma.Decimal;
+  amount: Prisma.Decimal;
   dueDate: Date;
   lineItems: InvoiceLineItem[];
 }
@@ -45,175 +44,129 @@ function generateInvoiceNumber(): string {
   return `INV-${year}${month}-${random}`;
 }
 
+/**
+ * Create an invoice for a confirmed quote.
+ * Invoice is tied to Quote via quoteId (unique).
+ */
 export async function createOneTimeInvoice(
-  orderId: string,
+  quoteId: string,
   dueDays: number = 30
 ): Promise<CreateInvoiceResult> {
-  const order = await prisma.order.findUnique({
-    where: { id: orderId },
+  const quote = await prisma.quote.findUnique({
+    where: { id: quoteId },
     include: {
       lines: {
-        where: { productType: "ONE_TIME" },
         include: { product: true },
       },
       customer: true,
     },
   });
 
-  if (!order) throw new Error(`Order ${orderId} not found`);
-  if (order.lines.length === 0) throw new Error("No one-time lines to invoice");
+  if (!quote) throw new Error(`Quote ${quoteId} not found`);
+  if (quote.lines.length === 0) throw new Error("No lines to invoice");
 
   const lineItems: InvoiceLineItem[] = [];
-  let subtotal = new Prisma.Decimal(0);
-  let taxAmount = new Prisma.Decimal(0);
+  let totalAmount = new Prisma.Decimal(0);
 
-  for (const line of order.lines) {
-    const totalAmount = dec(line.totalAmount);
-    const taxLine = new Prisma.Decimal(0);
-    subtotal = subtotal.plus(totalAmount);
-    taxAmount = taxAmount.plus(taxLine);
+  for (const line of quote.lines) {
+    const lineTotal = dec(line.lineTotal);
+    totalAmount = totalAmount.plus(lineTotal);
 
     lineItems.push({
       description: line.product.name,
       productId: line.productId,
-      quantity: line.quantity,
+      quantity: line.qty,
       unitPrice: line.unitPrice,
-      taxAmount: taxLine,
-      totalAmount,
+      taxAmount: new Prisma.Decimal(0),
+      totalAmount: lineTotal,
     });
   }
 
-  const totalAmount = round2(subtotal.plus(taxAmount));
+  const roundedAmount = round2(totalAmount);
   const dueDate = new Date();
   dueDate.setDate(dueDate.getDate() + dueDays);
 
   const invoice = await prisma.invoice.create({
     data: {
-      orderId,
-      customerId: order.customerId,
+      quoteId,
+      customerId: quote.customerId,
       invoiceNumber: generateInvoiceNumber(),
-      totalAmount: totalAmount,
-      subtotal: round2(subtotal),
-      taxAmount: round2(taxAmount),
-      dueDate: dueDate,
-      status: "ISSUED",
+      amount: roundedAmount,
+      subtotal: roundedAmount,
+      taxAmount: new Prisma.Decimal(0),
+      paidAmount: new Prisma.Decimal(0),
       invoiceType: "ONE_TIME",
+      status: "ISSUED",
+      dueAt: dueDate,
     },
   });
-
-  for (const item of lineItems) {
-    await prisma.invoiceLine.create({
-      data: {
-        invoiceId: invoice.id,
-        description: item.description,
-        productId: item.productId,
-        quantity: item.quantity,
-        unitPrice: item.unitPrice,
-        taxAmount: item.taxAmount,
-        totalAmount: item.totalAmount,
-      },
-    });
-  }
 
   await writeAudit({
     entityType: "Invoice",
     entityId: invoice.id,
     action: "CREATED_ONE_TIME",
     before: undefined,
-    after: { orderId, invoiceNumber: invoice.invoiceNumber, amount: totalAmount.toString() },
+    after: { quoteId, invoiceNumber: invoice.invoiceNumber, amount: roundedAmount.toString() },
   });
 
   return {
     invoiceId: invoice.id,
     invoiceNumber: invoice.invoiceNumber,
-    invoiceType: "ONE_TIME",
-    subtotal: round2(subtotal),
-    taxAmount: round2(taxAmount),
-    totalAmount,
+    amount: roundedAmount,
     dueDate,
     lineItems,
   };
-}
-
-export async function recordPayment(
-  invoiceId: string,
-  amount: DecimalInput,
-  paymentMethod: string,
-  transactionReference?: string
-): Promise<{ paymentId: string; invoiceStatus: string }> {
-  const invoice = await prisma.invoice.findUnique({
-    where: { id: invoiceId },
-  });
-  if (!invoice) throw new Error(`Invoice ${invoiceId} not found`);
-
-  const paidAmount = dec(amount);
-
-  const payment = await prisma.payment.create({
-    data: {
-      invoiceId,
-      customerId: invoice.customerId,
-      amount: paidAmount,
-      paymentMethod,
-      status: "SUCCESS",
-      transactionReference,
-      paidAt: new Date(),
-    },
-  });
-
-  // Calculate total paid amounts from payments since `paidAmount` doesn't exist on invoice
-  const payments = await prisma.payment.findMany({
-    where: { invoiceId, status: "SUCCESS" }
-  });
-  const newPaidAmount = payments.reduce((acc, p) => acc.plus(p.amount), new Prisma.Decimal(0));
-  const isFullyPaid = newPaidAmount.greaterThanOrEqualTo(invoice.totalAmount);
-  const newStatus = isFullyPaid ? "PAID" : "PARTIALLY_PAID";
-
-  await prisma.invoice.update({
-    where: { id: invoiceId },
-    data: { status: newStatus },
-  });
-
-  await writeAudit({
-    entityType: "Payment",
-    entityId: payment.id,
-    action: "PAYMENT_RECEIVED",
-    before: undefined,
-    after: { invoiceId, amount: paidAmount.toString(), method: paymentMethod },
-  });
-
-  return { paymentId: payment.id, invoiceStatus: newStatus };
 }
 
 export async function getInvoiceById(invoiceId: string) {
   return prisma.invoice.findUnique({
     where: { id: invoiceId },
     include: {
-      lines: true,
-      payments: true,
+      quote: {
+        include: {
+          customer: true,
+          lines: { include: { product: true } },
+        },
+      },
+    },
+  });
+}
+
+export async function getInvoiceByQuoteId(quoteId: string) {
+  return prisma.invoice.findUnique({
+    where: { quoteId },
+    include: {
+      quote: {
+        include: {
+          customer: true,
+        },
+      },
     },
   });
 }
 
 export async function listInvoices(options: {
-  customerId?: string;
-  status?: string;
   limit?: number;
   offset?: number;
+  status?: string;
 }) {
-  const { customerId, status, limit = 50, offset = 0 } = options;
-
-  const where: Record<string, unknown> = {};
-  if (customerId) where.customerId = customerId;
-  if (status) where.status = status;
+  const { limit = 50, offset = 0, status } = options;
 
   const [invoices, total] = await Promise.all([
     prisma.invoice.findMany({
-      where,
-      orderBy: { createdAt: "desc" },
+      where: status ? { status: status as Prisma.EnumInvoiceStatusFilter<"Invoice"> | undefined } : undefined,
+      include: {
+        quote: {
+          include: { customer: true },
+        },
+      },
+      orderBy: { issuedAt: "desc" },
       take: limit,
       skip: offset,
     }),
-    prisma.invoice.count({ where }),
+    prisma.invoice.count({
+      where: status ? { status: status as Prisma.EnumInvoiceStatusFilter<"Invoice"> | undefined } : undefined,
+    }),
   ]);
 
   return { invoices, total };
@@ -222,22 +175,20 @@ export async function listInvoices(options: {
 export async function cancelInvoice(invoiceId: string, reason?: string) {
   const invoice = await prisma.invoice.findUnique({ where: { id: invoiceId } });
   if (!invoice) throw new Error(`Invoice ${invoiceId} not found`);
-  if (invoice.status === "PAID") {
-    throw new Error("Cannot cancel a fully paid invoice");
-  }
 
-  const updated = await prisma.invoice.update({
+  // Setting status to CANCELLED since generated client supports it
+  await prisma.invoice.update({ 
     where: { id: invoiceId },
-    data: { status: "CANCELLED" },
+    data: { status: "CANCELLED" }
   });
 
   await writeAudit({
     entityType: "Invoice",
     entityId: invoiceId,
     action: "CANCELLED",
-    before: { status: invoice.status },
-    after: { status: "CANCELLED", reason },
+    before: { invoiceNumber: invoice.invoiceNumber, amount: invoice.amount.toString(), status: invoice.status },
+    after: { reason, status: "CANCELLED" },
   });
 
-  return updated;
+  return { cancelled: true };
 }

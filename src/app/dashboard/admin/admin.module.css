@@ -1,0 +1,320 @@
+/* DealFlow360 — admin dashboard
+   Move the @import to app/layout.tsx (or use next/font) if you prefer. */
+@import url("https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=Inter:wght@400;500;600&display=swap");
+
+.page {
+  --ink: #0e1319;
+  --slate: #59646f;
+  --muted: #97a1ab;
+  --paper: #e9ecef;
+  --card: #ffffff;
+  --line: #d3d9df;
+  --line-soft: #e4e8ec;
+  --accent: #1f3bd8;
+  --signal: #0b7a5e;
+  --warn: #a26800;
+  --danger: #b3261e;
+
+  min-height: 100dvh;
+  padding: 2.5rem 1.5rem 4rem;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+.shell {
+  max-width: 68rem;
+  margin: 0 auto;
+}
+
+/* ---------- Header ---------- */
+
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1.5rem;
+  padding-bottom: 1.5rem;
+  margin-bottom: 2rem;
+  border-bottom: 1px solid var(--line);
+}
+
+.title {
+  margin: 0 0 0.25rem;
+  font-family: Archivo, Inter, sans-serif;
+  font-size: 1.625rem;
+  font-weight: 600;
+  letter-spacing: -0.025em;
+}
+
+.subtitle {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--slate);
+}
+
+/* ---------- Metric grids ---------- */
+
+.primaryGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1px;
+  margin-bottom: 1.25rem;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--line);
+  overflow: hidden;
+}
+
+.secondaryGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.875rem;
+  margin-bottom: 2rem;
+}
+
+/* Primary cards share hairlines inside one slab; secondary cards stand alone. */
+.card {
+  padding: 1.125rem 1.25rem;
+  background: var(--card);
+}
+
+.cardStandalone {
+  border: 1px solid var(--line);
+  border-radius: 10px;
+}
+
+.cardLabel {
+  display: flex;
+  align-items: center;
+  gap: 0.4375rem;
+  margin: 0 0 0.5rem;
+  font-size: 0.8125rem;
+  color: var(--slate);
+}
+
+.dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex: none;
+}
+
+.cardValue {
+  margin: 0;
+  font-family: Archivo, Inter, sans-serif;
+  font-size: 1.75rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+
+.card[data-tone="accent"] .cardValue,
+.card[data-tone="accent"] .dot {
+  color: var(--accent);
+}
+.card[data-tone="accent"] .dot {
+  background: var(--accent);
+}
+
+.card[data-tone="danger"] .cardValue,
+.card[data-tone="danger"] .dot {
+  color: var(--danger);
+}
+.card[data-tone="danger"] .dot {
+  background: var(--danger);
+}
+
+.card[data-tone="warn"] .cardValue,
+.card[data-tone="warn"] .dot {
+  color: var(--warn);
+}
+.card[data-tone="warn"] .dot {
+  background: var(--warn);
+}
+
+/* ---------- Panels ---------- */
+
+.panels {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+  gap: 1.25rem;
+  align-items: start;
+}
+
+.panel {
+  padding: 1.375rem;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--card);
+}
+
+.panelTitle {
+  margin: 0 0 1.25rem;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+/* ---------- Pipeline bars ---------- */
+
+.pipeline {
+  display: grid;
+  gap: 1rem;
+}
+
+.row {
+  display: grid;
+  gap: 0.4375rem;
+}
+
+.rowHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  font-size: 0.875rem;
+}
+
+.rowValue {
+  font-variant-numeric: tabular-nums;
+  font-weight: 500;
+}
+
+.rowCount {
+  margin-left: 0.4375rem;
+  font-size: 0.8125rem;
+  font-weight: 400;
+  color: var(--muted);
+}
+
+.track {
+  height: 6px;
+  border-radius: 3px;
+  background: var(--line-soft);
+  overflow: hidden;
+}
+
+.bar {
+  height: 100%;
+  border-radius: 3px;
+  background: var(--accent);
+  transform-origin: left;
+  animation: grow 550ms cubic-bezier(0.22, 0.7, 0.3, 1) both;
+}
+
+@keyframes grow {
+  from {
+    transform: scaleX(0);
+  }
+}
+
+/* ---------- Quick actions ---------- */
+
+.actions {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.action {
+  display: block;
+  padding: 0.8125rem 0.9375rem;
+  border: 1px solid var(--line-soft);
+  border-radius: 8px;
+  color: inherit;
+  text-decoration: none;
+  transition: border-color 140ms ease, background-color 140ms ease;
+}
+
+.action:hover {
+  border-color: var(--accent);
+  background: #f5f7ff;
+}
+
+.actionName {
+  margin: 0 0 0.125rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.actionHint {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: var(--slate);
+}
+
+/* ---------- Loading and empty states ---------- */
+
+.skeleton {
+  height: 1.75rem;
+  width: 3.5rem;
+  border-radius: 5px;
+  background: linear-gradient(90deg, #e8ebee 25%, #f2f4f6 50%, #e8ebee 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.3s linear infinite;
+}
+
+.skeletonRow {
+  height: 6px;
+  border-radius: 3px;
+  background: var(--line-soft);
+}
+
+@keyframes shimmer {
+  to {
+    background-position: -200% 0;
+  }
+}
+
+.empty {
+  margin: 0;
+  padding: 1.25rem 0;
+  font-size: 0.875rem;
+  color: var(--slate);
+  text-align: center;
+}
+
+.page :focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* ---------- Responsive ---------- */
+
+@media (max-width: 900px) {
+  .panels {
+    grid-template-columns: 1fr;
+  }
+
+  .secondaryGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .primaryGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 560px) {
+  .page {
+    padding: 1.75rem 1rem 3rem;
+  }
+
+  .header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bar,
+  .skeleton {
+    animation: none;
+  }
+
+  .action {
+    transition: none;
+  }
+}

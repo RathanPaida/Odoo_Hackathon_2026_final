@@ -1,9 +1,10 @@
-// src/app/dashboard/billing/schedule/page.tsx
+// src/app/dashboard/billing/schedule/page.tsx - // src/app/dashboard/billing/schedule/page.tsx
 // Upcoming billing schedule — shows all subscriptions due to bill
 "use client";
 
 import { useEffect, useState } from "react";
 import { LogoutButton } from "@/components/LogoutButton";
+import styles from "../../dashboard.module.css";
 
 interface ScheduleItem {
   id: string;
@@ -70,28 +71,24 @@ export default function BillingSchedulePage() {
   }, {} as Record<string, { items: ScheduleItem[]; total: number }>);
 
   return (
-    <main className="min-h-screen px-6 py-10 bg-[var(--paper)]">
-      <div className="mx-auto max-w-6xl">
-        <header className="flex items-center justify-between mb-8">
-          <div>
-            <h1 className="text-3xl font-semibold">Billing Schedule</h1>
-            <p className="text-sm text-[var(--muted-foreground)]">
-              Upcoming subscription billing dates
-            </p>
+    <main className={styles.page}>
+      <div className={styles.container}>
+        <header className={styles.header}>
+          <div className={styles.headerLeft}>
+            <h1 className={styles.title}>Billing Schedule</h1>
+            <p className={styles.subtitle}>Upcoming subscription billing dates</p>
           </div>
-          <LogoutButton />
+          <div className={styles.headerActions}>
+            <LogoutButton />
+          </div>
         </header>
 
-        <div className="mb-6 flex gap-4">
+        <div className={styles.filterTabs}>
           {(["all", "upcoming", "autopay"] as const).map((f) => (
             <button
               key={f}
               onClick={() => setFilter(f)}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                filter === f
-                  ? "bg-[var(--primary)] text-white"
-                  : "bg-[var(--card)] border border-[var(--border)] hover:bg-[var(--muted)]"
-              }`}
+              className={`${styles.filterTab} ${filter === f ? styles.filterTabActive : ""}`}
             >
               {f === "all" ? "All" : f === "upcoming" ? "Next 30 Days" : "AutoPay Only"}
             </button>
@@ -99,81 +96,77 @@ export default function BillingSchedulePage() {
         </div>
 
         {loading ? (
-          <div className="text-center py-12 text-[var(--muted-foreground)]">Loading...</div>
+          <div className={styles.emptyState}>
+            <p className={styles.emptyStateText}>Loading...</p>
+          </div>
         ) : error ? (
-          <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-red-700">{error}</div>
+          <div className={`${styles.card} ${styles.textBad}`}>
+            <p className={styles.emptyStateText}>{error}</p>
+          </div>
         ) : (
           <div className="space-y-8">
             {Object.entries(groupedByMonth).map(([month, { items, total }]) => (
-              <section key={month} className="rounded-xl border border-[var(--border)] bg-[var(--card)] overflow-hidden">
-                <div className="flex items-center justify-between px-6 py-4 bg-[var(--muted)] border-b border-[var(--border)]">
-                  <h2 className="font-medium">{formatMonth(month)}</h2>
+              <section key={month} className={`${styles.tableCard} ${styles.animateFadeIn}`}>
+                <div className="flex items-center justify-between px-6 py-4 mb-4" style={{ borderBottom: "1px solid rgba(139,92,246,0.15)" }}>
+                  <h2 className={styles.cardTitle}>{formatMonth(month)}</h2>
                   <div className="text-right">
-                    <p className="text-sm text-[var(--muted-foreground)]">Expected Revenue</p>
-                    <p className="font-semibold">${total.toLocaleString()}</p>
+                    <p className={styles.metricTitle}>Expected Revenue</p>
+                    <p className={styles.metricValue} style={{ fontSize: "1.25rem" }}>${total.toLocaleString()}</p>
                   </div>
                 </div>
-                <table className="w-full">
-                  <thead className="bg-[var(--paper)]">
-                    <tr>
-                      <th className="px-4 py-3 text-left text-sm font-medium">Customer</th>
-                      <th className="px-4 py-3 text-left text-sm font-medium">Product / Plan</th>
-                      <th className="px-4 py-3 text-left text-sm font-medium">Cycle</th>
-                      <th className="px-4 py-3 text-left text-sm font-medium">Qty</th>
-                      <th className="px-4 py-3 text-left text-sm font-medium">Amount</th>
-                      <th className="px-4 py-3 text-left text-sm font-medium">Billing Date</th>
-                      <th className="px-4 py-3 text-left text-sm font-medium">Status</th>
-                      <th className="px-4 py-3 text-left text-sm font-medium">AutoPay</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-[var(--border)]">
-                    {items.map((item) => (
-                      <tr key={item.id} className="hover:bg-[var(--muted)]">
-                        <td className="px-4 py-3 text-sm">{item.customerName}</td>
-                        <td className="px-4 py-3 text-sm">
-                          <p className="font-medium">{item.productName}</p>
-                          <p className="text-xs text-[var(--muted-foreground)]">{item.planName}</p>
-                        </td>
-                        <td className="px-4 py-3 text-sm">{item.billingCycle}</td>
-                        <td className="px-4 py-3 text-sm">{item.quantity}</td>
-                        <td className="px-4 py-3 text-sm font-medium">
-                          ${(Number(item.amount) * item.quantity).toLocaleString()}
-                        </td>
-                        <td className="px-4 py-3 text-sm">
-                          {new Date(item.nextBillingDate).toLocaleDateString()}
-                        </td>
-                        <td className="px-4 py-3 text-sm">
-                          <span
-                            className={`inline-block px-2 py-0.5 text-xs rounded ${
-                              item.status === "ACTIVE"
-                                ? "bg-green-100 text-green-700"
-                                : item.status === "PAST_DUE"
-                                ? "bg-red-100 text-red-700"
-                                : item.status === "PAUSED"
-                                ? "bg-yellow-100 text-yellow-700"
-                                : "bg-gray-100 text-gray-700"
-                            }`}
-                          >
-                            {item.status}
-                          </span>
-                        </td>
-                        <td className="px-4 py-3 text-sm">
-                          {item.autoPayEnabled ? (
-                            <span className="text-green-600">Enabled</span>
-                          ) : (
-                            <span className="text-gray-400">Manual</span>
-                          )}
-                        </td>
+                <div className={styles.tableWrapper}>
+                  <table className={styles.table}>
+                    <thead>
+                      <tr>
+                        <th>Customer</th>
+                        <th>Product / Plan</th>
+                        <th>Cycle</th>
+                        <th>Qty</th>
+                        <th>Amount</th>
+                        <th>Billing Date</th>
+                        <th>Status</th>
+                        <th>AutoPay</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody>
+                      {items.map((item) => (
+                        <tr key={item.id}>
+                          <td>{item.customerName}</td>
+                          <td>
+                            <p className={styles.cellPrimary}>{item.productName}</p>
+                            <p className={styles.cellMuted}>{item.planName}</p>
+                          </td>
+                          <td className={styles.cellMuted}>{item.billingCycle}</td>
+                          <td>{item.quantity}</td>
+                          <td className={styles.cellPrimary}>
+                            ${(Number(item.amount) * item.quantity).toLocaleString()}
+                          </td>
+                          <td className={styles.cellMuted}>
+                            {new Date(item.nextBillingDate).toLocaleDateString()}
+                          </td>
+                          <td>
+                            <span className={`${styles.statusBadge} ${getStatusClass(item.status)}`}>
+                              {item.status}
+                            </span>
+                          </td>
+                          <td>
+                            {item.autoPayEnabled ? (
+                              <span className={styles.textGood}>Enabled</span>
+                            ) : (
+                              <span className={styles.cellMuted}>Manual</span>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </section>
             ))}
 
             {sortedItems.length === 0 && (
-              <div className="text-center py-12 text-[var(--muted-foreground)]">
-                No billing schedule items found
+              <div className={styles.emptyState}>
+                <p className={styles.emptyStateText}>No billing schedule items found</p>
               </div>
             )}
           </div>
@@ -187,4 +180,14 @@ function formatMonth(monthKey: string): string {
   const [year, month] = monthKey.split("-");
   const date = new Date(parseInt(year), parseInt(month) - 1);
   return date.toLocaleDateString("en-US", { month: "long", year: "numeric" });
+}
+
+function getStatusClass(status: string): string {
+  switch (status) {
+    case "ACTIVE": return styles.statusBadgeApproved;
+    case "PAST_DUE": return styles.statusBadgeRejected;
+    case "PAUSED": return styles.statusBadgePending;
+    case "CANCELLED": return styles.statusBadgeRejected;
+    default: return styles.statusBadge;
+  }
 }

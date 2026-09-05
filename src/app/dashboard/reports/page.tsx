@@ -1,9 +1,10 @@
-// src/app/dashboard/reports/page.tsx
+// src/app/dashboard/reports/page.tsx - // src/app/dashboard/reports/page.tsx
 // Reports with filters: Period / Rep / Approval Status / Product
 "use client";
 
 import { useEffect, useState } from "react";
 import { LogoutButton } from "@/components/LogoutButton";
+import styles from "../dashboard.module.css";
 
 type ReportType = "quotes" | "revenue" | "products" | "approvals";
 type Period = "this_month" | "last_month" | "last_quarter" | "this_year" | "all";
@@ -123,39 +124,35 @@ export default function ReportsPage() {
   }
 
   return (
-    <main className="min-h-screen px-6 py-10 bg-[var(--paper)]">
-      <div className="mx-auto max-w-6xl">
-        <header className="flex items-center justify-between mb-8">
-          <div>
-            <h1 className="text-3xl font-semibold">Reports</h1>
-            <p className="text-sm text-[var(--muted-foreground)]">
-              Analytics and performance reports
-            </p>
+    <main className={styles.page}>
+      <div className={styles.container}>
+        <header className={styles.header}>
+          <div className={styles.headerLeft}>
+            <h1 className={styles.title}>Reports</h1>
+            <p className={styles.subtitle}>Analytics and performance reports</p>
           </div>
-          <LogoutButton />
+          <div className={styles.headerActions}>
+            <LogoutButton />
+          </div>
         </header>
 
-        <div className="mb-6 flex flex-wrap gap-4">
-          <div className="flex gap-2">
-            {(["quotes", "revenue", "products", "approvals"] as ReportType[]).map((type) => (
-              <button
-                key={type}
-                onClick={() => setReportType(type)}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                  reportType === type
-                    ? "bg-[var(--primary)] text-white"
-                    : "bg-[var(--card)] border border-[var(--border)] hover:bg-[var(--muted)]"
-                }`}
-              >
-                {type.charAt(0).toUpperCase() + type.slice(1)}
-              </button>
-            ))}
-          </div>
+        <div className={styles.filterTabs}>
+          {(["quotes", "revenue", "products", "approvals"] as ReportType[]).map((type) => (
+            <button
+              key={type}
+              onClick={() => setReportType(type)}
+              className={`${styles.filterTab} ${reportType === type ? styles.filterTabActive : ""}`}
+            >
+              {type.charAt(0).toUpperCase() + type.slice(1)}
+            </button>
+          ))}
+        </div>
 
+        <div className={`${styles.cardGrid} ${styles.cardGrid3}`} style={{ marginBottom: "1.5rem" }}>
           <select
             value={period}
             onChange={(e) => setPeriod(e.target.value as Period)}
-            className="px-4 py-2 rounded-lg text-sm border border-[var(--border)] bg-[var(--card)]"
+            className={styles.formSelect}
           >
             <option value="this_month">This Month</option>
             <option value="last_month">Last Month</option>
@@ -167,7 +164,7 @@ export default function ReportsPage() {
           <select
             value={selectedRepId}
             onChange={(e) => setSelectedRepId(e.target.value)}
-            className="px-4 py-2 rounded-lg text-sm border border-[var(--border)] bg-[var(--card)]"
+            className={styles.formSelect}
           >
             <option value="">All Reps</option>
             {users.map((user) => (
@@ -177,16 +174,16 @@ export default function ReportsPage() {
             ))}
           </select>
 
-          <div className="flex gap-2 ml-auto">
+          <div style={{ display: "flex", gap: "0.75rem", marginLeft: "auto" }}>
             <button
               onClick={() => handleExport("csv")}
-              className="px-4 py-2 rounded-lg text-sm font-medium bg-green-600 text-white hover:bg-green-700"
+              className={styles.secondaryBtn}
             >
               Export CSV
             </button>
             <button
               onClick={() => handleExport("xls")}
-              className="px-4 py-2 rounded-lg text-sm font-medium bg-green-600 text-white hover:bg-green-700"
+              className={styles.secondaryBtn}
             >
               Export XLS
             </button>
@@ -194,11 +191,15 @@ export default function ReportsPage() {
         </div>
 
         {loading ? (
-          <div className="text-center py-12 text-[var(--muted-foreground)]">Loading...</div>
+          <div className={styles.emptyState}>
+            <p className={styles.emptyStateText}>Loading...</p>
+          </div>
         ) : error ? (
-          <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-red-700">{error}</div>
+          <div className={`${styles.card} ${styles.textBad}`}>
+            <p className={styles.emptyStateText}>{error}</p>
+          </div>
         ) : (
-          <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] overflow-hidden">
+          <div className={`${styles.tableCard} ${styles.animateFadeIn}`}>
             {reportType === "quotes" && <QuotesTable data={data as QuoteRow[]} />}
             {reportType === "revenue" && <RevenueTable data={data as RevenueRow[]} />}
             {reportType === "products" && <ProductsTable data={data as ProductRow[]} />}
@@ -211,132 +212,151 @@ export default function ReportsPage() {
 }
 
 function QuotesTable({ data }: { data: QuoteRow[] }) {
-  if (data.length === 0) return <div className="p-8 text-center text-[var(--muted-foreground)]">No data</div>;
+  if (data.length === 0) return <div className={styles.emptyState}><p className={styles.emptyStateText}>No data</p></div>;
 
   return (
-    <table className="w-full">
-      <thead className="bg-[var(--muted)]">
-        <tr>
-          <th className="px-4 py-3 text-left text-sm font-medium">Quote #</th>
-          <th className="px-4 py-3 text-left text-sm font-medium">Customer</th>
-          <th className="px-4 py-3 text-left text-sm font-medium">Rep</th>
-          <th className="px-4 py-3 text-left text-sm font-medium">Status</th>
-          <th className="px-4 py-3 text-left text-sm font-medium">Subtotal</th>
-          <th className="px-4 py-3 text-left text-sm font-medium">Discount %</th>
-          <th className="px-4 py-3 text-left text-sm font-medium">Margin %</th>
-          <th className="px-4 py-3 text-left text-sm font-medium">Created</th>
-        </tr>
-      </thead>
-      <tbody className="divide-y divide-[var(--border)]">
-        {data.map((row, i) => (
-          <tr key={i} className="hover:bg-[var(--muted)]">
-            <td className="px-4 py-3 text-sm font-mono">{row.quoteNumber}</td>
-            <td className="px-4 py-3 text-sm">{row.customerName}</td>
-            <td className="px-4 py-3 text-sm">{row.repName}</td>
-            <td className="px-4 py-3 text-sm">
-              <span className={`inline-block px-2 py-0.5 text-xs rounded ${
-                row.status === "CONFIRMED" ? "bg-green-100 text-green-700" :
-                row.status === "REJECTED" ? "bg-red-100 text-red-700" :
-                row.status === "PENDING_APPROVAL" ? "bg-yellow-100 text-yellow-700" :
-                "bg-blue-100 text-blue-700"
-              }`}>{row.status}</span>
-            </td>
-            <td className="px-4 py-3 text-sm font-medium">${Number(row.subtotal).toLocaleString()}</td>
-            <td className="px-4 py-3 text-sm">{row.discountPct}%</td>
-            <td className="px-4 py-3 text-sm">{row.marginPct}%</td>
-            <td className="px-4 py-3 text-sm">{new Date(row.createdAt).toLocaleDateString()}</td>
+    <div className={styles.tableWrapper}>
+      <table className={styles.table}>
+        <thead>
+          <tr>
+            <th>Quote #</th>
+            <th>Customer</th>
+            <th>Rep</th>
+            <th>Status</th>
+            <th>Subtotal</th>
+            <th>Discount %</th>
+            <th>Margin %</th>
+            <th>Created</th>
           </tr>
-        ))}
-      </tbody>
-    </table>
+        </thead>
+        <tbody>
+          {data.map((row, i) => (
+            <tr key={i}>
+              <td className={styles.cellPrimary}>{row.quoteNumber}</td>
+              <td>{row.customerName}</td>
+              <td className={styles.cellMuted}>{row.repName}</td>
+              <td>
+                <span className={`${styles.statusBadge} ${getStatusClass(row.status)}`}>
+                  {row.status}
+                </span>
+              </td>
+              <td className={styles.cellPrimary}>${Number(row.subtotal).toLocaleString()}</td>
+              <td>{row.discountPct}%</td>
+              <td className={Number(row.marginPct) >= 10 ? styles.textGood : styles.textBad}>
+                {row.marginPct}%
+              </td>
+              <td className={styles.cellMuted}>{new Date(row.createdAt).toLocaleDateString()}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
   );
 }
 
 function RevenueTable({ data }: { data: RevenueRow[] }) {
-  if (data.length === 0) return <div className="p-8 text-center text-[var(--muted-foreground)]">No data</div>;
+  if (data.length === 0) return <div className={styles.emptyState}><p className={styles.emptyStateText}>No data</p></div>;
 
   return (
-    <table className="w-full">
-      <thead className="bg-[var(--muted)]">
-        <tr>
-          <th className="px-4 py-3 text-left text-sm font-medium">Month</th>
-          <th className="px-4 py-3 text-left text-sm font-medium">Revenue</th>
-          <th className="px-4 py-3 text-left text-sm font-medium">Orders</th>
-          <th className="px-4 py-3 text-left text-sm font-medium">Avg Deal Size</th>
-        </tr>
-      </thead>
-      <tbody className="divide-y divide-[var(--border)]">
-        {data.map((row, i) => (
-          <tr key={i} className="hover:bg-[var(--muted)]">
-            <td className="px-4 py-3 text-sm font-medium">{row.month}</td>
-            <td className="px-4 py-3 text-sm font-medium text-green-600">${row.revenue.toLocaleString()}</td>
-            <td className="px-4 py-3 text-sm">{row.orderCount}</td>
-            <td className="px-4 py-3 text-sm">${row.avgDealSize.toLocaleString()}</td>
+    <div className={styles.tableWrapper}>
+      <table className={styles.table}>
+        <thead>
+          <tr>
+            <th>Month</th>
+            <th>Revenue</th>
+            <th>Orders</th>
+            <th>Avg Deal Size</th>
           </tr>
-        ))}
-      </tbody>
-    </table>
+        </thead>
+        <tbody>
+          {data.map((row, i) => (
+            <tr key={i}>
+              <td className={styles.cellPrimary}>{row.month}</td>
+              <td className={styles.textGood}>${row.revenue.toLocaleString()}</td>
+              <td>{row.orderCount}</td>
+              <td>${row.avgDealSize.toLocaleString()}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
   );
 }
 
 function ProductsTable({ data }: { data: ProductRow[] }) {
-  if (data.length === 0) return <div className="p-8 text-center text-[var(--muted-foreground)]">No data</div>;
+  if (data.length === 0) return <div className={styles.emptyState}><p className={styles.emptyStateText}>No data</p></div>;
 
   return (
-    <table className="w-full">
-      <thead className="bg-[var(--muted)]">
-        <tr>
-          <th className="px-4 py-3 text-left text-sm font-medium">Product</th>
-          <th className="px-4 py-3 text-left text-sm font-medium">Category</th>
-          <th className="px-4 py-3 text-left text-sm font-medium">Units Sold</th>
-          <th className="px-4 py-3 text-left text-sm font-medium">Revenue</th>
-          <th className="px-4 py-3 text-left text-sm font-medium">Avg Discount</th>
-        </tr>
-      </thead>
-      <tbody className="divide-y divide-[var(--border)]">
-        {data.map((row, i) => (
-          <tr key={i} className="hover:bg-[var(--muted)]">
-            <td className="px-4 py-3 text-sm font-medium">{row.productName}</td>
-            <td className="px-4 py-3 text-sm">{row.category}</td>
-            <td className="px-4 py-3 text-sm">{row.unitsSold}</td>
-            <td className="px-4 py-3 text-sm font-medium text-green-600">${row.revenue.toLocaleString()}</td>
-            <td className="px-4 py-3 text-sm">{row.avgDiscount}%</td>
+    <div className={styles.tableWrapper}>
+      <table className={styles.table}>
+        <thead>
+          <tr>
+            <th>Product</th>
+            <th>Category</th>
+            <th>Units Sold</th>
+            <th>Revenue</th>
+            <th>Avg Discount</th>
           </tr>
-        ))}
-      </tbody>
-    </table>
+        </thead>
+        <tbody>
+          {data.map((row, i) => (
+            <tr key={i}>
+              <td className={styles.cellPrimary}>{row.productName}</td>
+              <td className={styles.cellMuted}>{row.category}</td>
+              <td>{row.unitsSold}</td>
+              <td className={styles.textGood}>${row.revenue.toLocaleString()}</td>
+              <td>{row.avgDiscount}%</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
   );
 }
 
 function ApprovalsTable({ data }: { data: ApprovalRow[] }) {
-  if (data.length === 0) return <div className="p-8 text-center text-[var(--muted-foreground)]">No data</div>;
+  if (data.length === 0) return <div className={styles.emptyState}><p className={styles.emptyStateText}>No data</p></div>;
 
   return (
-    <table className="w-full">
-      <thead className="bg-[var(--muted)]">
-        <tr>
-          <th className="px-4 py-3 text-left text-sm font-medium">Rep</th>
-          <th className="px-4 py-3 text-left text-sm font-medium">Submitted</th>
-          <th className="px-4 py-3 text-left text-sm font-medium">Approved</th>
-          <th className="px-4 py-3 text-left text-sm font-medium">Rejected</th>
-          <th className="px-4 py-3 text-left text-sm font-medium">Pending</th>
-          <th className="px-4 py-3 text-left text-sm font-medium">Approval Rate</th>
-          <th className="px-4 py-3 text-left text-sm font-medium">Avg Turnaround (hrs)</th>
-        </tr>
-      </thead>
-      <tbody className="divide-y divide-[var(--border)]">
-        {data.map((row, i) => (
-          <tr key={i} className="hover:bg-[var(--muted)]">
-            <td className="px-4 py-3 text-sm font-medium">{row.repName}</td>
-            <td className="px-4 py-3 text-sm">{row.submitted}</td>
-            <td className="px-4 py-3 text-sm text-green-600">{row.approved}</td>
-            <td className="px-4 py-3 text-sm text-red-600">{row.rejected}</td>
-            <td className="px-4 py-3 text-sm text-yellow-600">{row.pending}</td>
-            <td className="px-4 py-3 text-sm font-medium">{row.approvalRate}%</td>
-            <td className="px-4 py-3 text-sm">{row.avgTurnaroundHours ?? "N/A"}</td>
+    <div className={styles.tableWrapper}>
+      <table className={styles.table}>
+        <thead>
+          <tr>
+            <th>Rep</th>
+            <th>Submitted</th>
+            <th>Approved</th>
+            <th>Rejected</th>
+            <th>Pending</th>
+            <th>Approval Rate</th>
+            <th>Avg Turnaround (hrs)</th>
           </tr>
-        ))}
-      </tbody>
-    </table>
+        </thead>
+        <tbody>
+          {data.map((row, i) => (
+            <tr key={i}>
+              <td className={styles.cellPrimary}>{row.repName}</td>
+              <td>{row.submitted}</td>
+              <td className={styles.textGood}>{row.approved}</td>
+              <td className={styles.textBad}>{row.rejected}</td>
+              <td className={styles.textWarning}>{row.pending}</td>
+              <td className={styles.cellPrimary}>{row.approvalRate}%</td>
+              <td className={styles.cellMuted}>{row.avgTurnaroundHours ?? "N/A"}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
   );
+}
+
+function getStatusClass(status: string): string {
+  switch (status) {
+    case "CONFIRMED": return styles.statusBadgeConfirmed;
+    case "REJECTED": return styles.statusBadgeRejected;
+    case "PENDING_APPROVAL": return styles.statusBadgePending;
+    case "APPROVED": return styles.statusBadgeApproved;
+    case "DRAFT": return styles.statusBadgeDraft;
+    case "NEGOTIATING": return styles.statusBadgeNegotiating;
+    default: return styles.statusBadge;
+  }
 }

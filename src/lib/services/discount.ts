@@ -16,10 +16,9 @@ export interface DiscountRule {
 export const ROLE_RANK: Record<Role, number> = {
   CUSTOMER: 0,
   SALES_REP: 1,
-  OPERATIONS: 2,
-  SALES_MANAGER: 3,
-  FINANCE: 4,
-  ADMIN: 5,
+  SALES_MANAGER: 2,
+  FINANCE: 3,
+  ADMIN: 4,
 };
 
 /** Available role choices for a "requiredRole" — cannot be SALES_REP. */

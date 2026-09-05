@@ -1,3 +1,4 @@
+// src/lib/services/reports.ts
 import { Prisma } from "@/generated/prisma";
 import { prisma } from "@/lib/db";
 import { ReportRow, RevenueReportRow, ProductPerformanceRow, ApprovalMetricsRow } from "@/lib/contracts/reports";
@@ -40,14 +41,14 @@ export async function getQuoteReport(filters: ReportFilters): Promise<ReportRow[
     createdAt: { gte: start, lte: end },
   };
 
-  if (filters.repId) where.salesRepId = filters.repId;
+  if (filters.repId) where.ownerId = filters.repId;
   if (filters.approvalStatus) where.status = filters.approvalStatus;
   if (filters.customerId) where.customerId = filters.customerId;
   if (filters.productId) {
     where.lines = { some: { productId: filters.productId } };
   }
 
-  const quotes = await prisma.quotation.findMany({
+  const quotes = await prisma.quote.findMany({
     where,
     include: {
       customer: true,
@@ -57,13 +58,13 @@ export async function getQuoteReport(filters: ReportFilters): Promise<ReportRow[
 
   return quotes.map((q) => ({
     quoteId: q.id,
-    quoteNumber: q.quotationNumber,
+    quoteNumber: q.quoteNumber,
     customerName: q.customer.companyName,
     repName: "Sales Rep", // user table isn't easily accessible directly if relation isn't explicitly defined
     status: q.status,
     subtotal: q.subtotal.toString(),
-    discountPct: q.marginPercentage.toString(), // fallback
-    marginPct: q.marginPercentage.toString(),
+    discountPct: q.blendedDiscountPct.toString(),
+    marginPct: q.marginPct.toString(),
     createdAt: q.createdAt.toISOString(),
     confirmedAt: q.status === "CONFIRMED" ? q.updatedAt.toISOString() : null,
   }));
@@ -72,13 +73,13 @@ export async function getQuoteReport(filters: ReportFilters): Promise<ReportRow[
 export async function getRevenueReport(filters: ReportFilters): Promise<RevenueReportRow[]> {
   const { start, end } = getDateRange(filters.period);
 
-  const quotes = await prisma.quotation.findMany({
+  const quotes = await prisma.quote.findMany({
     where: {
       status: "CONFIRMED",
       updatedAt: { gte: start, lte: end },
     },
     select: {
-      totalAmount: true,
+      grandTotal: true,
       updatedAt: true,
     },
   });
@@ -90,7 +91,7 @@ export async function getRevenueReport(filters: ReportFilters): Promise<RevenueR
     if (!byMonth[monthKey]) {
       byMonth[monthKey] = { revenue: 0, count: 0 };
     }
-    byMonth[monthKey].revenue += Number(q.totalAmount);
+    byMonth[monthKey].revenue += Number(q.grandTotal);
     byMonth[monthKey].count += 1;
   }
 
@@ -113,21 +114,18 @@ export async function getProductPerformanceReport(filters: ReportFilters): Promi
   };
   if (filters.customerId) quoteWhere.customerId = filters.customerId;
 
-  const productWhere: Record<string, unknown> = {};
-  if (filters.productId) productWhere.id = filters.productId;
-
-  const confirmedQuotes = await prisma.quotation.findMany({
+  const confirmedQuotes = await prisma.quote.findMany({
     where: quoteWhere,
     select: { id: true },
   });
   const confirmedQuoteIds = confirmedQuotes.map((q) => q.id);
 
   const lineWhere: Record<string, unknown> = {
-    quotationId: { in: confirmedQuoteIds },
+    quoteId: { in: confirmedQuoteIds },
   };
   if (filters.productId) lineWhere.productId = filters.productId;
 
-  const lines = await prisma.quotationLine.findMany({
+  const lines = await prisma.quoteLine.findMany({
     where: lineWhere,
     include: { product: true },
   });
@@ -138,16 +136,16 @@ export async function getProductPerformanceReport(filters: ReportFilters): Promi
     if (!byProduct[line.productId]) {
       byProduct[line.productId] = {
         name: line.product.name,
-        category: line.product.categoryId,
+        category: line.product.category,
         units: 0,
         revenue: 0,
         totalDiscount: 0,
         count: 0,
       };
     }
-    byProduct[line.productId].units += line.quantity;
+    byProduct[line.productId].units += line.qty;
     byProduct[line.productId].revenue += Number(line.lineTotal);
-    byProduct[line.productId].totalDiscount += Number(line.discountPercentage);
+    byProduct[line.productId].totalDiscount += Number(line.discountPct);
     byProduct[line.productId].count += 1;
   }
 

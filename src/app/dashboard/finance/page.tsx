@@ -1,10 +1,11 @@
-// src/app/dashboard/finance/page.tsx
+// src/app/dashboard/finance/page.tsx - // src/app/dashboard/finance/page.tsx
 // Finance dashboard — billing overview, invoices, and payments.
 "use client";
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { LogoutButton } from "@/components/LogoutButton";
+import styles from "../dashboard.module.css";
 
 interface Invoice {
   id: string;
@@ -76,14 +77,16 @@ export default function FinanceDashboardPage() {
 
   if (loading) {
     return (
-      <main className="min-h-screen px-6 py-10 bg-[var(--paper)]">
-        <div className="mx-auto max-w-6xl">
-          <header className="flex items-center justify-between mb-8">
-            <div>
-              <h1 className="text-3xl font-semibold">Finance & Operations</h1>
-              <p className="text-sm text-[var(--muted-foreground)]">Loading...</p>
+      <main className={styles.page}>
+        <div className={styles.container}>
+          <header className={styles.header}>
+            <div className={styles.headerLeft}>
+              <h1 className={styles.title}>Finance & Operations</h1>
+              <p className={styles.subtitle}>Loading...</p>
             </div>
-            <LogoutButton />
+            <div className={styles.headerActions}>
+              <LogoutButton />
+            </div>
           </header>
         </div>
       </main>
@@ -91,78 +94,78 @@ export default function FinanceDashboardPage() {
   }
 
   return (
-    <main className="min-h-screen px-6 py-10 bg-[var(--paper)]">
-      <div className="mx-auto max-w-6xl">
-        <header className="flex items-center justify-between mb-8">
-          <div>
-            <h1 className="text-3xl font-semibold">Finance & Operations</h1>
-            <p className="text-sm text-[var(--muted-foreground)]">Billing, invoices, and subscriptions</p>
+    <main className={styles.page}>
+      <div className={styles.container}>
+        <header className={styles.header}>
+          <div className={styles.headerLeft}>
+            <h1 className={styles.title}>Finance & Operations</h1>
+            <p className={styles.subtitle}>Billing, invoices, and subscriptions</p>
           </div>
-          <LogoutButton />
+          <div className={styles.headerActions}>
+            <LogoutButton />
+          </div>
         </header>
 
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+        <div className={`${styles.cardGrid} ${styles.cardGrid4}`}>
           <MetricCard
             title="Total Revenue"
             value={`$${(data?.metrics.totalRevenue ?? 0).toLocaleString()}`}
-            trend="up"
+            highlight="green"
           />
           <MetricCard
             title="Overdue Invoices"
             value={String(data?.metrics.overdueInvoices ?? 0)}
-            trend={data?.metrics.overdueInvoices ? "down" : "up"}
+            highlight={data?.metrics.overdueInvoices ? "red" : "green"}
           />
           <MetricCard
             title="Active Subscriptions"
             value={String(data?.metrics.activeSubscriptions ?? 0)}
-            trend="up"
+            highlight="blue"
           />
           <MetricCard
             title="Pending Approvals"
             value={String(data?.metrics.pendingApprovals ?? 0)}
-            trend={data?.metrics.pendingApprovals ? "warning" : "up"}
+            highlight={data?.metrics.pendingApprovals ? "yellow" : "green"}
           />
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <section className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-6">
+        <div className={`${styles.cardGrid} ${styles.cardGrid2}`}>
+          <section className={`${styles.card} ${styles.animateFadeIn}`}>
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-medium">Recent Invoices</h2>
+              <h2 className={styles.cardTitle}>Recent Invoices</h2>
               <button
                 onClick={() => router.push("/dashboard/billing")}
-                className="text-sm text-[var(--primary)] hover:underline"
+                className={styles.actionLink}
               >
                 View all
               </button>
             </div>
             {error ? (
-              <p className="text-sm text-red-500">{error}</p>
+              <p className={styles.emptyStateText}>{error}</p>
             ) : data?.recentInvoices.length === 0 ? (
-              <p className="text-sm text-[var(--muted-foreground)]">No invoices yet</p>
+              <p className={styles.emptyStateText}>No invoices yet</p>
             ) : (
               <div className="space-y-3">
                 {data?.recentInvoices.map((invoice) => (
                   <div
                     key={invoice.id}
-                    className="flex items-center justify-between py-2 border-b border-[var(--border)] last:border-0"
+                    className="flex items-center justify-between py-3 border-b border-[rgba(139,92,246,0.1)] last:border-0"
                   >
                     <div>
-                      <p className="font-medium text-sm">{invoice.invoiceNumber}</p>
-                      <p className="text-xs text-[var(--muted-foreground)]">
+                      <p className="font-medium text-sm text-[#f1f5f9]">{invoice.invoiceNumber}</p>
+                      <p className="text-xs text-[#64748b]">
                         Due: {new Date(invoice.dueAt).toLocaleDateString()}
                       </p>
                     </div>
                     <div className="text-right">
-                      <p className="font-medium">${Number(invoice.amount).toLocaleString()}</p>
-                      <span
-                        className={`text-xs px-2 py-0.5 rounded ${
-                          invoice.status === "PAID"
-                            ? "bg-green-100 text-green-700"
-                            : invoice.status === "OVERDUE"
-                            ? "bg-red-100 text-red-700"
-                            : "bg-yellow-100 text-yellow-700"
-                        }`}
-                      >
+                      <p className="font-medium text-[#f1f5f9]">${Number(invoice.amount).toLocaleString()}</p>
+                      <span className={`${styles.statusBadge} ${
+                        invoice.status === "PAID"
+                          ? styles.statusBadgeApproved
+                          : invoice.status === "OVERDUE"
+                          ? styles.statusBadgeRejected
+                          : styles.statusBadgePending
+                      }`}>
                         {invoice.status}
                       </span>
                     </div>
@@ -172,24 +175,24 @@ export default function FinanceDashboardPage() {
             )}
           </section>
 
-          <section className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-6">
+          <section className={`${styles.card} ${styles.animateFadeIn}`}>
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-medium">Quick Actions</h2>
+              <h2 className={styles.cardTitle}>Quick Actions</h2>
             </div>
             <div className="space-y-3">
               <button
                 onClick={() => router.push("/dashboard/billing")}
-                className="w-full rounded-lg border border-[var(--border)] bg-[var(--paper)] px-4 py-3 text-left hover:bg-[var(--muted)] transition-colors"
+                className={styles.navLink}
               >
-                <p className="font-medium">Manage Subscription Plans</p>
-                <p className="text-sm text-[var(--muted-foreground)]">Configure billing cycles and pricing</p>
+                <h3 className={styles.navTitle}>Manage Subscription Plans</h3>
+                <p className={styles.navDescription}>Configure billing cycles and pricing</p>
               </button>
               <button
                 onClick={() => router.push("/dashboard/billing")}
-                className="w-full rounded-lg border border-[var(--border)] bg-[var(--paper)] px-4 py-3 text-left hover:bg-[var(--muted)] transition-colors"
+                className={styles.navLink}
               >
-                <p className="font-medium">View All Invoices</p>
-                <p className="text-sm text-[var(--muted-foreground)]">Track payments and outstanding balances</p>
+                <h3 className={styles.navTitle}>View All Invoices</h3>
+                <p className={styles.navDescription}>Track payments and outstanding balances</p>
               </button>
             </div>
           </section>
@@ -202,22 +205,24 @@ export default function FinanceDashboardPage() {
 function MetricCard({
   title,
   value,
-  trend,
+  highlight,
 }: {
   title: string;
   value: string;
-  trend: "up" | "down" | "warning";
+  highlight?: "green" | "red" | "yellow" | "blue";
 }) {
-  const trendColors = {
-    up: "text-green-600",
-    down: "text-red-600",
-    warning: "text-yellow-600",
-  };
+  const valueClass = highlight === "red"
+    ? styles.metricValueRed
+    : highlight === "yellow"
+    ? styles.metricValueYellow
+    : highlight === "blue"
+    ? styles.metricValueBlue
+    : styles.metricValueGreen;
 
   return (
-    <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-4">
-      <p className="text-sm text-[var(--muted-foreground)]">{title}</p>
-      <p className={`text-2xl font-semibold ${trendColors[trend]}`}>{value}</p>
+    <div className={`${styles.metricCard} ${styles.animateFadeIn}`}>
+      <p className={styles.metricTitle}>{title}</p>
+      <p className={`${styles.metricValue} ${valueClass}`}>{value}</p>
     </div>
   );
 }

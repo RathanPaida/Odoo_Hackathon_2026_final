@@ -23,10 +23,10 @@ export async function GET(
     where: { id: quoteRef.id },
     include: {
       customer: { select: { companyName: true, contactName: true, email: true } },
-      owner: { select: { name: true, email: true, phone: true } },
+      owner: { select: { name: true, email: true } },
       lines: {
         include: {
-          product: { select: { name: true, sku: true, description: true } },
+          product: { select: { name: true, sku: true } },
         }
       }
     }

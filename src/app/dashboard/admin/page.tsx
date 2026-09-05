@@ -1,11 +1,11 @@
-// src/app/dashboard/admin/page.tsx
+// src/app/dashboard/admin/page.tsx - // src/app/dashboard/admin/page.tsx
 // Admin dashboard — overview with key metrics and navigation.
 "use client";
 
 import { useEffect, useState } from "react";
-import { redirect } from "next/navigation";
 import Link from "next/link";
 import { LogoutButton } from "@/components/LogoutButton";
+import styles from "../dashboard.module.css";
 
 interface Metrics {
   totalQuotations: number;
@@ -49,17 +49,19 @@ export default function AdminDashboardPage() {
   }, []);
 
   return (
-    <main className="min-h-screen px-6 py-10 bg-[var(--paper)]">
-      <div className="mx-auto max-w-6xl">
-        <header className="flex items-center justify-between mb-8">
-          <div>
-            <h1 className="text-3xl font-semibold">Administration</h1>
-            <p className="text-sm text-[var(--muted-foreground)]">Platform overview and management</p>
+    <main className={styles.page}>
+      <div className={styles.container}>
+        <header className={styles.header}>
+          <div className={styles.headerLeft}>
+            <h1 className={styles.title}>Administration</h1>
+            <p className={styles.subtitle}>Platform overview and management</p>
           </div>
-          <LogoutButton />
+          <div className={styles.headerActions}>
+            <LogoutButton />
+          </div>
         </header>
 
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+        <div className={`${styles.cardGrid} ${styles.cardGrid4}`}>
           <MetricCard title="Total Quotations" value={metrics?.totalQuotations ?? 0} />
           <MetricCard title="Confirmed Orders" value={metrics?.confirmedOrders ?? 0} />
           <MetricCard
@@ -73,58 +75,58 @@ export default function AdminDashboardPage() {
           />
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+        <div className={`${styles.cardGrid} ${styles.cardGrid3}`}>
           <MetricCard title="Active Subscriptions" value={metrics?.activeSubscriptions ?? 0} />
           <MetricCard title="Overdue Invoices" value={metrics?.overdueInvoices ?? 0} highlightRed={metrics?.overdueInvoices ? metrics.overdueInvoices > 0 : false} />
           <MetricCard title="Stalled Deals" value={metrics?.stalledQuotations ?? 0} highlightYellow={metrics?.stalledQuotations ? metrics.stalledQuotations > 0 : false} />
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <section className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-6">
-            <h2 className="text-lg font-medium mb-4">Pipeline by Status</h2>
+        <div className={`${styles.cardGrid} ${styles.cardGrid2}`}>
+          <section className={`${styles.card} ${styles.animateFadeIn}`}>
+            <h2 className={styles.cardTitle}>Pipeline by Status</h2>
             {loading ? (
-              <p className="text-sm text-[var(--muted-foreground)]">Loading...</p>
+              <p className={styles.emptyStateText}>Loading...</p>
             ) : (
-              <div className="space-y-3">
+              <div className="space-y-3 mt-4">
                 {pipeline.map((item) => (
-                  <div key={item.status} className="flex items-center justify-between">
-                    <span className="text-sm">{item.status}</span>
+                  <div key={item.status} className="flex items-center justify-between py-2 border-b border-[rgba(139,92,246,0.1)] last:border-0">
+                    <span className="text-sm text-[#e2e8f0]">{item.status}</span>
                     <div className="flex items-center gap-3">
-                      <span className="text-sm font-medium">${item.value.toLocaleString()}</span>
-                      <span className="text-xs text-[var(--muted-foreground)]">({item.count})</span>
+                      <span className="text-sm font-medium text-[#f1f5f9]">${item.value.toLocaleString()}</span>
+                      <span className="text-xs text-[#64748b]">({item.count})</span>
                     </div>
                   </div>
                 ))}
                 {pipeline.length === 0 && (
-                  <p className="text-sm text-[var(--muted-foreground)]">No pipeline data</p>
+                  <p className={styles.emptyStateText}>No pipeline data</p>
                 )}
               </div>
             )}
           </section>
 
-          <section className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-6">
-            <h2 className="text-lg font-medium mb-4">Quick Actions</h2>
-            <div className="space-y-3">
+          <section className={`${styles.card} ${styles.animateFadeIn}`}>
+            <h2 className={styles.cardTitle}>Quick Actions</h2>
+            <div className="space-y-3 mt-4">
               <Link
                 href="/dashboard/admin/users"
-                className="block rounded-lg border border-[var(--border)] bg-[var(--paper)] px-4 py-3 hover:bg-[var(--muted)] transition-colors no-underline"
+                className={styles.navLink}
               >
-                <p className="font-medium text-sm">Manage Users</p>
-                <p className="text-xs text-[var(--muted-foreground)]">View and manage user accounts</p>
+                <h3 className={styles.navTitle}>Manage Users</h3>
+                <p className={styles.navDescription}>View and manage user accounts</p>
               </Link>
               <Link
                 href="/dashboard/finance"
-                className="block rounded-lg border border-[var(--border)] bg-[var(--paper)] px-4 py-3 hover:bg-[var(--muted)] transition-colors no-underline"
+                className={styles.navLink}
               >
-                <p className="font-medium text-sm">Finance & Billing</p>
-                <p className="text-xs text-[var(--muted-foreground)]">Invoices, payments, subscriptions</p>
+                <h3 className={styles.navTitle}>Finance & Billing</h3>
+                <p className={styles.navDescription}>Invoices, payments, subscriptions</p>
               </Link>
               <Link
                 href="/dashboard/billing"
-                className="block rounded-lg border border-[var(--border)] bg-[var(--paper)] px-4 py-3 hover:bg-[var(--muted)] transition-colors no-underline"
+                className={styles.navLink}
               >
-                <p className="font-medium text-sm">Subscription Plans</p>
-                <p className="text-xs text-[var(--muted-foreground)]">Configure billing plans</p>
+                <h3 className={styles.navTitle}>Subscription Plans</h3>
+                <p className={styles.navDescription}>Configure billing plans</p>
               </Link>
             </div>
           </section>
@@ -148,17 +150,17 @@ function MetricCard({
   highlightYellow?: boolean;
 }) {
   const valueClass = highlightRed
-    ? "text-red-600"
+    ? styles.metricValueRed
     : highlightYellow
-    ? "text-yellow-600"
+    ? styles.metricValueYellow
     : highlight
-    ? "text-blue-600"
-    : "text-foreground";
+    ? styles.metricValueBlue
+    : styles.metricValue;
 
   return (
-    <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-4">
-      <p className="text-sm text-[var(--muted-foreground)]">{title}</p>
-      <p className={`text-2xl font-semibold ${valueClass}`}>{value}</p>
+    <div className={`${styles.metricCard} ${styles.animateFadeIn}`}>
+      <p className={styles.metricTitle}>{title}</p>
+      <p className={`${styles.metricValue} ${valueClass}`}>{value}</p>
     </div>
   );
 }

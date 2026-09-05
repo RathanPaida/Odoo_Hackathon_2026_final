@@ -22,20 +22,12 @@ export async function POST(req: NextRequest, { params }: Params) {
       return apiError("INVALID_QUOTATION_ID", "Quotation ID is required.", 400);
     }
 
-    const { evaluation, approvalRequest } =
+    const { evaluation, approval } =
       await approvalFlowService.evaluateAndCreateRequest(quotationId);
 
     return apiSuccess({
-      quotationId: evaluation.quotationId,
-      requiresApproval: evaluation.requiresApproval,
-      riskScore: evaluation.riskScore,
-      level: evaluation.level,
-      status: evaluation.status,
-      reason: evaluation.reason,
-      quotationSubtotal: evaluation.quotationSubtotal,
-      totalDiscountAmount: evaluation.totalDiscountAmount,
-      approvalRequestId: approvalRequest?.id ?? null,
-      breakdown: evaluation.breakdown,
+      evaluation,
+      approvalId: approval?.id ?? null,
     });
   } catch (error: any) {
     console.error("Evaluation Error:", error);

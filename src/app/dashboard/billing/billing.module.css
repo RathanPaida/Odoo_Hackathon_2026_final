@@ -1,0 +1,466 @@
+/* DealFlow360 — billing and subscriptions
+   Move the @import to app/layout.tsx (or use next/font) if you prefer. */
+@import url("https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=Inter:wght@400;500;600&display=swap");
+
+.page {
+  --ink: #0e1319;
+  --slate: #59646f;
+  --muted: #97a1ab;
+  --paper: #e9ecef;
+  --card: #ffffff;
+  --line: #d3d9df;
+  --line-soft: #e4e8ec;
+  --accent: #1f3bd8;
+  --accent-soft: #f5f7ff;
+  --paid: #0b7a5e;
+  --warn: #a26800;
+  --danger: #b3261e;
+
+  min-height: 100dvh;
+  padding: 2.5rem 1.5rem 4rem;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+.shell {
+  max-width: 72rem;
+  margin: 0 auto;
+}
+
+/* ---------- Header ---------- */
+
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1.5rem;
+  margin-bottom: 1.75rem;
+}
+
+.title {
+  margin: 0 0 0.25rem;
+  font-family: Archivo, Inter, sans-serif;
+  font-size: 1.625rem;
+  font-weight: 600;
+  letter-spacing: -0.025em;
+}
+
+.subtitle {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--slate);
+}
+
+/* ---------- Tabs ---------- */
+
+.tabs {
+  display: flex;
+  gap: 0.25rem;
+  margin-bottom: 1.5rem;
+  border-bottom: 1px solid var(--line);
+}
+
+.tab {
+  position: relative;
+  padding: 0.5rem 0.75rem 0.75rem;
+  border: 0;
+  background: none;
+  color: var(--slate);
+  font: inherit;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  border-radius: 5px 5px 0 0;
+  transition: color 140ms ease;
+}
+
+.tab:hover {
+  color: var(--ink);
+}
+
+.tab[aria-selected="true"] {
+  color: var(--ink);
+}
+
+.tab[aria-selected="true"]::after {
+  content: "";
+  position: absolute;
+  right: 0.75rem;
+  bottom: -1px;
+  left: 0.75rem;
+  height: 2px;
+  background: var(--accent);
+}
+
+.tabCount {
+  margin-left: 0.4375rem;
+  font-size: 0.75rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--muted);
+}
+
+/* ---------- Table surface ---------- */
+
+.panel {
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--card);
+  overflow: hidden;
+}
+
+.scroller {
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+.table th {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--line);
+  background: #f7f8fa;
+  color: var(--slate);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.table td {
+  padding: 0.8125rem 1rem;
+  border-bottom: 1px solid var(--line-soft);
+  vertical-align: middle;
+}
+
+.table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.table tbody tr:hover td {
+  background: #fafbfc;
+}
+
+.num {
+  font-variant-numeric: tabular-nums;
+  font-weight: 500;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.numHead {
+  text-align: right;
+}
+
+.ref {
+  font-variant-numeric: tabular-nums;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+}
+
+.dim {
+  color: var(--slate);
+  white-space: nowrap;
+}
+
+.late {
+  color: var(--danger);
+  white-space: nowrap;
+}
+
+.emptyRow td {
+  padding: 3rem 1rem;
+  color: var(--slate);
+  text-align: center;
+}
+
+/* ---------- States ---------- */
+
+.skeletonTable {
+  display: grid;
+  gap: 1px;
+  padding: 1px;
+  background: var(--line-soft);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.skeletonRow {
+  height: 3rem;
+  background: linear-gradient(90deg, #f4f6f7 25%, #fafbfc 50%, #f4f6f7 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.3s linear infinite;
+}
+
+@keyframes shimmer {
+  to {
+    background-position: -200% 0;
+  }
+}
+
+.failure {
+  display: flex;
+  gap: 0.5rem;
+  padding: 0.875rem 1rem;
+  border: 1px solid #f3d5d2;
+  border-left: 2px solid var(--danger);
+  border-radius: 0 8px 8px 0;
+  background: #fdf2f1;
+  color: #8c1d18;
+  font-size: 0.875rem;
+}
+
+/* ---------- Footer links ---------- */
+
+.footerGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.875rem;
+  margin-top: 1.75rem;
+}
+
+.tile {
+  display: block;
+  padding: 1.125rem 1.25rem;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--card);
+  color: inherit;
+  text-decoration: none;
+  transition: border-color 140ms ease, background-color 140ms ease;
+}
+
+.tileLink:hover {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.tileTitle {
+  margin: 0 0 0.1875rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.tileHint {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: var(--slate);
+}
+
+.tileStat {
+  margin: 0;
+  font-family: Archivo, Inter, sans-serif;
+  font-size: 1.375rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+
+/* ---------- Modal contents ---------- */
+
+.detail {
+  display: grid;
+  gap: 1.25rem;
+}
+
+.statGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--line);
+  overflow: hidden;
+}
+
+.statGridThree {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.stat {
+  padding: 0.75rem 0.875rem;
+  background: var(--card);
+}
+
+.statLabel {
+  margin: 0 0 0.3125rem;
+  font-size: 0.75rem;
+  color: var(--slate);
+}
+
+.statValue {
+  margin: 0;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Charge blocks — one-time and recurring stay structurally separate. */
+.block {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--card);
+  overflow: hidden;
+}
+
+.blockHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--line-soft);
+  background: #f7f8fa;
+}
+
+.blockTitle {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.blockCycle {
+  font-weight: 400;
+  color: var(--slate);
+}
+
+.blockDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex: none;
+}
+
+.blockDotOneTime {
+  background: var(--accent);
+}
+
+.blockDotRecurring {
+  background: var(--paid);
+}
+
+.blockSubtotal {
+  font-size: 0.8125rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--slate);
+}
+
+.lines {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.line {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--line-soft);
+  font-size: 0.875rem;
+}
+
+.line:last-child {
+  border-bottom: 0;
+}
+
+.lineName {
+  margin: 0 0 0.125rem;
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.lineMeta {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: var(--slate);
+}
+
+.lineAmount {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.blockEmpty {
+  margin: 0;
+  padding: 1rem;
+  font-size: 0.875rem;
+  color: var(--slate);
+}
+
+.total {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.875rem 1rem;
+  border: 1px solid var(--ink);
+  border-radius: 8px;
+  background: var(--ink);
+  color: #fff;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.modalLoading {
+  padding: 3rem 0;
+  color: var(--slate);
+  font-size: 0.875rem;
+  text-align: center;
+}
+
+.page :focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* ---------- Responsive ---------- */
+
+@media (max-width: 900px) {
+  .footerGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .statGrid,
+  .statGridThree {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 560px) {
+  .page {
+    padding: 1.75rem 1rem 3rem;
+  }
+
+  .header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .tabs {
+    overflow-x: auto;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeletonRow {
+    animation: none;
+  }
+
+  .tile,
+  .tab {
+    transition: none;
+  }
+}

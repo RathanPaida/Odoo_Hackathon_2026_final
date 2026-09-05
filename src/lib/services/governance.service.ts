@@ -1,111 +1,64 @@
+// src/lib/services/governance.service.ts
+// Discount governance — manages DiscountRule table.
+// Schema has: DiscountRule (customerTier, productCategory, maxAutoApprovePct, requiredRole)
+// No separate DiscountTier, CategoryDiscountRule, or ApprovalRule models.
 import { prisma } from "@/lib/db";
-import { CustomerTier, ApprovalLevel, Prisma } from "@/generated/prisma";
+import { CustomerTier, Role, Prisma } from "@/generated/prisma";
 import { toDecimal } from "@/lib/api-response";
 
-export interface UpsertDiscountTierInput {
+export interface UpsertDiscountRuleInput {
   customerTier: CustomerTier;
-  maximumDiscount: number | string | Prisma.Decimal;
-  active?: boolean;
-}
-
-export interface UpsertCategoryDiscountRuleInput {
-  categoryId: string;
-  maximumDiscount: number | string | Prisma.Decimal;
-  active?: boolean;
-}
-
-export interface CreateApprovalRuleInput {
-  minimumRiskScore: number | string | Prisma.Decimal;
-  maximumRiskScore: number | string | Prisma.Decimal;
-  requiredApprovalLevel: ApprovalLevel;
-  active?: boolean;
+  productCategory: string;
+  maxAutoApprovePct: number | string | Prisma.Decimal;
+  requiredRole: Role;
 }
 
 export const governanceService = {
-  // ─── Customer Tier Ceilings ────────────────────────────────────────────────
-  async listDiscountTiers() {
-    return prisma.discountTier.findMany({
-      orderBy: { customerTier: "asc" },
+  // ─── Discount Rules ────────────────────────────────────────────────────────
+  async listDiscountRules() {
+    return prisma.discountRule.findMany({
+      orderBy: [{ customerTier: "asc" }, { productCategory: "asc" }],
     });
   },
 
-  async upsertDiscountTier(input: UpsertDiscountTierInput) {
-    return prisma.discountTier.upsert({
-      where: { customerTier: input.customerTier },
+  async upsertDiscountRule(input: UpsertDiscountRuleInput) {
+    return prisma.discountRule.upsert({
+      where: {
+        customerTier_productCategory: {
+          customerTier: input.customerTier,
+          productCategory: input.productCategory,
+        },
+      },
       create: {
         customerTier: input.customerTier,
-        maximumDiscount: toDecimal(input.maximumDiscount),
-        active: input.active ?? true,
+        productCategory: input.productCategory,
+        maxAutoApprovePct: toDecimal(input.maxAutoApprovePct),
+        requiredRole: input.requiredRole,
       },
       update: {
-        maximumDiscount: toDecimal(input.maximumDiscount),
-        active: input.active ?? true,
+        maxAutoApprovePct: toDecimal(input.maxAutoApprovePct),
+        requiredRole: input.requiredRole,
       },
     });
   },
 
-  // ─── Category Discount Ceilings ───────────────────────────────────────────
-  async listCategoryDiscountRules() {
-    return prisma.categoryDiscountRule.findMany({
-      include: {
-        category: true,
-      },
-      orderBy: { category: { name: "asc" } },
-    });
-  },
-
-  async upsertCategoryDiscountRule(input: UpsertCategoryDiscountRuleInput) {
-    return prisma.categoryDiscountRule.upsert({
-      where: { categoryId: input.categoryId },
-      create: {
-        categoryId: input.categoryId,
-        maximumDiscount: toDecimal(input.maximumDiscount),
-        active: input.active ?? true,
-      },
-      update: {
-        maximumDiscount: toDecimal(input.maximumDiscount),
-        active: input.active ?? true,
-      },
-      include: {
-        category: true,
-      },
-    });
-  },
-
-  // ─── Approval Rules ───────────────────────────────────────────────────────
-  async listApprovalRules() {
-    return prisma.approvalRule.findMany({
-      orderBy: { minimumRiskScore: "asc" },
-    });
-  },
-
-  async createApprovalRule(input: CreateApprovalRuleInput) {
-    return prisma.approvalRule.create({
-      data: {
-        minimumRiskScore: toDecimal(input.minimumRiskScore),
-        maximumRiskScore: toDecimal(input.maximumRiskScore),
-        requiredApprovalLevel: input.requiredApprovalLevel,
-        active: input.active ?? true,
-      },
-    });
-  },
-
-  async updateApprovalRule(id: string, input: Partial<CreateApprovalRuleInput>) {
-    const data: Prisma.ApprovalRuleUpdateInput = {};
-    if (input.minimumRiskScore !== undefined) data.minimumRiskScore = toDecimal(input.minimumRiskScore);
-    if (input.maximumRiskScore !== undefined) data.maximumRiskScore = toDecimal(input.maximumRiskScore);
-    if (input.requiredApprovalLevel !== undefined) data.requiredApprovalLevel = input.requiredApprovalLevel;
-    if (input.active !== undefined) data.active = input.active;
-
-    return prisma.approvalRule.update({
+  async deleteDiscountRule(id: string) {
+    return prisma.discountRule.delete({
       where: { id },
-      data,
     });
   },
 
-  async deleteApprovalRule(id: string) {
-    return prisma.approvalRule.delete({
-      where: { id },
+  // ─── Discount Rules by Tier ───────────────────────────────────────────────
+  async getDiscountRulesForTier(tier: CustomerTier) {
+    return prisma.discountRule.findMany({
+      where: { customerTier: tier },
+    });
+  },
+
+  // ─── Discount Rules by Category ───────────────────────────────────────────
+  async getDiscountRulesForCategory(productCategory: string) {
+    return prisma.discountRule.findMany({
+      where: { productCategory },
     });
   },
 };

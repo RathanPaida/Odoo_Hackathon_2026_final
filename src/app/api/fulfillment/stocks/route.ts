@@ -20,10 +20,10 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    if (!body.warehouseId || !body.productId || body.availableQuantity === undefined) {
+    if (!body.warehouseId || !body.productId || body.qtyOnHand === undefined) {
       return apiError(
         "INVALID_INPUT",
-        "warehouseId, productId, and availableQuantity are required.",
+        "warehouseId, productId, and qtyOnHand are required.",
         400
       );
     }
@@ -31,8 +31,7 @@ export async function POST(req: NextRequest) {
     const updated = await fulfillmentService.adjustStock({
       warehouseId: body.warehouseId,
       productId: body.productId,
-      availableQuantity: Number(body.availableQuantity),
-      reorderLevel: body.reorderLevel !== undefined ? Number(body.reorderLevel) : undefined,
+      qtyOnHand: Number(body.qtyOnHand),
     });
 
     return apiSuccess(updated);

@@ -14,13 +14,12 @@ import { apiError, apiSuccess } from "@/lib/api-response";
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    if (!body.orderId) {
-      return apiError("INVALID_INPUT", "orderId is required.", 400);
+    if (!body.quoteId) {
+      return apiError("INVALID_INPUT", "quoteId is required.", 400);
     }
 
-    const allocationResult = await fulfillmentService.allocateOrder(
-      body.orderId,
-      body.customerCoords
+    const allocationResult = await fulfillmentService.allocateQuote(
+      body.quoteId
     );
 
     return apiSuccess(allocationResult);

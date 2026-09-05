@@ -117,23 +117,23 @@ export interface QuoteTotalsPersist {
 
 /**
  * Re-read a quote with its lines and recompute persisted totals.
- * Returns the data payload to pass to prisma.quotation.update.
+ * Returns the data payload to pass to prisma.quote.update.
  */
 export async function computeQuoteTotals(quotationId: string): Promise<QuoteTotalsPersist> {
-  const quotation = await prisma.quotation.findUnique({
+  const quote = await prisma.quote.findUnique({
     where: { id: quotationId },
     include: { lines: { include: { product: true } } },
   });
-  if (!quotation) throw new Error(`Quotation ${quotationId} not found`);
+  if (!quote) throw new Error(`Quote ${quotationId} not found`);
 
-  const pricingLines: PricingLine[] = quotation.lines.map((l) => ({
+  const pricingLines: PricingLine[] = quote.lines.map((l) => ({
     productId: l.productId,
-    qty: l.quantity,
+    qty: l.qty,
     unitPrice: l.unitPrice,
-    discountPct: l.discountPercentage,
-    unitCost: l.costPrice,
-    taxPercentage: l.taxPercentage,
-    billingType: l.product?.productType ?? "ONE_TIME",
+    discountPct: l.discountPct,
+    unitCost: l.product.unitCost,
+    taxPercentage: l.product.taxRate,
+    billingType: l.product?.billingType ?? "ONE_TIME",
   }));
 
   const totals = computeTotals(pricingLines);

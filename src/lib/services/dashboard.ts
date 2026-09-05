@@ -2,7 +2,7 @@
 // Spec §17 — dashboard aggregation by reading existing module tables.
 // Do not duplicate operational tables for reporting.
 import { prisma } from "@/lib/db";
-import { QuotationStatus } from "@/generated/prisma";
+import { QuoteStatus } from "@/generated/prisma";
 
 export interface DashboardMetrics {
   totalQuotations: number;
@@ -62,23 +62,21 @@ export async function getDashboardMetrics(): Promise<DashboardMetrics> {
     pendingApprovals,
     approvedCount,
     rejectedCount,
-    activeSubscriptions,
     overdueInvoices,
     allQuotes,
   ] = await Promise.all([
-    prisma.quotation.count(),
-    prisma.quotation.count({ where: { status: "CONFIRMED" } }),
-    prisma.quotation.count({ where: { status: "PENDING_APPROVAL" } }),
-    prisma.quotation.count({ where: { status: "APPROVED" } }),
-    prisma.quotation.count({ where: { status: "REJECTED" } }),
-    prisma.subscription.count({ where: { status: "ACTIVE" } }),
-    prisma.invoice.count({ where: { status: "OVERDUE" } }),
-    prisma.quotation.findMany({
+    prisma.quote.count(),
+    prisma.quote.count({ where: { status: "CONFIRMED" } }),
+    prisma.quote.count({ where: { status: "PENDING_APPROVAL" } }),
+    prisma.quote.count({ where: { status: "APPROVED" } }),
+    prisma.quote.count({ where: { status: "REJECTED" } }),
+    prisma.invoice.count({ where: { dueAt: { lt: now } } }),
+    prisma.quote.findMany({
       where: {
         status: { notIn: ["CONFIRMED", "REJECTED"] },
       },
       select: {
-        totalAmount: true,
+        grandTotal: true,
         status: true,
         updatedAt: true,
       },
@@ -87,7 +85,7 @@ export async function getDashboardMetrics(): Promise<DashboardMetrics> {
 
   const totalRevenue = allQuotes
     .filter((q) => q.status === "CONFIRMED")
-    .reduce((sum, q) => sum + Number(q.totalAmount), 0);
+    .reduce((sum: number, q) => sum + Number(q.grandTotal), 0);
 
   const stalledQuotations = allQuotes.filter(
     (q) => {
@@ -105,7 +103,7 @@ export async function getDashboardMetrics(): Promise<DashboardMetrics> {
     approvedCount,
     rejectedCount,
     stalledQuotations,
-    activeSubscriptions,
+    activeSubscriptions: 0,
     overdueInvoices,
     fulfillmentDelays: 0,
     backorderCount: 0,
@@ -116,7 +114,7 @@ export async function getStalledDeals(): Promise<StalledDeal[]> {
   const now = new Date();
   const thresholdDate = new Date(now.getTime() - STALLED_THRESHOLD_DAYS * 24 * 60 * 60 * 1000);
 
-  const quotes = await prisma.quotation.findMany({
+  const quotes = await prisma.quote.findMany({
     where: {
       status: { notIn: ["CONFIRMED", "REJECTED"] },
       updatedAt: { lt: thresholdDate },
@@ -130,9 +128,9 @@ export async function getStalledDeals(): Promise<StalledDeal[]> {
     const daysStalled = Math.floor(diffMs / (1000 * 60 * 60 * 24));
     return {
       id: q.id,
-      quoteNumber: q.quotationNumber,
+      quoteNumber: q.quoteNumber,
       customerName: q.customer.companyName,
-      grandTotal: q.totalAmount.toString(),
+      grandTotal: q.grandTotal.toString(),
       status: q.status,
       lastActivity: q.updatedAt,
       daysStalled,
@@ -149,15 +147,15 @@ export async function getAnomalyMetrics(): Promise<AnomalyMetrics> {
 }
 
 export async function getQuotePipelineValue(): Promise<Array<{ status: string; value: number; count: number }>> {
-  const quotes = await prisma.quotation.groupBy({
+  const quotes = await prisma.quote.groupBy({
     by: ["status"],
-    _sum: { totalAmount: true },
+    _sum: { grandTotal: true },
     _count: { id: true },
   });
 
   return quotes.map((q) => ({
     status: q.status,
-    value: Number(q._sum.totalAmount ?? 0),
+    value: Number(q._sum.grandTotal ?? 0),
     count: q._count.id,
   }));
 }
@@ -166,18 +164,18 @@ export async function getRevenueByMonth(months: number = 6): Promise<Array<{ mon
   const now = new Date();
   const startDate = new Date(now.getFullYear(), now.getMonth() - months + 1, 1);
 
-  const quotes = await prisma.quotation.findMany({
+  const quotes = await prisma.quote.findMany({
     where: {
       status: "CONFIRMED",
       updatedAt: { gte: startDate },
     },
-    select: { totalAmount: true, updatedAt: true },
+    select: { grandTotal: true, updatedAt: true },
   });
 
   const byMonth: Record<string, number> = {};
   for (const q of quotes) {
     const monthKey = `${q.updatedAt.getFullYear()}-${String(q.updatedAt.getMonth() + 1).padStart(2, "0")}`;
-    byMonth[monthKey] = (byMonth[monthKey] ?? 0) + Number(q.totalAmount);
+    byMonth[monthKey] = (byMonth[monthKey] ?? 0) + Number(q.grandTotal);
   }
 
   return Object.entries(byMonth)

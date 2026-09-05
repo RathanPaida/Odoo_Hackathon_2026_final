@@ -4,9 +4,18 @@
 import { Prisma } from "@/generated/prisma";
 import { prisma } from "@/lib/db";
 import { writeAudit } from "@/lib/audit";
-import { dec, round2 } from "@/lib/services/billing";
 
 export type DecimalInput = string | number | Prisma.Decimal;
+
+function dec(value: DecimalInput): Prisma.Decimal {
+  return value instanceof Prisma.Decimal
+    ? value
+    : new Prisma.Decimal(String(value));
+}
+
+function round2(value: Prisma.Decimal): Prisma.Decimal {
+  return value.toDecimalPlaces(2, Prisma.Decimal.ROUND_HALF_UP);
+}
 
 function daysInMonth(date: Date): number {
   return new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
@@ -28,238 +37,184 @@ export function computeProration(
   return round2(amount.times(fraction));
 }
 
-function computeNextBillingDate(startDate: Date, billingCycle: string): Date {
-  const next = new Date(startDate);
-  if (billingCycle === "MONTHLY") {
-    next.setMonth(next.getMonth() + 1);
-  } else if (billingCycle === "QUARTERLY") {
-    next.setMonth(next.getMonth() + 3);
-  } else if (billingCycle === "YEARLY") {
-    next.setFullYear(next.getFullYear() + 1);
-  }
-  return next;
-}
-
-function computePeriodEnd(startDate: Date, billingCycle: string): Date {
-  const end = new Date(startDate);
-  if (billingCycle === "MONTHLY") {
-    end.setMonth(end.getMonth() + 1);
-    end.setDate(end.getDate() - 1);
-  } else if (billingCycle === "QUARTERLY") {
-    end.setMonth(end.getMonth() + 3);
-    end.setDate(end.getDate() - 1);
-  } else if (billingCycle === "YEARLY") {
-    end.setFullYear(end.getFullYear() + 1);
-    end.setDate(end.getDate() - 1);
-  }
-  return end;
-}
-
-export async function createSubscription(params: {
-  customerId: string;
-  orderId: string;
-  orderLineId: string;
-  productId: string;
-  planId: string;
-  quantity: number;
+/**
+ * Create a subscription line for a recurring quote line.
+ */
+export async function createSubscriptionLine(params: {
+  subscriptionId: string;
+  quoteLineId: string;
+  monthlyAmount: DecimalInput;
   startDate: Date;
-  autoPayEnabled: boolean;
+  months: number;
+  invoiceId?: string;
 }) {
-  const plan = await prisma.subscriptionPlan.findUnique({
-    where: { id: params.planId },
-  });
-  if (!plan) throw new Error(`Subscription plan ${params.planId} not found`);
-  if (!plan.active) throw new Error("Subscription plan is not active");
+  const monthlyDec = dec(params.monthlyAmount);
+  const proratedFirst = computeProration(monthlyDec, params.startDate);
 
-  const monthlyAmount = dec(plan.price).times(params.quantity);
-  const periodStart = params.startDate;
-  const periodEnd = computePeriodEnd(params.startDate, plan.billingCycle);
-  const nextBilling = computeNextBillingDate(params.startDate, plan.billingCycle);
-
-  const subscription = await prisma.subscription.create({
+  const subscriptionLine = await prisma.subscriptionLine.create({
     data: {
-      customerId: params.customerId,
-      orderId: params.orderId,
-      orderLineId: params.orderLineId,
-      productId: params.productId,
-      planId: params.planId,
-      quantity: params.quantity,
-      status: "ACTIVE",
+      subscriptionId: params.subscriptionId,
+      quoteLineId: params.quoteLineId,
+      invoiceId: params.invoiceId ?? null,
+      monthlyAmount: monthlyDec,
       startDate: params.startDate,
-      currentPeriodStart: periodStart,
-      currentPeriodEnd: periodEnd,
-      nextBillingDate: nextBilling,
-      autoPayEnabled: params.autoPayEnabled,
+      months: params.months,
+      proratedFirstAmount: proratedFirst,
     },
   });
 
   await writeAudit({
-    entityType: "Subscription",
-    entityId: subscription.id,
+    entityType: "SubscriptionLine",
+    entityId: subscriptionLine.id,
     action: "CREATED",
     before: undefined,
     after: {
-      customerId: params.customerId,
-      planId: params.planId,
-      quantity: params.quantity,
-      monthlyAmount: monthlyAmount.toString(),
+      quoteLineId: params.quoteLineId,
+      monthlyAmount: monthlyDec.toString(),
+      months: params.months,
+      proratedFirstAmount: proratedFirst.toString(),
     },
   });
 
-  return subscription;
+  return subscriptionLine;
 }
 
-export async function updateSubscription(
-  subscriptionId: string,
-  updates: {
-    quantity?: number;
-    planId?: string;
-    autoPayEnabled?: boolean;
-    status?: "ACTIVE" | "PAUSED" | "CANCELLED" | "EXPIRED" | "PAST_DUE";
-  }
-) {
-  const sub = await prisma.subscription.findUnique({ where: { id: subscriptionId } });
-  if (!sub) throw new Error(`Subscription ${subscriptionId} not found`);
-
-  const updated = await prisma.subscription.update({
-    where: { id: subscriptionId },
-    data: updates,
-  });
-
-  await writeAudit({
-    entityType: "Subscription",
-    entityId: subscriptionId,
-    action: "UPDATED",
-    before: {
-      quantity: sub.quantity,
-      autoPayEnabled: sub.autoPayEnabled,
-      status: sub.status,
-    },
-    after: {
-      quantity: updated.quantity,
-      autoPayEnabled: updated.autoPayEnabled,
-      status: updated.status,
-    },
-  });
-
-  return updated;
-}
-
-export async function cancelSubscription(
-  subscriptionId: string,
-  immediate: boolean = false
-) {
-  const sub = await prisma.subscription.findUnique({ where: { id: subscriptionId } });
-  if (!sub) throw new Error(`Subscription ${subscriptionId} not found`);
-
-  const status = immediate ? "CANCELLED" : "ACTIVE";
-  const updated = await prisma.subscription.update({
-    where: { id: subscriptionId },
-    data: { status },
-  });
-
-  await writeAudit({
-    entityType: "Subscription",
-    entityId: subscriptionId,
-    action: immediate ? "CANCELLED_IMMEDIATE" : "CANCELLED",
-    before: { status: sub.status },
-    after: { status: updated.status },
-  });
-
-  return updated;
-}
-
-export async function changeSubscriptionPlan(
-  subscriptionId: string,
-  newPlanId: string
-): Promise<{ prorationAmount: Prisma.Decimal; newSubscription: Awaited<ReturnType<typeof prisma.subscription.update>> }> {
-  const sub = await prisma.subscription.findUnique({
-    where: { id: subscriptionId },
-    include: { plan: true },
-  });
-  if (!sub) throw new Error(`Subscription ${subscriptionId} not found`);
-
-  const newPlan = await prisma.subscriptionPlan.findUnique({ where: { id: newPlanId } });
-  if (!newPlan) throw new Error(`Plan ${newPlanId} not found`);
-
-  const oldPrice = dec(sub.plan.price).times(sub.quantity);
-  const newPrice = dec(newPlan.price).times(sub.quantity);
-
-  const now = new Date();
-  const periodStart = sub.currentPeriodStart;
-  const periodEnd = sub.currentPeriodEnd;
-  const totalDays = daysInMonth(periodStart);
-  const startDay = periodStart.getDate();
-  const remaining = daysRemaining(startDay, totalDays);
-  const fraction = new Prisma.Decimal(remaining).dividedBy(totalDays);
-
-  const oldUnusedCredit = round2(oldPrice.times(fraction));
-  const newPlanCharge = round2(newPrice.times(fraction));
-  const prorationAmount = newPlanCharge.minus(oldUnusedCredit);
-
-  const updated = await prisma.subscription.update({
-    where: { id: subscriptionId },
-    data: {
-      planId: newPlanId,
-      currentPeriodEnd: computePeriodEnd(now, newPlan.billingCycle),
-      nextBillingDate: computeNextBillingDate(now, newPlan.billingCycle),
-    },
-  });
-
-  await writeAudit({
-    entityType: "Subscription",
-    entityId: subscriptionId,
-    action: "PLAN_CHANGED",
-    before: { planId: sub.planId },
-    after: { planId: newPlanId, prorationAmount: prorationAmount.toString() },
-  });
-
-  return { prorationAmount, newSubscription: updated };
-}
-
-export async function getSubscriptionById(subscriptionId: string) {
-  return prisma.subscription.findUnique({
-    where: { id: subscriptionId },
+/**
+ * Get subscription line by ID.
+ */
+export async function getSubscriptionLineById(id: string) {
+  return prisma.subscriptionLine.findUnique({
+    where: { id },
     include: {
-      plan: true,
-      customer: true,
+      quoteLine: {
+        include: {
+          product: true,
+          quote: {
+            include: { customer: true },
+          },
+        },
+      },
+      invoice: true,
     },
   });
 }
 
-export async function listSubscriptions(options: {
-  customerId?: string;
-  status?: string;
+/**
+ * Get subscription line by quote line ID.
+ */
+export async function getSubscriptionLineByQuoteLine(quoteLineId: string) {
+  return prisma.subscriptionLine.findUnique({
+    where: { quoteLineId },
+    include: {
+      quoteLine: {
+        include: {
+          product: true,
+        },
+      },
+      invoice: true,
+    },
+  });
+}
+
+/**
+ * List all subscription lines, optionally filtered.
+ */
+export async function listSubscriptionLines(options: {
   limit?: number;
   offset?: number;
 }) {
-  const { customerId, status, limit = 50, offset = 0 } = options;
+  const { limit = 50, offset = 0 } = options;
 
-  const where: Record<string, unknown> = {};
-  if (customerId) where.customerId = customerId;
-  if (status) where.status = status;
-
-  const [subscriptions, total] = await Promise.all([
-    prisma.subscription.findMany({
-      where,
-      include: { plan: true, customer: true },
-      orderBy: { createdAt: "desc" },
+  const [lines, total] = await Promise.all([
+    prisma.subscriptionLine.findMany({
+      include: {
+        quoteLine: {
+          include: {
+            product: true,
+            quote: {
+              include: { customer: true },
+            },
+          },
+        },
+        invoice: true,
+      },
+      orderBy: { startDate: "desc" },
       take: limit,
       skip: offset,
     }),
-    prisma.subscription.count({ where }),
+    prisma.subscriptionLine.count(),
   ]);
 
-  return { subscriptions, total };
+  return { lines, total };
 }
 
-export async function getDueSubscriptions() {
-  const now = new Date();
-  return prisma.subscription.findMany({
-    where: {
-      status: "ACTIVE",
-      nextBillingDate: { lte: now },
+/**
+ * Create subscription lines for all recurring lines in a confirmed quote.
+ */
+export async function createSubscriptionsForQuote(
+  quoteId: string,
+  startDate: Date = new Date(),
+  defaultMonths: number = 12,
+  invoiceId?: string
+) {
+  const quote = await prisma.quote.findUnique({
+    where: { id: quoteId },
+    include: {
+      lines: {
+        include: { product: true },
+      },
     },
-    include: { plan: true, customer: true },
   });
+
+  if (!quote) throw new Error(`Quote ${quoteId} not found`);
+
+  const recurringLines = quote.lines.filter(
+    (line) => line.billingType === "RECURRING"
+  );
+
+  const subscriptionLines = [];
+
+  // Get a default plan if exists, else we create one
+  let plan = await prisma.subscriptionPlan.findFirst();
+  if (!plan) {
+    plan = await prisma.subscriptionPlan.create({
+      data: {
+        name: "Default Plan",
+        billingCycle: "MONTHLY",
+        price: new Prisma.Decimal(0),
+      }
+    });
+  }
+
+  for (const line of recurringLines) {
+    // We create the parent Subscription first
+    const sub = await prisma.subscription.create({
+      data: {
+        customerId: quote.customerId,
+        orderId: `ORDER-${quote.id}`, // Placeholder or real orderId
+        productId: line.productId,
+        planId: plan.id,
+        startDate: startDate,
+        currentPeriodStart: startDate,
+        currentPeriodEnd: new Date(startDate.getTime() + 30 * 24 * 60 * 60 * 1000),
+        nextBillingDate: new Date(startDate.getTime() + 30 * 24 * 60 * 60 * 1000),
+      }
+    });
+
+    const monthlyAmount = line.lineTotal;
+    const months = line.subscriptionMonths ?? defaultMonths;
+
+    const subLine = await createSubscriptionLine({
+      subscriptionId: sub.id,
+      quoteLineId: line.id,
+      monthlyAmount,
+      startDate,
+      months,
+      invoiceId,
+    });
+
+    subscriptionLines.push(subLine);
+  }
+
+  return subscriptionLines;
 }

@@ -11,11 +11,11 @@ interface Params {
 export async function GET(req: NextRequest, { params }: Params) {
   try {
     const { id } = await params;
-    const request = await approvalFlowService.getApprovalRequest(id);
-    if (!request) {
+    const approvalRequest = await approvalFlowService.getApproval(id);
+    if (!approvalRequest) {
       return apiError("NOT_FOUND", `ApprovalRequest '${id}' not found.`, 404);
     }
-    return apiSuccess(request);
+    return apiSuccess(approvalRequest);
   } catch (error: any) {
     return apiError("FETCH_FAILED", error.message || "Failed to fetch approval request.", 500);
   }

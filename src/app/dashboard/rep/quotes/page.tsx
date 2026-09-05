@@ -5,8 +5,19 @@ import Link from "next/link";
 import { LogoutButton } from "@/components/LogoutButton";
 import NewQuoteButton from "./NewQuoteButton";
 import { QuoteStatus } from "@/generated/prisma";
+import styles from "./quotes.module.css";
 
 export const dynamic = "force-dynamic";
+
+const STATUS_CLASSES: Record<string, string> = {
+  DRAFT: styles.statusBadgeDraft,
+  PENDING_APPROVAL: styles.statusBadgePending,
+  APPROVED: styles.statusBadgeApproved,
+  NEGOTIATING: styles.statusBadgeNegotiating,
+  REJECTED: styles.statusBadgeRejected,
+  CONFIRMED: styles.statusBadgeConfirmed,
+  CANCELLED: styles.statusBadgeRejected,
+};
 
 export default async function QuotesPage({
   searchParams,
@@ -20,7 +31,7 @@ export default async function QuotesPage({
 
   const { status } = await searchParams;
 
-  const where: any = {};
+  const where: Record<string, unknown> = {};
   if (user.role === "SALES_REP") {
     where.ownerId = user.id;
   }
@@ -39,29 +50,25 @@ export default async function QuotesPage({
   });
 
   return (
-    <main className="min-h-screen px-6 py-10 bg-[var(--paper)]">
-      <div className="mx-auto max-w-5xl">
-        <header className="flex items-center justify-between mb-8">
-          <div>
-            <div className="flex items-center gap-3">
-              <Link href="/dashboard/rep" className="text-sm text-[var(--muted-foreground)] hover:text-[var(--ink)]">
-                ← Back to Dashboard
-              </Link>
-            </div>
-            <h1 className="text-3xl font-semibold mt-2">Quotations</h1>
+    <main className={styles.page}>
+      <div className={styles.container}>
+        <header className={styles.header}>
+          <div className={styles.headerLeft}>
+            <Link href="/dashboard/rep" className={styles.backLink}>
+              ← Back to Dashboard
+            </Link>
+            <h1 className={styles.title}>Quotations</h1>
           </div>
-          <div className="flex items-center gap-4">
+          <div className={styles.headerActions}>
             <NewQuoteButton />
             <LogoutButton />
           </div>
         </header>
 
-        <div className="flex gap-4 mb-6 overflow-x-auto pb-2">
+        <div className={styles.filterTabs}>
           <Link
             href="/dashboard/rep/quotes"
-            className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap ${
-              !status ? "bg-[var(--ink)] text-[var(--paper)]" : "bg-[var(--card)] text-[var(--muted-foreground)] border border-[var(--border)] hover:bg-[var(--muted)]"
-            }`}
+            className={`${styles.filterTab} ${!status ? styles.filterTabActive : ""}`}
           >
             All Quotes
           </Link>
@@ -69,65 +76,67 @@ export default async function QuotesPage({
             <Link
               key={s}
               href={`/dashboard/rep/quotes?status=${s}`}
-              className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap ${
-                status === s ? "bg-[var(--ink)] text-[var(--paper)]" : "bg-[var(--card)] text-[var(--muted-foreground)] border border-[var(--border)] hover:bg-[var(--muted)]"
-              }`}
+              className={`${styles.filterTab} ${status === s ? styles.filterTabActive : ""}`}
             >
               {s.replace("_", " ")}
             </Link>
           ))}
         </div>
 
-        <section className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-6">
+        <section className={styles.tableCard}>
           {quotes.length === 0 ? (
-            <div className="text-center py-10 text-[var(--muted-foreground)]">
-              No quotes found for this filter.
+            <div className={styles.emptyState}>
+              <p className={styles.emptyStateText}>No quotes found for this filter.</p>
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-sm">
+            <div className={styles.tableWrapper}>
+              <table className={styles.table}>
                 <thead>
-                  <tr className="border-b border-[var(--border)]">
-                    <th className="pb-3 font-medium text-[var(--muted-foreground)]">Quote #</th>
-                    <th className="pb-3 font-medium text-[var(--muted-foreground)]">Customer</th>
-                    <th className="pb-3 font-medium text-[var(--muted-foreground)]">Status</th>
-                    <th className="pb-3 font-medium text-[var(--muted-foreground)]">Total</th>
-                    <th className="pb-3 font-medium text-[var(--muted-foreground)]">Margin</th>
-                    <th className="pb-3 font-medium text-[var(--muted-foreground)]">Last Updated</th>
-                    <th className="pb-3 font-medium text-[var(--muted-foreground)]">Action</th>
+                  <tr>
+                    <th>Quote #</th>
+                    <th>Customer</th>
+                    <th>Status</th>
+                    <th>Total</th>
+                    <th>Margin</th>
+                    <th>Last Updated</th>
+                    <th>Action</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {quotes.map((q) => (
-                    <tr key={q.id} className="border-b border-[var(--border)] last:border-0 hover:bg-[var(--muted)]/50">
-                      <td className="py-3 font-medium">{q.quoteNumber}</td>
-                      <td className="py-3">{q.customer.companyName}</td>
-                      <td className="py-3">
-                        <span className="inline-flex items-center rounded-full bg-[var(--muted)] px-2.5 py-0.5 text-xs font-medium text-[var(--ink)]">
-                          {q.status.replace("_", " ")}
-                        </span>
-                      </td>
-                      <td className="py-3 font-medium text-[var(--ink)]">
-                        {q.currency} {q.grandTotal.toString()}
-                      </td>
-                      <td className="py-3">
-                        <span className={`${Number(q.marginPct) < 10 ? "text-red-600" : "text-green-600"}`}>
-                          {q.marginPct.toString()}%
-                        </span>
-                      </td>
-                      <td className="py-3 text-[var(--muted-foreground)]">
-                        {q.updatedAt.toLocaleDateString()}
-                      </td>
-                      <td className="py-3">
-                        <Link
-                          href={`/dashboard/rep/quotes/${q.id}`}
-                          className="text-sm text-[var(--ink)] hover:underline font-medium"
-                        >
-                          View / Edit
-                        </Link>
-                      </td>
-                    </tr>
-                  ))}
+                  {quotes.map((q) => {
+                    const statusClass = STATUS_CLASSES[q.status] || styles.statusBadge;
+                    const marginGood = Number(q.marginPct) >= 10;
+                    return (
+                      <tr key={q.id}>
+                        <td className={styles.quoteNumber}>{q.quoteNumber}</td>
+                        <td className={styles.customerName}>{q.customer.companyName}</td>
+                        <td>
+                          <span className={`${styles.statusBadge} ${statusClass}`}>
+                            {q.status.replace("_", " ")}
+                          </span>
+                        </td>
+                        <td className={styles.totalAmount}>
+                          {q.currency} {q.grandTotal.toString()}
+                        </td>
+                        <td>
+                          <span className={marginGood ? styles.marginGood : styles.marginBad}>
+                            {q.marginPct.toString()}%
+                          </span>
+                        </td>
+                        <td className={styles.date}>
+                          {q.updatedAt.toLocaleDateString()}
+                        </td>
+                        <td>
+                          <Link
+                            href={`/dashboard/rep/quotes/${q.id}`}
+                            className={styles.actionLink}
+                          >
+                            View / Edit
+                          </Link>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>

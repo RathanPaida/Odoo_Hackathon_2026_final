@@ -1,66 +1,71 @@
+// src/lib/services/quotation.ts
+// Person 1 — Quotation state machine and totals recomputation.
+// Uses the actual Prisma schema models: Quote, QuoteLine, QuoteStatus.
 import { prisma } from "@/lib/db";
-import { QuotationStatus, Prisma } from "@/generated/prisma";
+import { QuoteStatus, Prisma } from "@/generated/prisma";
 import { writeAudit } from "@/lib/audit";
 
 export type QuotationEvent = "SUBMIT" | "APPROVE" | "REJECT" | "NEGOTIATE" | "CONFIRM" | "CANCEL";
 
 /**
- * The ONLY code path that writes Quotation.status.
+ * The ONLY code path that writes Quote.status.
  * Person 1 owns this.
  */
 export async function transitionQuotation(
   quotationId: string,
   event: QuotationEvent,
   actorId: string,
-  newStatus?: QuotationStatus // For when an external system (like Approval Service) dictates the exact status
+  newStatus?: QuoteStatus // For when an external system (like Approval Service) dictates the exact status
 ) {
-  const quotation = await prisma.quotation.findUnique({ where: { id: quotationId } });
-  if (!quotation) throw new Error("Quotation not found");
+  const quote = await prisma.quote.findUnique({ where: { id: quotationId } });
+  if (!quote) throw new Error("Quotation not found");
 
-  let nextStatus = quotation.status;
+  let nextStatus: QuoteStatus = quote.status;
 
   switch (event) {
     case "SUBMIT":
-      if (quotation.status !== "DRAFT" && quotation.status !== "REJECTED" && quotation.status !== "UNDER_NEGOTIATION") {
-        throw new Error("Can only submit from DRAFT, REJECTED, or UNDER_NEGOTIATION");
+      if (quote.status !== "DRAFT" && quote.status !== "REJECTED" && quote.status !== "NEGOTIATING") {
+        throw new Error("Can only submit from DRAFT, REJECTED, or NEGOTIATING");
       }
       nextStatus = newStatus || "PENDING_APPROVAL";
       break;
     
     case "APPROVE":
-      if (quotation.status !== "PENDING_APPROVAL") {
+      if (quote.status !== "PENDING_APPROVAL") {
         throw new Error("Can only approve from PENDING_APPROVAL");
       }
       nextStatus = "APPROVED";
       break;
 
     case "REJECT":
-      if (quotation.status !== "PENDING_APPROVAL") {
+      if (quote.status !== "PENDING_APPROVAL") {
         throw new Error("Can only reject from PENDING_APPROVAL");
       }
       nextStatus = "REJECTED";
       break;
 
     case "NEGOTIATE":
-      if (quotation.status === "CONFIRMED" || quotation.status === "CANCELLED") {
+      if (quote.status === "CONFIRMED") {
         throw new Error("Cannot negotiate a final quotation");
       }
-      nextStatus = "UNDER_NEGOTIATION";
+      nextStatus = "NEGOTIATING";
       break;
 
     case "CONFIRM":
-      if (quotation.status !== "APPROVED") {
+      if (quote.status !== "APPROVED") {
         throw new Error("Can only confirm from APPROVED");
       }
       nextStatus = "CONFIRMED";
       break;
 
     case "CANCEL":
-      nextStatus = "CANCELLED";
+      // Cancel is always allowed — but schema doesn't have CANCELLED.
+      // Treat as REJECTED for now since schema has no CANCELLED status.
+      nextStatus = "REJECTED";
       break;
   }
 
-  const updated = await prisma.quotation.update({
+  const updated = await prisma.quote.update({
     where: { id: quotationId },
     data: { 
       status: nextStatus,
@@ -69,11 +74,11 @@ export async function transitionQuotation(
   });
 
   await writeAudit({
-    entityType: "Quotation",
+    entityType: "Quote",
     entityId: quotationId,
     action: `TRANSITION_${event}`,
     actorId,
-    before: { status: quotation.status },
+    before: { status: quote.status },
     after: { status: nextStatus },
   });
 
@@ -81,77 +86,76 @@ export async function transitionQuotation(
 }
 
 /**
- * Recomputes all line-level and order-level totals for a quotation.
+ * Recomputes all line-level and order-level totals for a quote.
  */
 export async function recomputeQuotationTotals(quotationId: string) {
-  const quotation = await prisma.quotation.findUnique({
+  const quote = await prisma.quote.findUnique({
     where: { id: quotationId },
     include: { lines: { include: { product: true } } },
   });
 
-  if (!quotation) throw new Error("Quotation not found");
+  if (!quote) throw new Error("Quotation not found");
 
   let subtotal = new Prisma.Decimal(0);
-  let discountAmount = new Prisma.Decimal(0);
-  let taxAmount = new Prisma.Decimal(0);
-  let totalAmount = new Prisma.Decimal(0);
+  let discountTotal = new Prisma.Decimal(0);
+  let taxTotal = new Prisma.Decimal(0);
+  let grandTotal = new Prisma.Decimal(0);
   let totalCost = new Prisma.Decimal(0);
-  let marginAmount = new Prisma.Decimal(0);
 
-  // Use a transaction to update lines and quotation together
+  // Use a transaction to update lines and quote together
   await prisma.$transaction(async (tx) => {
-    for (const line of quotation.lines) {
-      // line.unitPrice is listPrice, discountPercentage is applied to it
-      const lineSubtotal = line.unitPrice.mul(line.quantity);
-      const lineDiscountAmt = lineSubtotal.mul(line.discountPercentage).div(100);
+    for (const line of quote.lines) {
+      // lineTotal = unitPrice * qty * (1 - discountPct/100)
+      const lineSubtotal = line.unitPrice.mul(line.qty);
+      const lineDiscountAmt = lineSubtotal.mul(line.discountPct).div(100);
       const postDiscount = lineSubtotal.sub(lineDiscountAmt);
-      const lineTaxAmt = postDiscount.mul(line.taxPercentage).div(100);
+      const lineTaxAmt = postDiscount.mul(line.product.taxRate).div(100);
       const lineTotal = postDiscount.add(lineTaxAmt);
-      const lineCost = line.costPrice.mul(line.quantity);
-      const lineMargin = postDiscount.sub(lineCost);
+      const lineCost = line.product.unitCost.mul(line.qty);
 
       // Update line totals
-      await tx.quotationLine.update({
+      await tx.quoteLine.update({
         where: { id: line.id },
         data: {
-          discountAmount: lineDiscountAmt,
-          taxAmount: lineTaxAmt,
-          lineSubtotal,
-          lineTotal,
-          lineMargin,
+          lineTotal: lineTotal,
         },
       });
 
       subtotal = subtotal.add(lineSubtotal);
-      discountAmount = discountAmount.add(lineDiscountAmt);
-      taxAmount = taxAmount.add(lineTaxAmt);
-      totalAmount = totalAmount.add(lineTotal);
+      discountTotal = discountTotal.add(lineDiscountAmt);
+      taxTotal = taxTotal.add(lineTaxAmt);
+      grandTotal = grandTotal.add(lineTotal);
       totalCost = totalCost.add(lineCost);
     }
 
-    marginAmount = subtotal.sub(discountAmount).sub(totalCost);
+    const marginAmount = subtotal.sub(discountTotal).sub(totalCost);
     
     // Calculate percentages safely
-    const netRevenue = subtotal.sub(discountAmount);
+    const netRevenue = subtotal.sub(discountTotal);
       
-    const marginPercentage = netRevenue.gt(0)
+    const marginPct = netRevenue.gt(0)
       ? marginAmount.div(netRevenue).mul(100)
       : new Prisma.Decimal(0);
 
-    await tx.quotation.update({
+    const blendedDiscountPct = subtotal.gt(0)
+      ? discountTotal.div(subtotal).mul(100)
+      : new Prisma.Decimal(0);
+
+    await tx.quote.update({
       where: { id: quotationId },
       data: {
         subtotal,
-        discountAmount,
-        taxAmount,
-        totalAmount,
+        discountTotal,
+        taxTotal,
+        grandTotal,
         totalCost,
         marginAmount,
-        marginPercentage,
+        marginPct,
+        blendedDiscountPct,
         lastActivityAt: new Date(),
       },
     });
   });
 
-  return prisma.quotation.findUnique({ where: { id: quotationId } });
+  return prisma.quote.findUnique({ where: { id: quotationId } });
 }

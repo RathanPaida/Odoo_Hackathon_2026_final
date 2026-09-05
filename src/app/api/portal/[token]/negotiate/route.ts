@@ -6,7 +6,7 @@ import { prisma } from "@/lib/db";
 import { Prisma } from "@/generated/prisma";
 import { transitionQuotation } from "@/lib/services/quotation";
 import { getApprovalClient } from "@/lib/services/approval-client";
-import { recalcQuoteTotals } from "@/lib/services/pricing";
+import { computeQuoteTotals } from "@/lib/services/pricing";
 
 /**
  * POST /api/portal/:token/negotiate
@@ -175,7 +175,7 @@ export async function POST(
   // 3. If financial terms changed, recalculate totals + re-trigger approval
   if (financialChange) {
     // Recalculate quote-level totals
-    await recalcQuoteTotals(quoteRef.id);
+    await computeQuoteTotals(quoteRef.id);
 
     // Increment reapprovalCount
     await prisma.quote.update({
