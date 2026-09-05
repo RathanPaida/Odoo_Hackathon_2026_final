@@ -3,7 +3,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { LogoutButton } from "@/components/LogoutButton";
+import { RoleSidebar } from "@/components/navbar/RoleSidebar";
 import styles from "../dashboard.module.css";
 
 type ReportType = "quotes" | "revenue" | "products" | "approvals";
@@ -124,17 +124,15 @@ export default function ReportsPage() {
   }
 
   return (
-    <main className={styles.page}>
-      <div className={styles.container}>
-        <header className={styles.header}>
-          <div className={styles.headerLeft}>
-            <h1 className={styles.title}>Reports</h1>
-            <p className={styles.subtitle}>Analytics and performance reports</p>
-          </div>
-          <div className={styles.headerActions}>
-            <LogoutButton />
-          </div>
-        </header>
+    <RoleSidebar>
+      <main className={styles.page}>
+        <div className={styles.container}>
+          <header className={styles.header}>
+            <div className={styles.headerLeft}>
+              <h1 className={styles.title}>Reports</h1>
+              <p className={styles.subtitle}>Analytics and performance reports</p>
+            </div>
+          </header>
 
         <div className={styles.filterTabs}>
           {(["quotes", "revenue", "products", "approvals"] as ReportType[]).map((type) => (
@@ -208,6 +206,7 @@ export default function ReportsPage() {
         )}
       </div>
     </main>
+    </RoleSidebar>
   );
 }
 

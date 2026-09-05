@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth/session";
 import { prisma } from "@/lib/db";
 import Link from "next/link";
-import { LogoutButton } from "@/components/LogoutButton";
+import { RoleSidebar } from "@/components/navbar/RoleSidebar";
 import NewQuoteButton from "./NewQuoteButton";
 import { QuoteStatus } from "@/generated/prisma";
 import styles from "./quotes.module.css";
@@ -57,20 +57,20 @@ export default async function QuotesPage({
   ]);
 
   return (
-    <main className={styles.page}>
-      <div className={styles.container}>
-        <header className={styles.header}>
-          <div className={styles.headerLeft}>
-            <Link href="/dashboard/rep" className={styles.backLink}>
-              ← Back to Dashboard
-            </Link>
-            <h1 className={styles.title}>Quotations</h1>
-          </div>
-          <div className={styles.headerActions}>
-            <NewQuoteButton initialCustomers={customers} />
-            <LogoutButton />
-          </div>
-        </header>
+    <RoleSidebar role={user.role} userName={user.name} userEmail={user.email}>
+      <main className={styles.page}>
+        <div className={styles.container}>
+          <header className={styles.header}>
+            <div className={styles.headerLeft}>
+              <Link href="/dashboard/rep" className={styles.backLink}>
+                ← Back to Dashboard
+              </Link>
+              <h1 className={styles.title}>Quotations</h1>
+            </div>
+            <div className={styles.headerActions}>
+              <NewQuoteButton initialCustomers={customers} />
+            </div>
+          </header>
 
         <div className={styles.filterTabs}>
           <Link
@@ -151,5 +151,6 @@ export default async function QuotesPage({
         </section>
       </div>
     </main>
+    </RoleSidebar>
   );
 }

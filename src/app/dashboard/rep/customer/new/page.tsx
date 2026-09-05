@@ -52,10 +52,18 @@ export default function NewCustomerPage() {
     setSuccess(null);
 
     try {
+      const payload = {
+        companyName: formData.company || formData.name,
+        contactName: formData.name,
+        email: formData.email,
+        phone: formData.phone || undefined,
+        tier: formData.tier,
+      };
+
       const res = await fetch("/api/customers", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData)
+        body: JSON.stringify(payload)
       });
 
       const data = await res.json();

@@ -19,7 +19,7 @@ async function handleQuoteStateChanged(job: { data: { quoteId: string } }) {
   const { quoteId } = job.data;
   console.log(`[quoteStateChanged] Processing quotation ${quoteId}`);
 
-  const quotation = await prisma.quotation.findUnique({
+  const quotation = await prisma.quote.findUnique({
     where: { id: quoteId },
     include: { lines: { include: { product: true } }, customer: true },
   });
@@ -29,7 +29,6 @@ async function handleQuoteStateChanged(job: { data: { quoteId: string } }) {
     return;
   }
 
-  // Anomaly detection removed due to schema refactor.
   console.log(`[quoteStateChanged] Quotation ${quoteId} processed successfully.`);
 }
 
@@ -57,15 +56,14 @@ async function handleBillingJob(_job: unknown) {
 
       await prisma.invoice.create({
         data: {
-          orderId: sub.orderId,
           customerId: sub.customerId,
           invoiceNumber,
           subtotal: new Prisma.Decimal(amount),
-          totalAmount: new Prisma.Decimal(amount),
+          amount: new Prisma.Decimal(amount),
           taxAmount: new Prisma.Decimal(0),
           invoiceType: "RECURRING",
-          status: sub.autoPayEnabled ? "ISSUED" : "ISSUED",
-          dueDate: new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000),
+          status: "ISSUED",
+          dueAt: new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000),
         },
       });
 

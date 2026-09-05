@@ -51,29 +51,31 @@ export default async function QuoteDetailPage({
   const serializedProducts = JSON.parse(JSON.stringify(products));
 
   return (
-    <main className="min-h-screen px-6 py-10 bg-[var(--paper)]">
-      <div className="mx-auto max-w-6xl">
-        <header className="mb-8">
-          <Link href="/dashboard/rep/quotes" className="text-sm text-[var(--muted-foreground)] hover:text-[var(--ink)]">
-            ← Back to Quotes
-          </Link>
-          <div className="flex items-center justify-between mt-2">
-            <div>
-              <h1 className="text-3xl font-semibold">Quote {quote.quoteNumber}</h1>
-              <p className="text-sm text-[var(--muted-foreground)] mt-1">
-                For {quote.customer.companyName} ({quote.customer.tier})
-              </p>
+    <RoleSidebar role={user.role as any}>
+      <main className="min-h-screen px-6 py-10 bg-[var(--paper)]">
+        <div className="mx-auto max-w-6xl">
+          <header className="mb-8">
+            <Link href="/dashboard/rep/quotes" className="text-sm text-[var(--muted-foreground)] hover:text-[var(--ink)]">
+              ← Back to Quotes
+            </Link>
+            <div className="flex items-center justify-between mt-2">
+              <div>
+                <h1 className="text-3xl font-semibold">Quote {quote.quoteNumber}</h1>
+                <p className="text-sm text-[var(--muted-foreground)] mt-1">
+                  For {quote.customer.companyName} ({quote.customer.tier})
+                </p>
+              </div>
+              <div className="text-right">
+                <span className="inline-flex items-center rounded-full bg-[var(--muted)] px-3 py-1 text-sm font-medium text-[var(--ink)]">
+                  {quote.status.replace("_", " ")}
+                </span>
+              </div>
             </div>
-            <div className="text-right">
-              <span className="inline-flex items-center rounded-full bg-[var(--muted)] px-3 py-1 text-sm font-medium text-[var(--ink)]">
-                {quote.status.replace("_", " ")}
-              </span>
-            </div>
-          </div>
-        </header>
+          </header>
 
-        <QuoteBuilder initialQuote={serializedQuote} products={serializedProducts} />
-      </div>
-    </main>
+          <QuoteBuilder initialQuote={serializedQuote} products={serializedProducts} />
+        </div>
+      </main>
+    </RoleSidebar>
   );
 }

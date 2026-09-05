@@ -4,7 +4,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { LogoutButton } from "@/components/LogoutButton";
+import { RoleSidebar } from "@/components/navbar/RoleSidebar";
 import styles from "../dashboard.module.css";
 
 interface Invoice {
@@ -77,34 +77,31 @@ export default function FinanceDashboardPage() {
 
   if (loading) {
     return (
+      <RoleSidebar role="FINANCE">
+        <main className={styles.page}>
+          <div className={styles.container}>
+            <header className={styles.header}>
+              <div className={styles.headerLeft}>
+                <h1 className={styles.title}>Finance & Operations</h1>
+                <p className={styles.subtitle}>Loading...</p>
+              </div>
+            </header>
+          </div>
+        </main>
+      </RoleSidebar>
+    );
+  }
+
+  return (
+    <RoleSidebar role="FINANCE">
       <main className={styles.page}>
         <div className={styles.container}>
           <header className={styles.header}>
             <div className={styles.headerLeft}>
               <h1 className={styles.title}>Finance & Operations</h1>
-              <p className={styles.subtitle}>Loading...</p>
-            </div>
-            <div className={styles.headerActions}>
-              <LogoutButton />
+              <p className={styles.subtitle}>Billing, invoices, and subscriptions</p>
             </div>
           </header>
-        </div>
-      </main>
-    );
-  }
-
-  return (
-    <main className={styles.page}>
-      <div className={styles.container}>
-        <header className={styles.header}>
-          <div className={styles.headerLeft}>
-            <h1 className={styles.title}>Finance & Operations</h1>
-            <p className={styles.subtitle}>Billing, invoices, and subscriptions</p>
-          </div>
-          <div className={styles.headerActions}>
-            <LogoutButton />
-          </div>
-        </header>
 
         <div className={`${styles.cardGrid} ${styles.cardGrid4}`}>
           <MetricCard
@@ -199,6 +196,7 @@ export default function FinanceDashboardPage() {
         </div>
       </div>
     </main>
+    </RoleSidebar>
   );
 }
 

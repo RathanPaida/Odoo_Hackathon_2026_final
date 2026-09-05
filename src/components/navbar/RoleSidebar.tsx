@@ -48,7 +48,7 @@ const adminNav: NavItem[] = [
 const repNav: NavItem[] = [
   { href: "/dashboard/rep", label: "Overview", icon: LayoutDashboard },
   { href: "/dashboard/rep/quotes", label: "Quotations", icon: FileText },
-  { href: "/dashboard/rep/customer", label: "Customers", icon: Users },
+  { href: "/dashboard/rep/customers", label: "Customers", icon: Users },
   { href: "/catalog", label: "Catalog", icon: Package },
   { href: "/dashboard/rep/customer/new", label: "New Customer", icon: UserCog },
 ];
@@ -56,7 +56,7 @@ const repNav: NavItem[] = [
 const managerNav: NavItem[] = [
   { href: "/dashboard/manager", label: "Overview", icon: LayoutDashboard },
   { href: "/dashboard/rep/quotes", label: "Quotations", icon: FileText },
-  { href: "/dashboard/rep/customer", label: "Customers", icon: Users },
+  { href: "/dashboard/rep/customers", label: "Customers", icon: Users },
   { href: "/approvals", label: "Approval Queue", icon: CheckSquare },
   { href: "/governance", label: "Governance", icon: ShieldCheck },
   { href: "/dashboard/reports", label: "Reports", icon: BarChart3 },
@@ -111,12 +111,38 @@ export function RoleSidebar({
 }: RoleSidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
-  const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
   const userMenuRef = useRef<HTMLDivElement>(null);
+  const [currentUser, setCurrentUser] = useState<{ name: string; email: string; role: Role } | null>(null);
+
+  useEffect(() => {
+    async function loadUser() {
+      try {
+        const res = await fetch("/api/auth/me");
+        if (res.ok) {
+          const data = await res.json();
+          if (data.user) {
+            setCurrentUser({
+              name: data.user.name,
+              email: data.user.email,
+              role: data.user.role as Role,
+            });
+          }
+        }
+      } catch {
+        // Fallback to props
+      }
+    }
+    loadUser();
+  }, []);
+
+  const activeRole = currentUser?.role || role;
+  const activeName = currentUser?.name || userName;
+  const activeEmail = currentUser?.email || userEmail;
 
   const normalizedRole = (
-    role && NAV_BY_ROLE[role as Role] ? role : "ADMIN"
+    activeRole && NAV_BY_ROLE[activeRole as Role] ? activeRole : "ADMIN"
   ) as Role;
 
   const navItems = NAV_BY_ROLE[normalizedRole] || adminNav;
@@ -129,7 +155,7 @@ export function RoleSidebar({
     normalizedRole === "FINANCE" ? s.roleFinance :
     s.roleCustomer;
 
-  const userInitials = userName
+  const userInitials = activeName
     .split(" ")
     .map((n) => n[0])
     .join("")
@@ -221,8 +247,8 @@ export function RoleSidebar({
         >
           <div className={s.userAvatar}>{userInitials}</div>
           <div className={s.userDetails}>
-            <span className={s.userName}>{userName}</span>
-            <span className={s.userEmail}>{userEmail}</span>
+            <span className={s.userName}>{activeName}</span>
+            <span className={s.userEmail}>{activeEmail}</span>
           </div>
           <ChevronDown
             size={15}
@@ -234,7 +260,7 @@ export function RoleSidebar({
         {userMenuOpen && (
           <div className={s.userDropdownMenu}>
             <div className={s.dropdownHeader}>
-              <div className={s.dropdownHeaderName}>{userName}</div>
+              <div className={s.dropdownHeaderName}>{activeName}</div>
               <div className={s.dropdownHeaderRole}>{roleLabel}</div>
             </div>
 

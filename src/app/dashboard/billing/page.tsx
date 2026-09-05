@@ -4,7 +4,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { LogoutButton } from "@/components/LogoutButton";
+import { RoleSidebar } from "@/components/navbar/RoleSidebar";
 import styles from "../dashboard.module.css";
 
 type Tab = "invoices" | "subscriptions" | "plans";
@@ -129,17 +129,15 @@ export default function BillingPage() {
   }, [activeTab]);
 
   return (
-    <main className={styles.page}>
-      <div className={styles.container}>
-        <header className={styles.header}>
-          <div className={styles.headerLeft}>
-            <h1 className={styles.title}>Billing & Subscriptions</h1>
-            <p className={styles.subtitle}>Manage invoices, subscriptions, and billing configuration</p>
-          </div>
-          <div className={styles.headerActions}>
-            <LogoutButton />
-          </div>
-        </header>
+    <RoleSidebar role="FINANCE">
+      <main className={styles.page}>
+        <div className={styles.container}>
+          <header className={styles.header}>
+            <div className={styles.headerLeft}>
+              <h1 className={styles.title}>Billing & Subscriptions</h1>
+              <p className={styles.subtitle}>Manage invoices, subscriptions, and billing configuration</p>
+            </div>
+          </header>
 
         <div className={styles.filterTabs}>
           {(["invoices", "subscriptions", "plans"] as Tab[]).map((tab) => (
@@ -205,6 +203,7 @@ export default function BillingPage() {
         </div>
       </div>
     </main>
+    </RoleSidebar>
   );
 }
 

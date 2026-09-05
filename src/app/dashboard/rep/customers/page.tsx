@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth/session";
 import { prisma } from "@/lib/db";
 import Link from "next/link";
-import { LogoutButton } from "@/components/LogoutButton";
+import { RoleSidebar } from "@/components/navbar/RoleSidebar";
 import NewQuoteButton from "../quotes/NewQuoteButton";
 import { CustomerTier } from "@/generated/prisma";
 import styles from "../../dashboard.module.css";
@@ -58,25 +58,25 @@ export default async function RepCustomersPage({
   const tiers: CustomerTier[] = ["BRONZE", "SILVER", "GOLD", "PLATINUM"];
 
   return (
-    <main className={styles.page}>
-      <div className={styles.container}>
-        <header className={styles.header}>
-          <div className={styles.headerLeft}>
-            <Link href="/dashboard/rep" className={styles.backLink}>
-              ← Back to Dashboard
-            </Link>
-            <h1 className={styles.title}>Customers Directory</h1>
-            <p className={styles.subtitle}>
-              Manage customer accounts, view tier eligibility, and create quotes
-            </p>
-          </div>
-          <div className={styles.headerActions}>
-            <Link href="/dashboard/rep/customers/new" className={styles.primaryBtn}>
-              + New Customer
-            </Link>
-            <LogoutButton />
-          </div>
-        </header>
+    <RoleSidebar role={user.role} userName={user.name} userEmail={user.email}>
+      <main className={styles.page}>
+        <div className={styles.container}>
+          <header className={styles.header}>
+            <div className={styles.headerLeft}>
+              <Link href="/dashboard/rep" className={styles.backLink}>
+                ← Back to Dashboard
+              </Link>
+              <h1 className={styles.title}>Customers Directory</h1>
+              <p className={styles.subtitle}>
+                Manage customer accounts, view tier eligibility, and create quotes
+              </p>
+            </div>
+            <div className={styles.headerActions}>
+              <Link href="/dashboard/rep/customers/new" className={styles.primaryBtn}>
+                + New Customer
+              </Link>
+            </div>
+          </header>
 
         {/* Filter Tabs */}
         <div className={styles.filterTabs}>
@@ -186,5 +186,6 @@ export default async function RepCustomersPage({
         </div>
       </div>
     </main>
+    </RoleSidebar>
   );
 }
