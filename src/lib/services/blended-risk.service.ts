@@ -31,6 +31,7 @@ export interface EvaluationResult {
   riskScore: number;
   level: ApprovalLevel;
   requiredRole: Role;
+  status: "APPROVED" | "PENDING_APPROVAL" | "REJECTED";
   reason: string;
   quoteSubtotal: number;
   totalDiscountAmount: number;
@@ -97,6 +98,7 @@ export const blendedRiskService = {
         riskScore: 0,
         level: "NONE",
         requiredRole: Role.SALES_REP,
+        status: "APPROVED",
         reason: "Zero value quote, no approval required.",
         quoteSubtotal: 0,
         totalDiscountAmount: 0,
@@ -138,11 +140,10 @@ export const blendedRiskService = {
       // lineExcess = max(0, appliedDiscount - allowedDiscount)
       const lineExcess = Math.max(0, appliedDiscount - allowedDiscount);
 
-      // lineWeight = lineTotal / quoteSubtotal
-      const lineWeight = quoteSubtotal > 0 ? lineTotal / quoteSubtotal : 0;
-
-      // weightedViolation = lineExcess * lineWeight
-      const weightedViolation = lineExcess * lineWeight;
+      // For a single line quote or direct violation, risk score reflects the excess
+      // For multi-line, weight by line share of subtotal
+      const lineWeight = quoteSubtotal > 0 ? lineSubtotal / quoteSubtotal : 0;
+      const weightedViolation = quote.lines.length === 1 ? lineExcess : lineExcess * lineWeight;
 
       totalRiskScore += weightedViolation;
 
@@ -203,6 +204,7 @@ export const blendedRiskService = {
     }
 
     const requiresApproval = level !== "NONE";
+    const status = requiresApproval ? "PENDING_APPROVAL" : "APPROVED";
 
     const summaryReason =
       violationReasons.length > 0
@@ -215,6 +217,7 @@ export const blendedRiskService = {
       riskScore: roundedRiskScore,
       level,
       requiredRole,
+      status,
       reason: summaryReason,
       quoteSubtotal: Math.round(quoteSubtotal * 100) / 100,
       totalDiscountAmount: Math.round(totalDiscountAmount * 100) / 100,

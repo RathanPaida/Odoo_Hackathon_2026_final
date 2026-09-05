@@ -63,6 +63,8 @@ export async function getDashboardMetrics(): Promise<DashboardMetrics> {
     approvedCount,
     rejectedCount,
     overdueInvoices,
+    activeSubscriptions,
+    backorderCount,
     allQuotes,
   ] = await Promise.all([
     prisma.quote.count(),
@@ -71,10 +73,9 @@ export async function getDashboardMetrics(): Promise<DashboardMetrics> {
     prisma.quote.count({ where: { status: "APPROVED" } }),
     prisma.quote.count({ where: { status: "REJECTED" } }),
     prisma.invoice.count({ where: { dueAt: { lt: now } } }),
+    prisma.subscription.count({ where: { status: "ACTIVE" } }),
+    prisma.allocation.count({ where: { status: "BACKORDERED" } }),
     prisma.quote.findMany({
-      where: {
-        status: { notIn: ["CONFIRMED", "REJECTED"] },
-      },
       select: {
         grandTotal: true,
         status: true,
@@ -89,6 +90,7 @@ export async function getDashboardMetrics(): Promise<DashboardMetrics> {
 
   const stalledQuotations = allQuotes.filter(
     (q) => {
+      if (q.status === "CONFIRMED" || q.status === "REJECTED") return false;
       const diffMs = now.getTime() - q.updatedAt.getTime();
       const diffDays = diffMs / (1000 * 60 * 60 * 24);
       return diffDays > STALLED_THRESHOLD_DAYS;
@@ -103,10 +105,10 @@ export async function getDashboardMetrics(): Promise<DashboardMetrics> {
     approvedCount,
     rejectedCount,
     stalledQuotations,
-    activeSubscriptions: 0,
+    activeSubscriptions,
     overdueInvoices,
     fulfillmentDelays: 0,
-    backorderCount: 0,
+    backorderCount,
   };
 }
 
@@ -139,11 +141,37 @@ export async function getStalledDeals(): Promise<StalledDeal[]> {
 }
 
 export async function getDiscountAnomalies(): Promise<DiscountAnomaly[]> {
-  return [];
+  const anomalies = await prisma.anomaly.findMany({
+    where: { kind: "DEEP_DISCOUNT" },
+    include: {
+      quote: {
+        include: { customer: true },
+      },
+    },
+    orderBy: { detectedAt: "desc" },
+    take: 20,
+  });
+
+  return anomalies.map((a) => ({
+    id: a.id,
+    quoteId: a.quoteId,
+    quoteNumber: a.quote.quoteNumber,
+    customerName: a.quote.customer.companyName,
+    blendedDiscountPct: Number(a.quote.blendedDiscountPct),
+    tierCeiling: 15,
+    excessPoints: Math.max(0, Number(a.quote.blendedDiscountPct) - 15),
+    detectedAt: a.detectedAt,
+  }));
 }
 
 export async function getAnomalyMetrics(): Promise<AnomalyMetrics> {
-  return { deepDiscountCount: 0, negativeMarginCount: 0, excessiveReapprovalCount: 0 };
+  const [deepDiscountCount, negativeMarginCount, excessiveReapprovalCount] = await Promise.all([
+    prisma.anomaly.count({ where: { kind: "DEEP_DISCOUNT" } }),
+    prisma.anomaly.count({ where: { kind: "NEGATIVE_MARGIN" } }),
+    prisma.anomaly.count({ where: { kind: "EXCESSIVE_REAPPROVAL" } }),
+  ]);
+
+  return { deepDiscountCount, negativeMarginCount, excessiveReapprovalCount };
 }
 
 export async function getQuotePipelineValue(): Promise<Array<{ status: string; value: number; count: number }>> {

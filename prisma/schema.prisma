@@ -294,7 +294,7 @@ model Allocation {
 
 model Invoice {
   id            String    @id @default(cuid())
-  quoteId       String    @unique
+  quoteId       String?   @unique
   invoiceNumber String    @unique
   customerId    String
   amount        Decimal   @db.Decimal(12, 2)
@@ -306,7 +306,7 @@ model Invoice {
   issuedAt      DateTime  @default(now())
   dueAt         DateTime
 
-  quote         Quote     @relation(fields: [quoteId], references: [id])
+  quote         Quote?    @relation(fields: [quoteId], references: [id])
   customer      Customer  @relation(fields: [customerId], references: [id])
   lines         InvoiceLine[]
   payments      Payment[]

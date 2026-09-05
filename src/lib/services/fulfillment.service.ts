@@ -198,4 +198,71 @@ export const fulfillmentService = {
       orderBy: { createdAt: "desc" },
     });
   },
+
+  // ─── Manual Warehouse Override (TEST 17) ──────────────────────────────────
+  async manualOverrideAllocation(input: {
+    allocationId?: string;
+    quoteLineId: string;
+    warehouseId: string;
+    requestedQty: number;
+  }) {
+    const { allocationId, quoteLineId, warehouseId, requestedQty } = input;
+
+    const line = await prisma.quoteLine.findUnique({
+      where: { id: quoteLineId },
+    });
+    if (!line) {
+      throw new Error(`Quote line '${quoteLineId}' not found.`);
+    }
+
+    // Check available stock in the target warehouse
+    const stock = await prisma.stock.findUnique({
+      where: {
+        warehouseId_productId: {
+          warehouseId,
+          productId: line.productId,
+        },
+      },
+      include: { warehouse: true },
+    });
+
+    const available = stock?.qtyOnHand ?? 0;
+    if (requestedQty > available) {
+      throw new Error(
+        `Allocation rejected: Insufficient available stock in ${stock?.warehouse?.name || "warehouse"} (requested: ${requestedQty}, available: ${available})`
+      );
+    }
+
+    // If valid, reallocate within a transaction
+    return prisma.$transaction(async (tx) => {
+      // Deduct stock from warehouse
+      await tx.stock.update({
+        where: { id: stock!.id },
+        data: {
+          qtyOnHand: { decrement: requestedQty },
+          version: { increment: 1 },
+        },
+      });
+
+      if (allocationId) {
+        return tx.allocation.update({
+          where: { id: allocationId },
+          data: {
+            warehouseId,
+            qty: requestedQty,
+            status: "RESERVED",
+          },
+        });
+      } else {
+        return tx.allocation.create({
+          data: {
+            quoteLineId,
+            warehouseId,
+            qty: requestedQty,
+            status: "RESERVED",
+          },
+        });
+      }
+    });
+  },
 };

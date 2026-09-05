@@ -65,10 +65,16 @@ export async function createOneTimeInvoice(
   if (!quote) throw new Error(`Quote ${quoteId} not found`);
   if (quote.lines.length === 0) throw new Error("No lines to invoice");
 
+  // TEST 18 & 19: Only ONE_TIME lines go into the initial one-time invoice.
+  // Future recurring subscription charges must NOT be in the one-time invoice.
+  const oneTimeLines = quote.lines.filter(
+    (line) => line.billingType === "ONE_TIME"
+  );
+
   const lineItems: InvoiceLineItem[] = [];
   let totalAmount = new Prisma.Decimal(0);
 
-  for (const line of quote.lines) {
+  for (const line of oneTimeLines) {
     const lineTotal = dec(line.lineTotal);
     totalAmount = totalAmount.plus(lineTotal);
 
@@ -88,15 +94,10 @@ export async function createOneTimeInvoice(
 
   const invoice = await prisma.invoice.create({
     data: {
-      quoteId,
-      customerId: quote.customerId,
+      quote: { connect: { id: quoteId } },
+      customer: { connect: { id: quote.customerId } },
       invoiceNumber: generateInvoiceNumber(),
       amount: roundedAmount,
-      subtotal: roundedAmount,
-      taxAmount: new Prisma.Decimal(0),
-      paidAmount: new Prisma.Decimal(0),
-      invoiceType: "ONE_TIME",
-      status: "ISSUED",
       dueAt: dueDate,
     },
   });

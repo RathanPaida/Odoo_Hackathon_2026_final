@@ -218,3 +218,155 @@ export async function createSubscriptionsForQuote(
 
   return subscriptionLines;
 }
+
+/**
+ * TEST 21, 22, 23 — Recurring billing scheduler and payment processing
+ */
+export async function runBillingScheduler(options?: {
+  mockPaymentResult?: "SUCCESS" | "FAILED";
+}) {
+  const now = new Date();
+  
+  // Find all ACTIVE subscriptions where nextBillingDate <= now
+  const dueSubscriptions = await prisma.subscription.findMany({
+    where: {
+      status: "ACTIVE",
+      nextBillingDate: { lte: now },
+    },
+    include: {
+      customer: true,
+      plan: true,
+      lines: { include: { quoteLine: { include: { product: true } } } },
+    },
+  });
+
+  const results = [];
+
+  for (const sub of dueSubscriptions) {
+    const amount = sub.lines.length > 0
+      ? sub.lines.reduce((sum, l) => sum.plus(dec(l.monthlyAmount)), new Prisma.Decimal(0))
+      : dec(sub.plan.price);
+
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, "0");
+    const rand = Math.floor(1000 + Math.random() * 9000);
+    const invoiceNumber = `REC-${year}${month}-${rand}`;
+
+    const nextBilling = new Date(sub.nextBillingDate);
+    nextBilling.setMonth(nextBilling.getMonth() + 1);
+
+    // Create recurring invoice
+    const invoice = await prisma.invoice.create({
+      data: {
+        quoteId: null,
+        customerId: sub.customerId,
+        invoiceNumber,
+        amount,
+        subtotal: amount,
+        taxAmount: new Prisma.Decimal(0),
+        paidAmount: new Prisma.Decimal(0),
+        invoiceType: "RECURRING",
+        status: "ISSUED",
+        dueAt: new Date(now.getTime() + 15 * 24 * 60 * 60 * 1000),
+      },
+    });
+
+    // If AutoPay is enabled, attempt payment
+    let paymentStatus: "SUCCESS" | "FAILED" | "NOT_ATTEMPTED" = "NOT_ATTEMPTED";
+
+    if (sub.autoPayEnabled) {
+      const isSuccess = options?.mockPaymentResult !== "FAILED";
+      paymentStatus = isSuccess ? "SUCCESS" : "FAILED";
+
+      await prisma.payment.create({
+        data: {
+          invoiceId: invoice.id,
+          customerId: sub.customerId,
+          amount,
+          paymentMethod: "AUTOPAY_CREDIT_CARD",
+          status: paymentStatus,
+          transactionReference: `TX-${Date.now()}-${rand}`,
+          paidAt: isSuccess ? new Date() : null,
+        },
+      });
+
+      if (isSuccess) {
+        await prisma.invoice.update({
+          where: { id: invoice.id },
+          data: { status: "PAID", paidAmount: amount },
+        });
+
+        // Advance nextBillingDate on success
+        await prisma.subscription.update({
+          where: { id: sub.id },
+          data: {
+            currentPeriodStart: sub.nextBillingDate,
+            currentPeriodEnd: nextBilling,
+            nextBillingDate: nextBilling,
+          },
+        });
+      } else {
+        // Payment failed -> invoice stays ISSUED/OVERDUE, subscription marked PAST_DUE
+        await prisma.invoice.update({
+          where: { id: invoice.id },
+          data: { status: "OVERDUE" },
+        });
+
+        await prisma.subscription.update({
+          where: { id: sub.id },
+          data: { status: "PAST_DUE" },
+        });
+      }
+    }
+
+    results.push({
+      subscriptionId: sub.id,
+      invoiceId: invoice.id,
+      invoiceNumber: invoice.invoiceNumber,
+      autoPayEnabled: sub.autoPayEnabled,
+      paymentStatus,
+      nextBillingDate: sub.autoPayEnabled && paymentStatus === "SUCCESS" ? nextBilling : sub.nextBillingDate,
+    });
+  }
+
+  return results;
+}
+
+/**
+ * TEST 24 — Mid-period plan change proration
+ * Calculates remaining period, unused old plan credit, new plan charge, and net proration amount
+ */
+export function calculatePlanChangeProration(params: {
+  currentMonthlyAmount: DecimalInput;
+  newMonthlyAmount: DecimalInput;
+  periodStart: Date;
+  periodEnd: Date;
+  changeDate: Date;
+}) {
+  const oldAmount = dec(params.currentMonthlyAmount);
+  const newAmount = dec(params.newMonthlyAmount);
+
+  const totalPeriodDays = Math.max(
+    1,
+    Math.round((params.periodEnd.getTime() - params.periodStart.getTime()) / (24 * 60 * 60 * 1000))
+  );
+
+  const remainingDays = Math.max(
+    0,
+    Math.round((params.periodEnd.getTime() - params.changeDate.getTime()) / (24 * 60 * 60 * 1000))
+  );
+
+  const remainingFraction = new Prisma.Decimal(remainingDays).dividedBy(totalPeriodDays);
+
+  const unusedOldPlanCredit = round2(oldAmount.times(remainingFraction));
+  const newPlanRemainingCharge = round2(newAmount.times(remainingFraction));
+  const netProrationAmount = round2(newPlanRemainingCharge.sub(unusedOldPlanCredit));
+
+  return {
+    totalPeriodDays,
+    remainingDays,
+    unusedOldPlanCredit,
+    newPlanRemainingCharge,
+    netProrationAmount,
+  };
+}

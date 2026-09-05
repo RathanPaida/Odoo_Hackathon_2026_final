@@ -9,7 +9,7 @@ export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const { user, response } = await requireRole("SALES_REP", "SALES_MANAGER", "FINANCE", "ADMIN");
+  const { user, response } = await requireRole("SALES_REP", "SALES_MANAGER", "FINANCE", "ADMIN", "CUSTOMER");
   if (response) return response;
 
   const { id } = await params;
@@ -35,6 +35,26 @@ export async function GET(
       { success: false, error: { code: "NOT_FOUND", message: "Quote not found" } },
       { status: 404 }
     );
+  }
+
+  // Security check: customers can only view quotes belonging to their customer profile
+  if (user!.role === "CUSTOMER") {
+    // Check if user email matches the customer's email or customer contact
+    const customer = await prisma.customer.findFirst({
+      where: {
+        OR: [
+          { email: user!.email },
+          { id: quote.customerId }
+        ]
+      }
+    });
+
+    if (!customer || quote.customerId !== customer.id || customer.email !== user!.email) {
+      return NextResponse.json(
+        { success: false, error: { code: "FORBIDDEN", message: "Access denied: you do not have permission to view this customer's quotation." } },
+        { status: 403 }
+      );
+    }
   }
 
   // Security check: reps can only view their own quotes
