@@ -41,6 +41,10 @@ async function main() {
   }
 
   console.log(`\nSeeded ${USERS.length} users. Password for all: password123`);
+
+  // Run Person 2 seed
+  const { seedApprovals } = await import("./seed/approvals");
+  await seedApprovals(prisma);
 }
 
 main()

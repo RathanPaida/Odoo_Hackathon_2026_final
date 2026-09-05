@@ -1,0 +1,79 @@
+// prisma/schema/billing.prisma
+// PERSON 3 OWNED: Subscriptions, Invoices, Payments
+
+model SubscriptionPlan {
+  id                 String   @id @default(uuid())
+  name               String
+  billingCycle       String   // MONTHLY | QUARTERLY | YEARLY
+  price              Decimal  @db.Decimal(12, 2)
+  prorationEnabled   Boolean  @default(true)
+  cancellationPolicy String?
+  refundPolicy       String?
+  active             Boolean  @default(true)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+}
+
+model Subscription {
+  id                 String   @id @default(uuid())
+  customerId         String
+  orderId            String
+  orderLineId        String
+  productId          String
+  planId             String
+  quantity           Int      @default(1)
+  status             String   @default("ACTIVE") // ACTIVE | PAST_DUE | PAUSED | CANCELLED | EXPIRED
+  startDate          DateTime @default(now())
+  currentPeriodStart DateTime @default(now())
+  currentPeriodEnd   DateTime
+  nextBillingDate    DateTime
+  autoPayEnabled     Boolean  @default(false)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+}
+
+model Invoice {
+  id             String        @id @default(uuid())
+  invoiceNumber  String        @unique
+  customerId     String
+  orderId        String
+  subscriptionId String?
+  invoiceType    String        // ONE_TIME | RECURRING | PRORATION | CREDIT
+  subtotal       Decimal       @db.Decimal(12, 2)
+  taxAmount      Decimal       @db.Decimal(12, 2)
+  totalAmount    Decimal       @db.Decimal(12, 2)
+  dueDate        DateTime
+  status         String        @default("ISSUED") // DRAFT | ISSUED | PAID | PARTIALLY_PAID | OVERDUE | CANCELLED
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  lines          InvoiceLine[]
+  payments       Payment[]
+}
+
+model InvoiceLine {
+  id          String   @id @default(uuid())
+  invoiceId   String
+  description String
+  productId   String?
+  quantity    Int
+  unitPrice   Decimal  @db.Decimal(12, 2)
+  taxAmount   Decimal  @db.Decimal(12, 2)
+  totalAmount Decimal  @db.Decimal(12, 2)
+
+  invoice     Invoice  @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+}
+
+model Payment {
+  id                   String    @id @default(uuid())
+  invoiceId            String
+  customerId           String
+  amount               Decimal   @db.Decimal(12, 2)
+  paymentMethod        String
+  status               String    @default("PENDING") // PENDING | SUCCESS | FAILED | REFUNDED
+  transactionReference String?
+  paidAt               DateTime?
+  createdAt            DateTime  @default(now())
+
+  invoice              Invoice   @relation(fields: [invoiceId], references: [id])
+}
