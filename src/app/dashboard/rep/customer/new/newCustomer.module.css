@@ -145,21 +145,39 @@
 
 .formSelect {
   width: 100%;
-  padding: 0.75rem 1rem;
-  background: rgba(15, 15, 35, 0.8);
+  padding: 0.75rem 2.5rem 0.75rem 1rem;
+  background-color: rgba(15, 15, 35, 0.85);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23a78bfa' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 1rem center;
+  background-size: 16px;
   border: 1px solid rgba(139, 92, 246, 0.25);
   border-radius: 0.75rem;
   color: #f1f5f9;
   font-size: 0.875rem;
   transition: all 0.2s ease;
   cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
   font-family: inherit;
+}
+
+.formSelect:hover {
+  border-color: rgba(139, 92, 246, 0.45);
+  background-color: rgba(20, 18, 45, 0.95);
 }
 
 .formSelect:focus {
   outline: none;
-  border-color: rgba(139, 92, 246, 0.5);
-  box-shadow: 0 0 0 3px rgba(109, 40, 217, 0.2);
+  border-color: rgba(139, 92, 246, 0.65);
+  box-shadow: 0 0 0 3px rgba(109, 40, 217, 0.25);
+}
+
+.formSelect option {
+  background-color: #121124;
+  color: #f1f5f9;
+  padding: 0.75rem;
 }
 
 .formTextarea {

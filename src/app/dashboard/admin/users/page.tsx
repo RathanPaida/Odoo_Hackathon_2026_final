@@ -3,6 +3,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import { RoleSidebar } from "@/components/navbar/RoleSidebar";
 import s from "./admin-users.module.css";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -158,21 +159,9 @@ export default function AdminUsersPage() {
   }, {});
 
   return (
-    <div className={s.page}>
-      {/* Top bar */}
-      <header className={s.topBar}>
-        <div className={s.brand}>
-          <div className={s.mark}>D</div>
-          <span className={s.wordmark}>DealFlow360</span>
-        </div>
-        <nav className={s.navLinks}>
-          <a href="/dashboard/admin" className={s.navLink}>Dashboard</a>
-          <a href="/dashboard/admin/users" className={s.navLinkActive}>Users</a>
-          <a href="/dashboard/admin/categories" className={s.navLink}>Categories</a>
-        </nav>
-      </header>
-
-      <main className={s.main}>
+    <RoleSidebar role="ADMIN" userName="Administrator" userEmail="admin@dealflow.com">
+      <div className={s.page}>
+        <main className={s.main}>
         {/* Header */}
         <div className={s.header}>
           <div>
@@ -321,6 +310,7 @@ export default function AdminUsersPage() {
           onDone={() => setToast(null)}
         />
       )}
-    </div>
+      </div>
+    </RoleSidebar>
   );
 }

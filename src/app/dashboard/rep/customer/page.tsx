@@ -11,6 +11,7 @@ import {
   Mail,
   Phone
 } from "lucide-react";
+import { RoleSidebar } from "@/components/navbar/RoleSidebar";
 import s from "./customer.module.css";
 
 export default function RepCustomerPage() {
@@ -89,121 +90,123 @@ export default function RepCustomerPage() {
   };
 
   return (
-    <main className={s.page}>
-      <div className={s.container}>
-        <div className={`${s.header} ${s.animateFadeIn}`}>
-          <div className={s.headerContent}>
-            <div className={s.headerIcon}>
-              <Users size={14} />
-              Customer Management
-            </div>
-            <h1 className={s.title}>Your Customers</h1>
-            <p className={s.subtitle}>
-              Manage your customer portfolio, view their quotations, and track account activity.
-            </p>
-          </div>
-          <div className={s.headerActions}>
-            <Link href="/dashboard/rep/customer/new" className={s.primaryBtn}>
-              <UserPlus size={16} />
-              Add New Customer
-            </Link>
-          </div>
-        </div>
-
-        <div className={`${s.statsGrid} ${s.animateFadeIn}`} style={{animationDelay: '0.05s'}}>
-          <div className={s.statCard}>
-            <div className={s.statLabel}>Total Customers</div>
-            <div className={s.statValue}>47</div>
-          </div>
-          <div className={s.statCard}>
-            <div className={s.statLabel}>Active Quotes</div>
-            <div className={s.statValue} style={{color: '#c4b5fd'}}>23</div>
-          </div>
-          <div className={s.statCard}>
-            <div className={s.statLabel}>Pipeline Value</div>
-            <div className={s.statValue} style={{color: '#34d399'}}>$892K</div>
-          </div>
-          <div className={s.statCard}>
-            <div className={s.statLabel}>New This Month</div>
-            <div className={s.statValue}>5</div>
-          </div>
-        </div>
-
-        <div className={`${s.card} ${s.animateFadeIn}`} style={{animationDelay: '0.1s'}}>
-          <div className={s.searchBar}>
-            <div className={s.searchWrapper}>
-              <Search size={16} className={s.searchIcon} />
-              <input
-                type="text"
-                placeholder="Search customers by name or email..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className={s.searchInput}
-              />
-            </div>
-          </div>
-
-          <div className={s.tableCard}>
-            <div className={s.tableWrapper}>
-              <table className={s.table}>
-                <thead>
-                  <tr>
-                    <th>Customer</th>
-                    <th>Tier</th>
-                    <th>Status</th>
-                    <th>Quotes</th>
-                    <th>Total Value</th>
-                    <th>Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredCustomers.map((customer) => (
-                    <tr key={customer.id}>
-                      <td>
-                        <div className={s.customerInfo}>
-                          <div className={s.customerAvatar}>
-                            {getInitials(customer.name)}
-                          </div>
-                          <div className={s.customerDetails}>
-                            <span className={s.customerName}>{customer.name}</span>
-                            <span className={s.customerEmail}>{customer.email}</span>
-                          </div>
-                        </div>
-                      </td>
-                      <td>
-                        <span className={`${s.tierBadge} ${s[`tier${customer.tier.charAt(0) + customer.tier.slice(1).toLowerCase()}`]}`}>
-                          {customer.tier}
-                        </span>
-                      </td>
-                      <td>
-                        <span className={`${s.statusBadge} ${customer.status === "ACTIVE" ? s.badgeActive : s.badgeInactive}`}>
-                          {customer.status}
-                        </span>
-                      </td>
-                      <td className={s.cellMuted}>{customer.quotesCount}</td>
-                      <td className={s.cellPrimary}>{customer.totalValue}</td>
-                      <td>
-                        <a href={`/dashboard/rep/customer/${customer.id}`} className={s.actionLink}>
-                          View <ChevronRight size={14} />
-                        </a>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-          {filteredCustomers.length === 0 && (
-            <div className={s.emptyState}>
-              <div className={s.emptyStateIcon}>
-                <Building2 size={24} />
+    <RoleSidebar role="SALES_REP" userName="Alex Mercer" userEmail="alex.mercer@dealflow.com">
+      <main className={s.page}>
+        <div className={s.container}>
+          <div className={`${s.header} ${s.animateFadeIn}`}>
+            <div className={s.headerContent}>
+              <div className={s.headerIcon}>
+                <Users size={14} />
+                Customer Management
               </div>
-              <p className={s.emptyStateText}>No customers found matching your search.</p>
+              <h1 className={s.title}>Your Customers</h1>
+              <p className={s.subtitle}>
+                Manage your customer portfolio, view their quotations, and track account activity.
+              </p>
             </div>
-          )}
+            <div className={s.headerActions}>
+              <Link href="/dashboard/rep/customer/new" className={s.primaryBtn}>
+                <UserPlus size={16} />
+                Add New Customer
+              </Link>
+            </div>
+          </div>
+
+          <div className={`${s.statsGrid} ${s.animateFadeIn}`} style={{animationDelay: '0.05s'}}>
+            <div className={s.statCard}>
+              <div className={s.statLabel}>Total Customers</div>
+              <div className={s.statValue}>47</div>
+            </div>
+            <div className={s.statCard}>
+              <div className={s.statLabel}>Active Quotes</div>
+              <div className={s.statValue} style={{color: '#c4b5fd'}}>23</div>
+            </div>
+            <div className={s.statCard}>
+              <div className={s.statLabel}>Pipeline Value</div>
+              <div className={s.statValue} style={{color: '#34d399'}}>$892K</div>
+            </div>
+            <div className={s.statCard}>
+              <div className={s.statLabel}>New This Month</div>
+              <div className={s.statValue}>5</div>
+            </div>
+          </div>
+
+          <div className={`${s.card} ${s.animateFadeIn}`} style={{animationDelay: '0.1s'}}>
+            <div className={s.searchBar}>
+              <div className={s.searchWrapper}>
+                <Search size={16} className={s.searchIcon} />
+                <input
+                  type="text"
+                  placeholder="Search customers by name or email..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className={s.searchInput}
+                />
+              </div>
+            </div>
+
+            <div className={s.tableCard}>
+              <div className={s.tableWrapper}>
+                <table className={s.table}>
+                  <thead>
+                    <tr>
+                      <th>Customer</th>
+                      <th>Tier</th>
+                      <th>Status</th>
+                      <th>Quotes</th>
+                      <th>Total Value</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredCustomers.map((customer) => (
+                      <tr key={customer.id}>
+                        <td>
+                          <div className={s.customerInfo}>
+                            <div className={s.customerAvatar}>
+                              {getInitials(customer.name)}
+                            </div>
+                            <div className={s.customerDetails}>
+                              <span className={s.customerName}>{customer.name}</span>
+                              <span className={s.customerEmail}>{customer.email}</span>
+                            </div>
+                          </div>
+                        </td>
+                        <td>
+                          <span className={`${s.tierBadge} ${s[`tier${customer.tier.charAt(0) + customer.tier.slice(1).toLowerCase()}`]}`}>
+                            {customer.tier}
+                          </span>
+                        </td>
+                        <td>
+                          <span className={`${s.statusBadge} ${customer.status === "ACTIVE" ? s.badgeActive : s.badgeInactive}`}>
+                            {customer.status}
+                          </span>
+                        </td>
+                        <td className={s.cellMuted}>{customer.quotesCount}</td>
+                        <td className={s.cellPrimary}>{customer.totalValue}</td>
+                        <td>
+                          <a href={`/dashboard/rep/customer/${customer.id}`} className={s.actionLink}>
+                            View <ChevronRight size={14} />
+                          </a>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {filteredCustomers.length === 0 && (
+              <div className={s.emptyState}>
+                <div className={s.emptyStateIcon}>
+                  <Building2 size={24} />
+                </div>
+                <p className={s.emptyStateText}>No customers found matching your search.</p>
+              </div>
+            )}
+          </div>
         </div>
-      </div>
-    </main>
+      </main>
+    </RoleSidebar>
   );
 }

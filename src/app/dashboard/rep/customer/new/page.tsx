@@ -14,6 +14,7 @@ import {
   AlertCircle,
   CheckCircle2
 } from "lucide-react";
+import { RoleSidebar } from "@/components/navbar/RoleSidebar";
 import s from "./newCustomer.module.css";
 
 export default function NewCustomerPage() {
@@ -92,7 +93,8 @@ export default function NewCustomerPage() {
   ];
 
   return (
-    <main className={s.page}>
+    <RoleSidebar role="SALES_REP" userName="Alex Mercer" userEmail="alex.mercer@dealflow.com">
+      <main className={s.page}>
       <div className={s.container}>
         <div className={`${s.header} ${s.animateFadeIn}`}>
           <div className={s.headerContent}>
@@ -309,5 +311,6 @@ export default function NewCustomerPage() {
         </form>
       </div>
     </main>
+    </RoleSidebar>
   );
 }
