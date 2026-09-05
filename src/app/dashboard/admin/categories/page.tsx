@@ -10,6 +10,7 @@ interface CategoryRow {
   name: string;
   description: string;
   productCount: number;
+  maxDiscount?: number;
 }
 
 interface ProductRow {
@@ -29,6 +30,10 @@ export default function AdminCategoriesPage() {
   const [categories, setCategories] = useState<CategoryRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+
+  // Category discount percentage edits { [catIdOrName]: string }
+  const [discountInputs, setDiscountInputs] = useState<Record<string, string>>({});
+  const [savingDiscounts, setSavingDiscounts] = useState<Record<string, boolean>>({});
 
   // Category creation form
   const [name, setName] = useState("");
@@ -54,14 +59,39 @@ export default function AdminCategoriesPage() {
 
   const fetchCategories = useCallback(async () => {
     try {
-      const res = await fetch("/api/catalog/categories");
-      if (res.status === 401) {
+      const [catRes, govRes] = await Promise.all([
+        fetch("/api/catalog/categories"),
+        fetch("/api/governance/categories"),
+      ]);
+
+      if (catRes.status === 401 || govRes.status === 401) {
         router.push("/login");
         return;
       }
-      const json = await res.json();
-      if (json.success && Array.isArray(json.data)) {
-        setCategories(json.data);
+
+      const catJson = await catRes.json();
+      const govJson = await govRes.json();
+
+      const govLimits: Record<string, number> = {};
+      if (govJson.success && Array.isArray(govJson.data)) {
+        govJson.data.forEach((g: any) => {
+          govLimits[g.categoryName.toLowerCase()] = Number(g.maximumDiscount);
+          govLimits[g.categoryId] = Number(g.maximumDiscount);
+        });
+      }
+
+      if (catJson.success && Array.isArray(catJson.data)) {
+        const dMap: Record<string, string> = {};
+        const enriched = catJson.data.map((cat: CategoryRow) => {
+          const discount = govLimits[cat.name.toLowerCase()] ?? govLimits[cat.id] ?? 15.0;
+          dMap[cat.id] = String(discount);
+          return {
+            ...cat,
+            maxDiscount: discount,
+          };
+        });
+        setCategories(enriched);
+        setDiscountInputs(dMap);
       }
     } catch {
       setToast({ message: "Failed to load categories.", type: "error" });
@@ -73,6 +103,45 @@ export default function AdminCategoriesPage() {
   useEffect(() => {
     fetchCategories();
   }, [fetchCategories]);
+
+  const handleSaveDiscount = async (cat: CategoryRow) => {
+    const rawVal = discountInputs[cat.id];
+    const val = parseFloat(rawVal);
+    if (isNaN(val) || val < 0 || val > 100) {
+      setToast({ message: "Please enter a valid discount percentage between 0 and 100.", type: "error" });
+      return;
+    }
+
+    setSavingDiscounts((prev) => ({ ...prev, [cat.id]: true }));
+    try {
+      const res = await fetch("/api/governance/categories", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          categoryId: cat.id,
+          maximumDiscount: val,
+        }),
+      });
+
+      const json = await res.json();
+      if (!res.ok) {
+        throw new Error(json.error?.message || "Failed to update discount percentage.");
+      }
+
+      setToast({
+        message: `Updated max discount ceiling for "${cat.name}" to ${val}%.`,
+        type: "success",
+      });
+
+      setCategories((prev) =>
+        prev.map((c) => (c.id === cat.id ? { ...c, maxDiscount: val } : c))
+      );
+    } catch (err: any) {
+      setToast({ message: err.message || "Failed to update discount.", type: "error" });
+    } finally {
+      setSavingDiscounts((prev) => ({ ...prev, [cat.id]: false }));
+    }
+  };
 
   // Load products for selected category
   const loadCategoryProducts = async (cat: CategoryRow) => {
@@ -231,6 +300,9 @@ export default function AdminCategoriesPage() {
           <Link href="/dashboard/admin/categories" className={s.navLinkActive}>
             Categories
           </Link>
+          <Link href="/governance" className={s.navLink}>
+            Discount Governance
+          </Link>
         </nav>
       </header>
 
@@ -331,13 +403,14 @@ export default function AdminCategoriesPage() {
                   <th>Category</th>
                   <th>Description</th>
                   <th>Products Assigned</th>
+                  <th>Max Discount %</th>
                   <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {categories.length === 0 ? (
                   <tr>
-                    <td colSpan={4} className={s.emptyState}>
+                    <td colSpan={5} className={s.emptyState}>
                       No categories created yet. Create one above to get started.
                     </td>
                   </tr>
@@ -359,6 +432,39 @@ export default function AdminCategoriesPage() {
                         <span className={s.badgeCount}>
                           {cat.productCount} {cat.productCount === 1 ? "product" : "products"}
                         </span>
+                      </td>
+                      <td>
+                        <div className={s.discountCell}>
+                          <div className={s.discountInputWrap}>
+                            <input
+                              type="number"
+                              min="0"
+                              max="100"
+                              step="0.5"
+                              className={s.discountInput}
+                              value={discountInputs[cat.id] ?? cat.maxDiscount ?? 15}
+                              onChange={(e) =>
+                                setDiscountInputs((prev) => ({
+                                  ...prev,
+                                  [cat.id]: e.target.value,
+                                }))
+                              }
+                            />
+                            <span className={s.discountUnit}>%</span>
+                          </div>
+                          <button
+                            type="button"
+                            className={s.discountSaveBtn}
+                            disabled={
+                              savingDiscounts[cat.id] ||
+                              discountInputs[cat.id] === undefined ||
+                              parseFloat(discountInputs[cat.id]) === cat.maxDiscount
+                            }
+                            onClick={() => handleSaveDiscount(cat)}
+                          >
+                            {savingDiscounts[cat.id] ? "..." : "Save"}
+                          </button>
+                        </div>
                       </td>
                       <td>
                         <div className={s.btnRow}>

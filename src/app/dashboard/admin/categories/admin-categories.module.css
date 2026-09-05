@@ -379,6 +379,71 @@
   background: #d4e4fd;
 }
 
+.discountCell {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.discountInputWrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.discountInput {
+  width: 5.25rem;
+  padding: 0.35rem 1.35rem 0.35rem 0.5rem;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--card);
+  color: var(--ink);
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-align: right;
+  outline: none;
+  transition: border-color 140ms ease, box-shadow 140ms ease;
+}
+
+.discountInput:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(31, 59, 216, 0.12);
+}
+
+.discountUnit {
+  position: absolute;
+  right: 0.5rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--slate);
+  pointer-events: none;
+}
+
+.discountSaveBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.35rem 0.65rem;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border: 1px solid #10b981;
+  background: #ecfdf5;
+  color: #047857;
+  cursor: pointer;
+  transition: all 120ms ease;
+}
+
+.discountSaveBtn:hover:not(:disabled) {
+  background: #d1fae5;
+  border-color: #059669;
+}
+
+.discountSaveBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 /* ---------- Modal ---------- */
 
 .modalOverlay {

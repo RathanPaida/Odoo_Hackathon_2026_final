@@ -119,7 +119,14 @@ export default function AdminDashboardPage() {
                 className={styles.navLink}
               >
                 <h3 className={styles.navTitle}>Product Categories</h3>
-                <p className={styles.navDescription}>Hardware, Software, Services & governance</p>
+                <p className={styles.navDescription}>Hardware, Software, Services & products</p>
+              </Link>
+              <Link
+                href="/governance"
+                className={styles.navLink}
+              >
+                <h3 className={styles.navTitle}>Discount Governance</h3>
+                <p className={styles.navDescription}>Configure tier ceilings, category caps & approval thresholds</p>
               </Link>
               <Link
                 href="/dashboard/finance"

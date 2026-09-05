@@ -124,10 +124,15 @@ export const blendedRiskService = {
       const ruleKey = `${customerTier}:${product.category}`;
       const rule = ruleMap.get(ruleKey);
       
+      // Tier ceiling from rule or default
       const tierCeiling = rule ? rule.maxAutoApprovePct : defaultTierCeiling;
-      const categoryCeiling = tierCeiling; // same since we have one rule per tier+category
+      
+      // Category ceiling: find representative ceiling for this category (e.g. from GOLD or rule)
+      const catRuleKey = `GOLD:${product.category}`;
+      const catRule = ruleMap.get(catRuleKey);
+      const categoryCeiling = catRule ? catRule.maxAutoApprovePct : tierCeiling;
 
-      // allowedDiscount = the rule's limit (or default)
+      // Stricter wins: allowedDiscount = min(tierCeiling, categoryCeiling)
       const allowedDiscount = Math.min(tierCeiling, categoryCeiling);
 
       // lineExcess = max(0, appliedDiscount - allowedDiscount)

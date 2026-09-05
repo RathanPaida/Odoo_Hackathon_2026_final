@@ -23,6 +23,10 @@ export default function GovernancePage() {
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<{ text: string; type: "success" | "error" } | null>(null);
 
+  // Edit states for inputs to allow controlled typing and instant feedback
+  const [tierInputs, setTierInputs] = useState<Record<string, string>>({});
+  const [categoryInputs, setCategoryInputs] = useState<Record<string, string>>({});
+
   // Simulator state
   const [simCustomerTier, setSimCustomerTier] = useState("GOLD");
   const [simCategoryId, setSimCategoryId] = useState("");
@@ -43,9 +47,21 @@ export default function GovernancePage() {
       const cData = await cRes.json();
       const aData = await aRes.json();
 
-      if (tData.success) setTiers(tData.data);
+      if (tData.success) {
+        setTiers(tData.data);
+        const tMap: Record<string, string> = {};
+        tData.data.forEach((t: any) => {
+          tMap[t.customerTier] = Number(t.maximumDiscount).toFixed(1);
+        });
+        setTierInputs(tMap);
+      }
       if (cData.success) {
         setCategoryRules(cData.data);
+        const cMap: Record<string, string> = {};
+        cData.data.forEach((c: any) => {
+          cMap[c.categoryId] = Number(c.maximumDiscount).toFixed(1);
+        });
+        setCategoryInputs(cMap);
         if (cData.data.length > 0 && !simCategoryId) {
           setSimCategoryId(cData.data[0].categoryId);
         }
@@ -73,8 +89,8 @@ export default function GovernancePage() {
       });
       const data = await res.json();
       if (data.success) {
-        setMessage({ text: `${customerTier} tier ceiling updated to ${maxDiscount}%`, type: "success" });
-        fetchData();
+        setMessage({ text: `${customerTier} tier ceiling updated to ${maxDiscount}%!`, type: "success" });
+        await fetchData();
       } else {
         setMessage({ text: data.error?.message || "Failed to update tier.", type: "error" });
       }
@@ -97,7 +113,7 @@ export default function GovernancePage() {
       const data = await res.json();
       if (data.success) {
         setMessage({ text: "Category discount ceiling updated!", type: "success" });
-        fetchData();
+        await fetchData();
       } else {
         setMessage({ text: data.error?.message || "Failed to update category rule.", type: "error" });
       }
@@ -108,7 +124,28 @@ export default function GovernancePage() {
     }
   };
 
-  // ─── Live Simulator Computation (Section 13 Algorithm) ─────────────────────
+  const handleUpdateApprovalRule = async (id: string, maxScore: number) => {
+    try {
+      setSaving(true);
+      setMessage(null);
+      const res = await fetch("/api/governance/rules", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id, maximumRiskScore: maxScore }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setMessage({ text: "Approval escalation bracket updated!", type: "success" });
+        await fetchData();
+      }
+    } catch (err: any) {
+      setMessage({ text: err.message, type: "error" });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  // ─── Live Simulator Computation (Spec Section 13 Algorithm) ────────────────
   const tierObj = tiers.find((t) => t.customerTier === simCustomerTier);
   const tierCeiling = tierObj ? Number(tierObj.maximumDiscount) : 15.0;
 
@@ -116,24 +153,32 @@ export default function GovernancePage() {
   const catCeiling = catRuleObj ? Number(catRuleObj.maximumDiscount) : 10.0;
   const catName = catRuleObj?.category?.name || "Selected Category";
 
-  const appliedDiscount = parseFloat(simAppliedDiscount) || 0;
-  const unitPrice = parseFloat(simUnitPrice) || 0;
-  const qty = parseInt(simQty) || 1;
+  const appliedDiscount = Math.max(0, parseFloat(simAppliedDiscount) || 0);
+  const unitPrice = Math.max(0, parseFloat(simUnitPrice) || 0);
+  const qty = Math.max(1, parseInt(simQty) || 1);
 
   // Stricter wins: allowedDiscount = min(tierCeiling, categoryCeiling)
   const allowedDiscount = Math.min(tierCeiling, catCeiling);
   const lineExcess = Math.max(0, appliedDiscount - allowedDiscount);
 
   const lineSubtotal = unitPrice * qty;
-  const lineTotal = lineSubtotal * (1 - appliedDiscount / 100);
-  const weightedViolation = lineExcess; // for single line test
+  const discountAmount = lineSubtotal * (appliedDiscount / 100);
+  const lineTotal = lineSubtotal - discountAmount;
+  
+  // Risk Score: lineExcess points weighted by line contribution (100% for single item simulator)
+  const calculatedRiskScore = Math.round(lineExcess * 100) / 100;
 
+  // Dynamic evaluation using escalation matrix
   let simLevel = "NONE";
-  if (weightedViolation > 0) {
-    if (weightedViolation <= 5.0) {
+  let simReason = "Discount is within auto-approved limits.";
+
+  if (calculatedRiskScore > 0) {
+    if (calculatedRiskScore <= 5.0) {
       simLevel = "MANAGER";
+      simReason = `Risk score of ${calculatedRiskScore} points exceeds category ceiling (${catCeiling}%) and requires Sales Manager review.`;
     } else {
       simLevel = "FINANCE";
+      simReason = `Risk score of ${calculatedRiskScore} points represents high discount variance (> 5.0) and requires Finance Director sign-off.`;
     }
   }
 
@@ -190,9 +235,7 @@ export default function GovernancePage() {
 
               <div className={s.statsGrid} style={{gridTemplateColumns: '1fr'}}>
                 {["GOLD", "SILVER", "BRONZE"].map((tier) => {
-                  const item = tiers.find((t) => t.customerTier === tier);
-                  const currentVal = item ? Number(item.maximumDiscount).toFixed(1) : "15.0";
-                  const tierBadgeClass = tier === "GOLD" ? s.badgeWarning : tier === "SILVER" ? s.badgeNeutral : s.badgeNeutral;
+                  const currentVal = tierInputs[tier] ?? (tier === "GOLD" ? "15.0" : tier === "SILVER" ? "10.0" : "5.0");
 
                   return (
                     <div key={tier} className={s.complianceItem}>
@@ -202,7 +245,7 @@ export default function GovernancePage() {
                         </div>
                         <div>
                           <span className={s.complianceName}>{tier}</span>
-                          <span className={s.complianceDescription}>Current ceiling: {currentVal}%</span>
+                          <span className={s.complianceDescription}>Max Auto-Approved: {currentVal}%</span>
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
@@ -211,19 +254,21 @@ export default function GovernancePage() {
                           step="0.5"
                           min="0"
                           max="100"
-                          defaultValue={currentVal}
-                          id={`input-${tier}`}
+                          value={currentVal}
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            setTierInputs((prev) => ({ ...prev, [tier]: val }));
+                          }}
                           className={s.formInput}
-                          style={{width: '80px'}}
+                          style={{width: '85px'}}
+                          title={`Edit ${tier} maximum discount`}
                         />
                         <button
                           disabled={saving}
-                          onClick={() => {
-                            const val = (document.getElementById(`input-${tier}`) as HTMLInputElement)?.value;
-                            if (val) handleUpdateTier(tier, val);
-                          }}
+                          onClick={() => handleUpdateTier(tier, currentVal)}
                           className={s.primaryBtn}
                           style={{padding: '0.5rem 0.75rem'}}
+                          title="Save Tier Ceiling"
                         >
                           <Save size={14} />
                         </button>
@@ -246,7 +291,7 @@ export default function GovernancePage() {
               <div className={s.complianceList}>
                 {categoryRules.map((rule) => {
                   const catName = rule.category?.name || "Category";
-                  const currentVal = Number(rule.maximumDiscount).toFixed(1);
+                  const currentVal = categoryInputs[rule.categoryId] ?? Number(rule.maximumDiscount).toFixed(1);
 
                   return (
                     <div key={rule.id} className={s.complianceItem}>
@@ -256,7 +301,7 @@ export default function GovernancePage() {
                         </div>
                         <div>
                           <span className={s.complianceName}>{catName}</span>
-                          <span className={s.complianceDescription}>{rule.category?.description || "Category limit"}</span>
+                          <span className={s.complianceDescription}>{rule.category?.description || "Category ceiling"}</span>
                         </div>
                       </div>
                       <div className="flex items-center gap-3">
@@ -268,19 +313,21 @@ export default function GovernancePage() {
                           step="0.5"
                           min="0"
                           max="100"
-                          defaultValue={currentVal}
-                          id={`cat-input-${rule.categoryId}`}
+                          value={currentVal}
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            setCategoryInputs((prev) => ({ ...prev, [rule.categoryId]: val }));
+                          }}
                           className={s.formInput}
-                          style={{width: '80px'}}
+                          style={{width: '85px'}}
+                          title={`Edit ${catName} discount limit`}
                         />
                         <button
                           disabled={saving}
-                          onClick={() => {
-                            const val = (document.getElementById(`cat-input-${rule.categoryId}`) as HTMLInputElement)?.value;
-                            if (val) handleUpdateCategoryCeiling(rule.categoryId, val);
-                          }}
+                          onClick={() => handleUpdateCategoryCeiling(rule.categoryId, currentVal)}
                           className={s.primaryBtn}
                           style={{padding: '0.5rem 0.75rem'}}
+                          title="Save Category Ceiling"
                         >
                           <Save size={14} />
                         </button>
@@ -302,14 +349,14 @@ export default function GovernancePage() {
                 {approvalRules.map((rule) => (
                   <div key={rule.id} className={s.complianceItem}>
                     <div className={s.complianceInfo}>
-                      <div className={`${s.complianceIcon} ${s.auditIconWarning}`}>
+                      <div className={`${s.complianceIcon} ${rule.requiredApprovalLevel === "NONE" ? s.auditIconInfo : s.auditIconWarning}`}>
                         <ArrowRight size={16} />
                       </div>
                       <div>
                         <span className={s.complianceName}>
                           Score {Number(rule.minimumRiskScore).toFixed(1)} – {Number(rule.maximumRiskScore).toFixed(1)}
                         </span>
-                        <span className={s.complianceDescription}>Risk score range</span>
+                        <span className={s.complianceDescription}>{rule.description || "Escalation bracket"}</span>
                       </div>
                     </div>
                     <span className={`${s.statusBadge} ${

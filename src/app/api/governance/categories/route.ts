@@ -92,6 +92,7 @@ export async function POST(req: NextRequest) {
       maximumDiscount,
     });
   } catch (error: any) {
+    console.error("Failed to update category discount rule:", error);
     return apiError("UPDATE_FAILED", error.message || "Failed to update category discount rule.", 400);
   }
 }
