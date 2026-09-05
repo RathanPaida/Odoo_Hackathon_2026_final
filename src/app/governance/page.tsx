@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { NavigationHeader } from "@/components/NavigationHeader";
 import { Card, Badge } from "@/components/ui";
 import {
   ShieldCheck, 
@@ -14,6 +13,7 @@ import {
   ArrowRight,
   Sparkles
 } from "lucide-react";
+import s from "./governance.module.css";
 
 export default function GovernancePage() {
   const [tiers, setTiers] = useState<any[]>([]);
@@ -138,71 +138,74 @@ export default function GovernancePage() {
   }
 
   return (
-    <main className="surface-page min-h-screen flex flex-col">
-      <NavigationHeader />
-
-      <div className="flex-1 max-w-7xl w-full mx-auto px-6 py-8">
-        <Card tone="paper" className="mb-8">
-          <div className="p-6">
-            <div className="flex items-center gap-2 text-[var(--primary)] text-xs font-semibold uppercase tracking-wider mb-1">
-              <ShieldCheck className="h-4 w-4" />
-              <span>Discount Governance</span>
+    <main className={s.page}>
+      <div className={s.container}>
+        <div className={s.header}>
+          <div className={s.headerContent}>
+            <div className={s.headerIcon}>
+              <ShieldCheck size={14} />
+              Discount Governance
             </div>
-            <h1 className="text-3xl font-semibold tracking-tight text-[var(--foreground)]">
-              Discount Governance &amp; Ceilings
-            </h1>
-            <p className="text-sm text-[var(--muted-foreground)] mt-1">
+            <h1 className={s.title}>Discount Governance &amp; Ceilings</h1>
+            <p className={s.subtitle}>
               Configure multi-tier discount boundaries, category caps, and the blended risk engine rules.
             </p>
           </div>
-        </Card>
+        </div>
 
         {message && (
-          <Card tone="paper" className={`mb-6 p-4 flex items-center gap-3 text-sm font-medium ${
-            message.type === "success"
-              ? "bg-[var(--status-approved-bg)] border-[var(--status-approved-bd)] text-[var(--status-approved-fg)]"
-              : "bg-[var(--status-rejected-bg)] border-[var(--status-rejected-bd)] text-[var(--status-rejected-fg)]"
-          }`}>
-            {message.type === "success" ? (
-              <CheckCircle2 className="h-5 w-5 shrink-0" />
-            ) : (
-              <AlertTriangle className="h-5 w-5 shrink-0" />
-            )}
+          <div className={`${s.alert} ${message.type === "success" ? s.alertSuccess : s.alertWarning}`}>
+            {message.type === "success" ? <CheckCircle2 size={18} /> : <AlertTriangle size={18} />}
             <span>{message.text}</span>
-          </Card>
+          </div>
         )}
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-2 space-y-8">
-            {/* Customer Tier Ceilings */}
-            <Card tone="paper" className="p-6">
-              <div className="flex items-center justify-between mb-4">
-                <div>
-                  <h2 className="text-lg font-semibold text-[var(--foreground)] flex items-center gap-2">
-                    <Sliders className="h-5 w-5 text-[var(--primary)]" />
-                    Customer Tier Ceilings
-                  </h2>
-                  <p className="text-xs text-[var(--muted-foreground)] mt-0.5">Maximum auto-approved discount allowed per tier.</p>
-                </div>
-              </div>
+        <div className={s.statsGrid}>
+          <div className={s.statCard}>
+            <p className={s.statLabel}>Active Tiers</p>
+            <p className={s.statValue}>{tiers.length}</p>
+          </div>
+          <div className={s.statCard}>
+            <p className={s.statLabel}>Categories</p>
+            <p className={s.statValue}>{categoryRules.length}</p>
+          </div>
+          <div className={s.statCard}>
+            <p className={s.statLabel}>Approval Rules</p>
+            <p className={s.statValue}>{approvalRules.length}</p>
+          </div>
+          <div className={s.statCard}>
+            <p className={s.statLabel}>Current Risk Level</p>
+            <p className={`${s.statValue} ${s.statValueWarning}`}>MEDIUM</p>
+          </div>
+        </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className={s.twoCol}>
+          <div className="space-y-8">
+            <div className={`${s.card} ${s.animateFadeIn}`}>
+              <div className={s.sectionTitle}>
+                <span className={s.sectionIcon}><Sliders size={18} /></span>
+                Customer Tier Ceilings
+              </div>
+              <p className={s.subtitle} style={{marginBottom: '1.5rem'}}>Maximum auto-approved discount allowed per tier.</p>
+
+              <div className={s.statsGrid} style={{gridTemplateColumns: '1fr'}}>
                 {["GOLD", "SILVER", "BRONZE"].map((tier) => {
                   const item = tiers.find((t) => t.customerTier === tier);
                   const currentVal = item ? Number(item.maximumDiscount).toFixed(1) : "15.0";
-                  const tierTone = tier === "GOLD" ? "pending" : tier === "SILVER" ? "neutral" : "negotiating";
+                  const tierBadgeClass = tier === "GOLD" ? s.badgeWarning : tier === "SILVER" ? s.badgeNeutral : s.badgeNeutral;
 
                   return (
-                    <Card key={tier} tone="paper" className="p-4 flex flex-col justify-between">
-                      <div>
-                        <div className="flex items-center justify-between mb-2">
-                          <Badge tone={tierTone}>{tier}</Badge>
-                          <span className="text-xs text-[var(--muted-foreground)]">Tier Cap</span>
+                    <div key={tier} className={s.complianceItem}>
+                      <div className={s.complianceInfo}>
+                        <div className={`${s.complianceIcon} ${tier === "GOLD" ? s.auditIconWarning : s.auditIconInfo}`}>
+                          <ShieldCheck size={16} />
                         </div>
-                        <div className="text-2xl font-semibold text-[var(--foreground)] mt-1 tabular">{currentVal}%</div>
+                        <div>
+                          <span className={s.complianceName}>{tier}</span>
+                          <span className={s.complianceDescription}>Current ceiling: {currentVal}%</span>
+                        </div>
                       </div>
-
-                      <div className="mt-4 pt-3 border-t border-[var(--paper-border)] flex items-center gap-2">
+                      <div className="flex items-center gap-2">
                         <input
                           type="number"
                           step="0.5"
@@ -210,7 +213,8 @@ export default function GovernancePage() {
                           max="100"
                           defaultValue={currentVal}
                           id={`input-${tier}`}
-                          className="w-full bg-[var(--paper)] border border-[var(--paper-border)] rounded-md px-2.5 py-1 text-xs text-[var(--foreground)] focus:outline-none focus:border-[var(--primary)]"
+                          className={s.formInput}
+                          style={{width: '80px'}}
                         />
                         <button
                           disabled={saving}
@@ -218,126 +222,125 @@ export default function GovernancePage() {
                             const val = (document.getElementById(`input-${tier}`) as HTMLInputElement)?.value;
                             if (val) handleUpdateTier(tier, val);
                           }}
-                          className="p-1.5 rounded-md bg-[var(--primary)] text-white transition-all disabled:opacity-50"
-                          title="Save ceiling"
+                          className={s.primaryBtn}
+                          style={{padding: '0.5rem 0.75rem'}}
                         >
-                          <Save className="h-3.5 w-3.5" />
+                          <Save size={14} />
                         </button>
                       </div>
-                    </Card>
+                    </div>
                   );
                 })}
               </div>
-            </Card>
+            </div>
 
-            {/* Category Ceilings */}
-            <Card tone="paper" className="p-6">
-              <h2 className="text-lg font-semibold text-[var(--foreground)] mb-1">Category Discount Ceilings</h2>
-              <p className="text-xs text-[var(--muted-foreground)] mb-4">
+            <div className={`${s.card} ${s.animateFadeIn}`}>
+              <div className={s.sectionTitle}>
+                <span className={s.sectionIcon}><Sliders size={18} /></span>
+                Category Discount Ceilings
+              </div>
+              <p className={s.subtitle} style={{marginBottom: '1.5rem'}}>
                 Category limits override or constrain customer tier ceilings according to <code>min(tier, category)</code> rule.
               </p>
 
-              <div className="space-y-3">
+              <div className={s.complianceList}>
                 {categoryRules.map((rule) => {
                   const catName = rule.category?.name || "Category";
                   const currentVal = Number(rule.maximumDiscount).toFixed(1);
 
                   return (
-                    <Card key={rule.id} tone="paper" className="p-3.5 flex items-center justify-between">
-                      <div>
-                        <span className="text-sm font-semibold text-[var(--foreground)] block">{catName}</span>
-                        <span className="text-xs text-[var(--muted-foreground)]">{rule.category?.description || "Category limit"}</span>
+                    <div key={rule.id} className={s.complianceItem}>
+                      <div className={s.complianceInfo}>
+                        <div className={`${s.complianceIcon} ${s.auditIconInfo}`}>
+                          <Sliders size={16} />
+                        </div>
+                        <div>
+                          <span className={s.complianceName}>{catName}</span>
+                          <span className={s.complianceDescription}>{rule.category?.description || "Category limit"}</span>
+                        </div>
                       </div>
-
                       <div className="flex items-center gap-3">
                         <div className="text-right">
-                          <span className="text-sm font-bold text-[var(--primary-hover)] block">{currentVal}%</span>
-                          <span className="text-[10px] text-[var(--muted-foreground)]">Max Discount</span>
+                          <span className={s.complianceName} style={{color: '#c4b5fd'}}>{currentVal}%</span>
                         </div>
-
-                        <div className="flex items-center gap-1.5">
-                          <input
-                            type="number"
-                            step="0.5"
-                            min="0"
-                            max="100"
-                            defaultValue={currentVal}
-                            id={`cat-input-${rule.categoryId}`}
-                            className="w-16 bg-[var(--paper)] border border-[var(--paper-border)] rounded-md px-2 py-1 text-xs text-[var(--foreground)] focus:outline-none focus:border-[var(--primary)] text-right"
-                          />
-                          <button
-                            disabled={saving}
-                            onClick={() => {
-                              const val = (document.getElementById(`cat-input-${rule.categoryId}`) as HTMLInputElement)?.value;
-                              if (val) handleUpdateCategoryCeiling(rule.categoryId, val);
-                            }}
-                            className="p-1.5 rounded-md bg-[var(--primary)] text-white transition-all disabled:opacity-50"
-                          >
-                            <Save className="h-3.5 w-3.5" />
-                          </button>
-                        </div>
+                        <input
+                          type="number"
+                          step="0.5"
+                          min="0"
+                          max="100"
+                          defaultValue={currentVal}
+                          id={`cat-input-${rule.categoryId}`}
+                          className={s.formInput}
+                          style={{width: '80px'}}
+                        />
+                        <button
+                          disabled={saving}
+                          onClick={() => {
+                            const val = (document.getElementById(`cat-input-${rule.categoryId}`) as HTMLInputElement)?.value;
+                            if (val) handleUpdateCategoryCeiling(rule.categoryId, val);
+                          }}
+                          className={s.primaryBtn}
+                          style={{padding: '0.5rem 0.75rem'}}
+                        >
+                          <Save size={14} />
+                        </button>
                       </div>
-                    </Card>
+                    </div>
                   );
                 })}
               </div>
-            </Card>
+            </div>
 
-            {/* Approval Chain Rules */}
-            <Card tone="paper" className="p-6">
-              <h2 className="text-lg font-semibold text-[var(--foreground)] mb-1">Approval Chain Escalation Matrix</h2>
-              <p className="text-xs text-[var(--muted-foreground)] mb-4">Risk score brackets mapping directly to required approver roles.</p>
+            <div className={`${s.card} ${s.animateFadeIn}`}>
+              <div className={s.sectionTitle}>
+                <span className={s.sectionIcon}><ArrowRight size={18} /></span>
+                Approval Chain Escalation Matrix
+              </div>
+              <p className={s.subtitle} style={{marginBottom: '1.5rem'}}>Risk score brackets mapping directly to required approver roles.</p>
 
-              <div className="space-y-2">
+              <div className={s.complianceList}>
                 {approvalRules.map((rule) => (
-                  <Card key={rule.id} tone="paper" className="p-3 flex items-center justify-between text-xs">
-                    <span className="font-mono text-[var(--muted-foreground)]">
-                      Score {Number(rule.minimumRiskScore).toFixed(1)} – {Number(rule.maximumRiskScore).toFixed(1)}
-                    </span>
-                    <div className="flex items-center gap-2">
-                      <ArrowRight className="h-3.5 w-3.5 text-[var(--muted-foreground)]" />
-                      <Badge
-                        tone={
-                          rule.requiredApprovalLevel === "NONE"
-                            ? "approved"
-                            : rule.requiredApprovalLevel === "MANAGER"
-                            ? "pending"
-                            : "rejected"
-                        }
-                      >
-                        {rule.requiredApprovalLevel === "NONE"
-                          ? "AUTO-APPROVED"
-                          : `${rule.requiredApprovalLevel} APPROVAL`}
-                      </Badge>
+                  <div key={rule.id} className={s.complianceItem}>
+                    <div className={s.complianceInfo}>
+                      <div className={`${s.complianceIcon} ${s.auditIconWarning}`}>
+                        <ArrowRight size={16} />
+                      </div>
+                      <div>
+                        <span className={s.complianceName}>
+                          Score {Number(rule.minimumRiskScore).toFixed(1)} – {Number(rule.maximumRiskScore).toFixed(1)}
+                        </span>
+                        <span className={s.complianceDescription}>Risk score range</span>
+                      </div>
                     </div>
-                  </Card>
+                    <span className={`${s.statusBadge} ${
+                      rule.requiredApprovalLevel === "NONE" ? s.badgeSuccess :
+                      rule.requiredApprovalLevel === "MANAGER" ? s.badgeWarning : s.badgeDanger
+                    }`}>
+                      {rule.requiredApprovalLevel === "NONE" ? "AUTO-APPROVED" : `${rule.requiredApprovalLevel} APPROVAL`}
+                    </span>
+                  </div>
                 ))}
               </div>
-            </Card>
+            </div>
           </div>
 
-          {/* Right Column: Interactive Blended Risk Simulator */}
           <div className="space-y-6">
-            <Card tone="paper" className="p-6 border-[var(--primary)]/30 bg-[var(--background)]/40 relative overflow-hidden">
-              <div className="absolute top-0 right-0 transform translate-x-4 -translate-y-4 w-32 h-32 bg-[var(--primary)]/10 rounded-full blur-2xl pointer-events-none"></div>
-
-              <div className="flex items-center gap-2 text-[var(--primary)] text-xs font-bold uppercase tracking-wider mb-2">
-                <Calculator className="h-4 w-4" />
-                <span>Live Blended Risk Simulator</span>
+            <div className={`${s.card} ${s.cardHighlight} ${s.animateFadeIn}`}>
+              <div className={s.sectionTitle}>
+                <span className={s.sectionIcon}><Calculator size={18} /></span>
+                Live Blended Risk Simulator
               </div>
-
-              <h2 className="text-xl font-semibold text-[var(--foreground)] mb-1">Test Line Discount Rule</h2>
-              <p className="text-xs text-[var(--muted-foreground)] mb-6">
+              <p className={s.subtitle} style={{marginBottom: '1.5rem'}}>
                 Direct implementation of Spec Section 13 algorithm. Simulates how customer tier and category ceiling interact.
               </p>
 
-              <div className="space-y-4 text-xs">
-                <div>
-                  <label className="block font-semibold text-[var(--foreground)] uppercase mb-1">Customer Tier</label>
+              <div className={s.statsGrid} style={{gridTemplateColumns: '1fr', marginBottom: '1rem'}}>
+                <div className={s.formGroup}>
+                  <label className={s.formLabel}>Customer Tier</label>
                   <select
                     value={simCustomerTier}
                     onChange={(e) => setSimCustomerTier(e.target.value)}
-                    className="w-full bg-[var(--paper)] border border-[var(--paper-border)] rounded-lg px-3 py-2 text-sm text-[var(--foreground)] focus:outline-none focus:border-[var(--primary)]"
+                    className={s.formSelect}
                   >
                     <option value="GOLD">Gold Customer (Ceiling: {tierCeiling}%)</option>
                     <option value="SILVER">Silver Customer</option>
@@ -345,12 +348,12 @@ export default function GovernancePage() {
                   </select>
                 </div>
 
-                <div>
-                  <label className="block font-semibold text-[var(--foreground)] uppercase mb-1">Product Category</label>
+                <div className={s.formGroup}>
+                  <label className={s.formLabel}>Product Category</label>
                   <select
                     value={simCategoryId}
                     onChange={(e) => setSimCategoryId(e.target.value)}
-                    className="w-full bg-[var(--paper)] border border-[var(--paper-border)] rounded-lg px-3 py-2 text-sm text-[var(--foreground)] focus:outline-none focus:border-[var(--primary)]"
+                    className={s.formSelect}
                   >
                     {categoryRules.map((c) => (
                       <option key={c.categoryId} value={c.categoryId}>
@@ -360,92 +363,101 @@ export default function GovernancePage() {
                   </select>
                 </div>
 
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="block font-semibold text-[var(--foreground)] uppercase mb-1">Unit Price ($)</label>
-                    <input
-                      type="number"
-                      value={simUnitPrice}
-                      onChange={(e) => setSimUnitPrice(e.target.value)}
-                      className="w-full bg-[var(--paper)] border border-[var(--paper-border)] rounded-lg px-3 py-2 text-sm text-[var(--foreground)] focus:outline-none focus:border-[var(--primary)]"
-                    />
-                  </div>
-                  <div>
-                    <label className="block font-semibold text-[var(--foreground)] uppercase mb-1">Proposed Discount (%)</label>
-                    <input
-                      type="number"
-                      step="0.5"
-                      value={simAppliedDiscount}
-                      onChange={(e) => setSimAppliedDiscount(e.target.value)}
-                      className="w-full bg-[var(--paper)] border border-[var(--paper-border)] rounded-lg px-3 py-2 text-sm text-[var(--foreground)] focus:outline-none focus:border-[var(--primary)]"
-                    />
-                  </div>
+                <div className={s.formGroup}>
+                  <label className={s.formLabel}>Unit Price ($)</label>
+                  <input
+                    type="number"
+                    value={simUnitPrice}
+                    onChange={(e) => setSimUnitPrice(e.target.value)}
+                    className={s.formInput}
+                  />
                 </div>
 
-                <div className="mt-6 pt-5 border-t border-[var(--paper-border)] space-y-3">
-                  <div className="flex justify-between items-center text-[var(--muted-foreground)]">
-                    <span>Customer Tier Limit:</span>
-                    <span className="font-semibold text-[var(--foreground)]">{tierCeiling}%</span>
-                  </div>
-                  <div className="flex justify-between items-center text-[var(--muted-foreground)]">
-                    <span>{catName} Limit:</span>
-                    <span className="font-semibold text-[var(--foreground)]">{catCeiling}%</span>
-                  </div>
-                  <div className="flex justify-between items-center text-[var(--muted-foreground)] font-medium">
-                    <span className="text-[var(--primary)]">Effective Ceiling min(T, C):</span>
-                    <span className="font-bold text-[var(--primary)]">{allowedDiscount}%</span>
-                  </div>
-                  <div className="flex justify-between items-center text-[var(--muted-foreground)]">
-                    <span>Line Excess Points:</span>
-                    <span className={`font-bold ${lineExcess > 0 ? "text-[var(--status-rejected-fg)]" : "text-[var(--status-approved-fg)]"}`}>
-                      +{lineExcess.toFixed(1)}%
+                <div className={s.formGroup}>
+                  <label className={s.formLabel}>Proposed Discount (%)</label>
+                  <input
+                    type="number"
+                    step="0.5"
+                    value={simAppliedDiscount}
+                    onChange={(e) => setSimAppliedDiscount(e.target.value)}
+                    className={s.formInput}
+                  />
+                </div>
+              </div>
+
+              <div className={s.complianceItem} style={{flexDirection: 'column', alignItems: 'stretch', gap: '0.75rem'}}>
+                <div style={{display: 'flex', justifyContent: 'space-between'}}>
+                  <span className={s.cellMuted}>Customer Tier Limit:</span>
+                  <span className={s.cellPrimary}>{tierCeiling}%</span>
+                </div>
+                <div style={{display: 'flex', justifyContent: 'space-between'}}>
+                  <span className={s.cellMuted}>{catName} Limit:</span>
+                  <span className={s.cellPrimary}>{catCeiling}%</span>
+                </div>
+                <div style={{display: 'flex', justifyContent: 'space-between', borderTop: '1px solid rgba(139, 92, 246, 0.15)', paddingTop: '0.75rem'}}>
+                  <span style={{color: '#c4b5fd', fontWeight: 600}}>Effective Ceiling min(T, C):</span>
+                  <span style={{color: '#c4b5fd', fontWeight: 700}}>{allowedDiscount}%</span>
+                </div>
+                <div style={{display: 'flex', justifyContent: 'space-between'}}>
+                  <span className={s.cellMuted}>Line Excess Points:</span>
+                  <span style={{color: lineExcess > 0 ? '#fca5a5' : '#6ee7b7', fontWeight: 700}}>+{lineExcess.toFixed(1)}%</span>
+                </div>
+
+                <div style={{borderTop: '1px solid rgba(139, 92, 246, 0.15)', paddingTop: '0.75rem', marginTop: '0.25rem'}}>
+                  <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem'}}>
+                    <span className={s.cellPrimary}>Evaluated Outcome</span>
+                    <span className={`${s.statusBadge} ${
+                      simLevel === "NONE" ? s.badgeSuccess : simLevel === "MANAGER" ? s.badgeWarning : s.badgeDanger
+                    }`}>
+                      {simLevel === "NONE" ? "APPROVED" : `PENDING_${simLevel}_APPROVAL`}
                     </span>
                   </div>
-
-                  <div className="pt-3 border-t border-[var(--paper-border)]">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-[var(--foreground)] font-semibold text-sm">Evaluated Outcome</span>
-                      <Badge
-                        tone={
-                          simLevel === "NONE" ? "approved" : simLevel === "MANAGER" ? "pending" : "rejected"
-                        }
-                      >
-                        {simLevel === "NONE" ? "APPROVED" : `PENDING_${simLevel}_APPROVAL`}
-                      </Badge>
-                    </div>
-
-                    <div className="text-[11px] text-[var(--muted-foreground)] bg-[var(--paper)] p-2.5 rounded-lg border border-[var(--paper-border)]">
-                      {lineExcess > 0 ? (
-                        <>
-                          ⚠️ <strong>Flagged:</strong> Discount of {appliedDiscount}% exceeds strict {catName} limit ({catCeiling}%) despite customer being {simCustomerTier}. Requires {simLevel} sign-off.
-                        </>
-                      ) : (
-                        <>
-                          ✅ <strong>Within Limits:</strong> Discount of {appliedDiscount}% is within approved ceiling ({allowedDiscount}%).
-                        </>
-                      )}
-                    </div>
+                  <div className={s.alert} style={{
+                    background: lineExcess > 0 ? 'rgba(239, 68, 68, 0.1)' : 'rgba(16, 185, 129, 0.1)',
+                    borderColor: lineExcess > 0 ? 'rgba(239, 68, 68, 0.2)' : 'rgba(16, 185, 129, 0.2)',
+                    color: lineExcess > 0 ? '#fca5a5' : '#6ee7b7'
+                  }}>
+                    {lineExcess > 0 ? (
+                      <>
+                        <AlertTriangle size={16} />
+                        <span>Discount of {appliedDiscount}% exceeds strict {catName} limit ({catCeiling}%) despite customer being {simCustomerTier}. Requires {simLevel} sign-off.</span>
+                      </>
+                    ) : (
+                      <>
+                        <CheckCircle2 size={16} />
+                        <span>Discount of {appliedDiscount}% is within approved ceiling ({allowedDiscount}%).</span>
+                      </>
+                    )}
                   </div>
                 </div>
               </div>
-            </Card>
+            </div>
 
-            <Card tone="paper" className="p-4">
-              <div className="flex items-center gap-1.5 font-semibold text-[var(--foreground)] mb-2">
-                <Info className="h-4 w-4 text-[var(--primary)]" />
-                <span>Section 13 Worked Example</span>
+            <div className={`${s.card} ${s.animateFadeIn}`}>
+              <div className={s.sectionTitle}>
+                <span className={s.sectionIcon}><Info size={18} /></span>
+                Section 13 Worked Example
               </div>
-              <p className="text-xs text-[var(--muted-foreground)]">
+              <p className={s.subtitle}>
                 <strong>Gold Customer</strong> (15% ceiling) buying <strong>Setup Service</strong> (10% ceiling) at 18% discount:
               </p>
-              <div className="font-mono text-[11px] bg-[var(--paper)] p-2 rounded border border-[var(--paper-border)] text-[var(--muted-foreground)] my-2">
+              <div style={{
+                fontFamily: "'SF Mono', 'Fira Code', monospace",
+                fontSize: '0.6875rem',
+                background: 'rgba(15, 15, 35, 0.5)',
+                padding: '0.75rem',
+                borderRadius: '0.75rem',
+                border: '1px solid rgba(139, 92, 246, 0.15)',
+                color: '#94a3b8',
+                margin: '1rem 0'
+              }}>
                 allowedDiscount = min(15%, 10%) = 10%<br />
                 lineExcess = max(0, 18% - 10%) = 8 pts
               </div>
-              <p className="text-xs text-[var(--muted-foreground)]">
+              <p className={s.subtitle}>
                 The service line alone flags the quotation, despite the customer being Gold.
               </p>
-            </Card>
+            </div>
           </div>
         </div>
       </div>

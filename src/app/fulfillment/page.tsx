@@ -1,8 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { NavigationHeader } from "@/components/NavigationHeader";
-import { Card, CardHeader, CardTitle, Badge, Button, Modal, Field, Select, Input } from "@/components/ui";
+import { Card, Badge, Button, Modal, Field, Select, Input } from "@/components/ui";
 import {
   Truck,
   Warehouse as WarehouseIcon,
@@ -12,6 +11,7 @@ import {
   Clock,
   Sparkles,
 } from "lucide-react";
+import s from "./fulfillment.module.css";
 
 export default function FulfillmentPage() {
   const [warehouses, setWarehouses] = useState<any[]>([]);
@@ -140,239 +140,237 @@ export default function FulfillmentPage() {
   };
 
   return (
-    <main className="surface-page min-h-screen flex flex-col">
-      <NavigationHeader />
-
-      <div className="flex-1 max-w-7xl w-full mx-auto px-6 py-8">
-        <Card tone="paper" className="mb-8">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 p-6">
-            <div>
-              <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-[var(--foreground)]">
-                Multi-warehouse fulfillment &amp; backorders
-              </h1>
-              <p className="text-sm text-[var(--muted-foreground)] mt-1">
-                Multi-factor scoring (distance, shipping base cost, shipment consolidation) with backend stock validation.
-              </p>
+    <main className={s.page}>
+      <div className={s.container}>
+        <div className={s.header}>
+          <div className={s.headerContent}>
+            <div className={s.headerIcon}>
+              <Truck size={14} />
+              Fulfillment Operations
             </div>
-            <Button onClick={handleRunAllocation} loading={allocating} leftIcon={<Sparkles size={14} />}>
-              Simulate allocation on demo order
-            </Button>
+            <h1 className={s.title}>Multi-warehouse fulfillment &amp; backorders</h1>
+            <p className={s.subtitle}>
+              Multi-factor scoring (distance, shipping base cost, shipment consolidation) with backend stock validation.
+            </p>
           </div>
-        </Card>
-
-        {overrideSuccess && (
-          <Card tone="paper" className="mb-6 p-4 flex items-center gap-2 bg-[var(--status-approved-bg)] border-[var(--status-approved-bd)]">
-            <CheckCircle2 className="h-5 w-5 text-[var(--status-approved-fg)]" />
-            <span className="text-sm font-medium text-[var(--status-approved-fg)]">{overrideSuccess}</span>
-          </Card>
-        )}
-        {overrideError && (
-          <Card tone="paper" className="mb-6 p-4 flex items-center gap-2 bg-[var(--status-rejected-bg)] border-[var(--status-rejected-bd)]">
-            <AlertTriangle className="h-5 w-5 text-[var(--status-rejected-fg)]" />
-            <span className="text-sm font-medium text-[var(--status-rejected-fg)]">{overrideError}</span>
-          </Card>
-        )}
-
-        <div className="mb-10">
-          <h2 className="text-base font-semibold tracking-tight mb-4 flex items-center gap-2 text-[var(--foreground)]">
-            <WarehouseIcon className="h-4 w-4 text-[var(--primary-hover)]" />
-            Active regional warehouses
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {warehouses.map((wh) => (
-              <Card key={wh.id} tone="paper" className="flex flex-col gap-3">
-                <div className="flex items-center justify-between">
-                  <Badge tone="info">Priority {wh.priority}</Badge>
-                  <span className="text-xs text-[var(--muted-foreground)] tabular">
-                    {Number(wh.latitude).toFixed(2)}, {Number(wh.longitude).toFixed(2)}
-                  </span>
-                </div>
-                <div>
-                  <h3 className="text-base font-semibold tracking-tight text-[var(--foreground)]">{wh.name}</h3>
-                  <p className="text-xs text-[var(--muted-foreground)] mt-0.5">
-                    Base shipping rate: ${Number(wh.shippingBaseCost).toFixed(2)}
-                  </p>
-                </div>
-                <div className="pt-3 border-t border-[var(--paper-border)]">
-                  <p className="text-[11px] font-semibold uppercase tracking-wider text-[var(--muted-foreground)] mb-2">
-                    Stock
-                  </p>
-                  {wh.stocks?.length > 0 ? (
-                    <ul className="space-y-1 text-xs tabular">
-                      {wh.stocks.map((st: any) => {
-                        const usable = st.availableQuantity - st.reservedQuantity;
-                        return (
-                          <li key={st.id} className="flex justify-between items-center">
-                            <span className="truncate max-w-[140px] text-[var(--muted-foreground)]">
-                              {st.product?.name}
-                            </span>
-                            <span>
-                              <span className="font-semibold text-[var(--status-approved-fg)]">{usable}</span>
-                              <span className="text-[var(--muted-foreground)] ml-1 text-[10px]">
-                                ({st.availableQuantity} on hand)
-                              </span>
-                            </span>
-                          </li>
-                        );
-                      })}
-                    </ul>
-                  ) : (
-                    <span className="text-xs text-[var(--muted-foreground)]">No stock recorded</span>
-                  )}
-                </div>
-              </Card>
-            ))}
+          <div className={s.headerActions}>
+            <button className={s.primaryBtn} onClick={handleRunAllocation} disabled={allocating}>
+              <Sparkles size={14} />
+              {allocating ? "Running..." : "Simulate allocation on demo order"}
+            </button>
           </div>
         </div>
 
-        {allocationResult && (
-          <Card tone="paper" className="mb-10 border-[var(--primary)]/30 bg-[var(--background)]/40">
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6 pb-4 border-b border-[var(--paper-border)]">
-              <div>
-                <p className="text-[11px] font-semibold uppercase tracking-wider text-[var(--primary-hover)] mb-1">
-                  Multi-warehouse split result
-                </p>
-                <h2 className="text-lg font-semibold tracking-tight text-[var(--foreground)]">
-                  Order fulfillment plan: {allocationResult.fulfillment.orderId}
-                </h2>
+        {overrideSuccess && (
+          <div className={`${s.alert} ${s.alertSuccess}`}>
+            <CheckCircle2 size={18} />
+            <span>{overrideSuccess}</span>
+          </div>
+        )}
+        {overrideError && (
+          <div className={`${s.alert} ${s.alertError}`}>
+            <AlertTriangle size={18} />
+            <span>{overrideError}</span>
+          </div>
+        )}
+
+        <div className={s.warehouseGrid}>
+          {warehouses.map((wh) => (
+            <div key={wh.id} className={s.warehouseCard}>
+              <div className={s.warehouseHeader}>
+                <h3 className={s.warehouseName}>{wh.name}</h3>
+                <span className={s.badgeInfo}>Priority {wh.priority}</span>
               </div>
-              <Button
-                variant="secondary"
-                size="sm"
-                leftIcon={<Edit3 size={14} />}
-                onClick={() => {
-                  setOverrideQty("8");
-                  setShowOverrideModal(true);
-                }}
-              >
-                Test manual override
-              </Button>
+              <p className={s.warehouseMeta}>
+                {Number(wh.latitude).toFixed(2)}, {Number(wh.longitude).toFixed(2)} · ${Number(wh.shippingBaseCost).toFixed(2)} base rate
+              </p>
+              <div className={s.warehouseDivider} />
+              <p className={s.stockTitle}>Stock</p>
+              {wh.stocks?.length > 0 ? (
+                <ul className={s.stockList}>
+                  {wh.stocks.map((st: any) => {
+                    const usable = st.availableQuantity - st.reservedQuantity;
+                    return (
+                      <li key={st.id} className={s.stockItem}>
+                        <span className={s.stockProduct}>{st.product?.name}</span>
+                        <span>
+                          <span className={s.stockQty}>{usable}</span>
+                          <span className={s.stockOnHand}>({st.availableQuantity} on hand)</span>
+                        </span>
+                      </li>
+                    );
+                  })}
+                </ul>
+              ) : (
+                <span className="text-xs text-[var(--muted-foreground)]">No stock recorded</span>
+              )}
+            </div>
+          ))}
+        </div>
+
+        {allocationResult && (
+          <div className={`${s.card} ${s.cardHighlight} ${s.animateFadeIn}`}>
+            <div className={s.sectionTitle}>
+              <span className={s.sectionIcon}><Truck size={18} /></span>
+              Order fulfillment plan: {allocationResult.fulfillment.orderId}
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-              <SummaryStat
-                label="Fulfillment status"
-                value={allocationResult.fulfillment.status}
-                tone="positive"
-              />
-              <SummaryStat
-                label="Consolidated shipments"
-                value={`${allocationResult.shipmentCount} shipments`}
-              />
-              <SummaryStat
-                label="Total shipping cost"
-                value={`$${Number(allocationResult.estimatedShippingCost).toFixed(2)}`}
-                tone="brand"
-              />
+            <div className={s.statsRow}>
+              <div className={s.statBox}>
+                <p className={s.statLabel}>Fulfillment status</p>
+                <p className={`${s.statValue} ${s.statValuePositive}`}>{allocationResult.fulfillment.status}</p>
+              </div>
+              <div className={s.statBox}>
+                <p className={s.statLabel}>Consolidated shipments</p>
+                <p className={s.statValue}>{allocationResult.shipmentCount} shipments</p>
+              </div>
+              <div className={s.statBox}>
+                <p className={s.statLabel}>Total shipping cost</p>
+                <p className={`${s.statValue} ${s.statValueBrand}`}>${Number(allocationResult.estimatedShippingCost).toFixed(2)}</p>
+              </div>
             </div>
 
-            <div>
-              <h3 className="text-xs font-semibold uppercase tracking-wider text-[var(--muted-foreground)] mb-2">
-                Greedy warehouse allocations
-              </h3>
-              <Card tone="paper" className="overflow-hidden">
-                <table className="w-full text-xs text-left tabular">
-                  <thead className="bg-[var(--background)] text-[var(--muted-foreground)] uppercase text-[10px]">
+            <div className={s.sectionTitle} style={{marginTop: '1.5rem'}}>
+              <span className={s.sectionIcon}><WarehouseIcon size={16} /></span>
+              Greedy warehouse allocations
+            </div>
+            <div className={s.tableCard}>
+              <div className={s.tableWrapper}>
+                <table className={s.table}>
+                  <thead>
                     <tr>
-                      <th className="px-4 py-2.5">Order line</th>
-                      <th className="px-4 py-2.5">Allocated warehouse</th>
-                      <th className="px-4 py-2.5">Quantity</th>
-                      <th className="px-4 py-2.5">Shipping cost</th>
+                      <th>Order line</th>
+                      <th>Allocated warehouse</th>
+                      <th>Quantity</th>
+                      <th>Shipping cost</th>
                     </tr>
                   </thead>
                   <tbody>
                     {allocationResult.allocations.map((alloc: any, idx: number) => {
                       const wh = warehouses.find((w) => w.id === alloc.warehouseId);
                       return (
-                        <tr key={idx} className="border-t border-[var(--paper-border)]">
-                          <td className="px-4 py-2.5 text-[var(--muted-foreground)]">{alloc.orderLineId}</td>
-                          <td className="px-4 py-2.5 font-medium">{wh?.name ?? alloc.warehouseId}</td>
-                          <td className="px-4 py-2.5 text-[var(--primary-hover)] font-semibold">
-                            {alloc.quantity} units
-                          </td>
-                          <td className="px-4 py-2.5">${alloc.shippingCost.toFixed(2)}</td>
+                        <tr key={idx}>
+                          <td className={s.cellMuted}>{alloc.orderLineId}</td>
+                          <td className={s.cellPrimary}>{wh?.name ?? alloc.warehouseId}</td>
+                          <td className={s.cellPrimary}>{alloc.quantity} units</td>
+                          <td className={s.cellMono}>${alloc.shippingCost.toFixed(2)}</td>
                         </tr>
                       );
                     })}
                   </tbody>
                 </table>
-              </Card>
+              </div>
             </div>
-          </Card>
+
+            <div style={{marginTop: '1.5rem', display: 'flex', justifyContent: 'flex-end'}}>
+              <button className={s.secondaryBtn} onClick={() => { setOverrideQty("8"); setShowOverrideModal(true); }}>
+                <Edit3 size={14} />
+                Test manual override
+              </button>
+            </div>
+          </div>
         )}
 
-        <Card tone="paper">
-          <CardHeader>
-            <div>
-              <CardTitle>
-                <span className="inline-flex items-center gap-2">
-                  <Clock className="h-4 w-4 text-[var(--status-pending-fg)]" />
-                  Backorders log
-                </span>
-              </CardTitle>
-              <p className="text-xs text-[var(--muted-foreground)] mt-1">
-                Created automatically when usable inventory across all warehouses can’t fulfill a line quantity.
-              </p>
-            </div>
-            <Badge tone={backorders.length > 0 ? "pending" : "neutral"} dot>
-              {backorders.length} open
-            </Badge>
-          </CardHeader>
+        <div className={`${s.card} ${s.animateFadeIn}`} style={{marginTop: '2rem'}}>
+          <div className={s.sectionTitle}>
+            <span className={s.sectionIcon}><Clock size={16} /></span>
+            Backorders log
+          </div>
+          <p className={s.subtitle} style={{marginBottom: '1.5rem'}}>
+            Created automatically when usable inventory across all warehouses can't fulfill a line quantity.
+          </p>
 
           {backorders.length === 0 ? (
             <div className="px-2 py-8 text-center text-sm text-[var(--muted-foreground)]">
               No open backorders.
             </div>
           ) : (
-            <Card tone="paper" className="overflow-hidden">
-              <table className="w-full text-xs text-left tabular">
-                <thead className="bg-[var(--background)] text-[var(--muted-foreground)] uppercase text-[10px]">
-                  <tr>
-                    <th className="px-4 py-2.5">Backorder ID</th>
-                    <th className="px-4 py-2.5">Order line</th>
-                    <th className="px-4 py-2.5">Unfulfilled</th>
-                    <th className="px-4 py-2.5">Status</th>
-                    <th className="px-4 py-2.5">Created</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {backorders.map((bo) => (
-                    <tr key={bo.id} className="border-t border-[var(--paper-border)]">
-                      <td className="px-4 py-2.5 text-[var(--muted-foreground)]">{bo.id}</td>
-                      <td className="px-4 py-2.5">{bo.orderLineId}</td>
-                      <td className="px-4 py-2.5 text-[var(--status-pending-fg)] font-semibold">{bo.quantity} units</td>
-                      <td className="px-4 py-2.5">
-                        <Badge tone="pending">{bo.status}</Badge>
-                      </td>
-                      <td className="px-4 py-2.5 text-[var(--muted-foreground)]">
-                        {new Date(bo.createdAt).toLocaleDateString()}
-                      </td>
+            <div className={s.tableCard}>
+              <div className={s.tableWrapper}>
+                <table className={s.table}>
+                  <thead>
+                    <tr>
+                      <th>Backorder ID</th>
+                      <th>Order line</th>
+                      <th>Unfulfilled</th>
+                      <th>Status</th>
+                      <th>Created</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </Card>
+                  </thead>
+                  <tbody>
+                    {backorders.map((bo) => (
+                      <tr key={bo.id}>
+                        <td className={s.cellMuted}>{bo.id}</td>
+                        <td className={s.cellPrimary}>{bo.orderLineId}</td>
+                        <td className={s.cellPrimary}>{bo.quantity} units</td>
+                        <td><span className={`${s.statusBadge} ${s.badgePending}`}>{bo.status}</span></td>
+                        <td className={s.cellMuted}>{new Date(bo.createdAt).toLocaleDateString()}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
           )}
-        </Card>
+        </div>
       </div>
 
-      {/* Manual Override Modal */}
-      <Modal
-        open={showOverrideModal}
-        onClose={() => setShowOverrideModal(false)}
-        title="Manual warehouse override"
-        description="Reassign order fulfillment to a specific warehouse. Stock is strictly validated on the backend."
-        size="md"
-        footer={
-          <div className="flex justify-end gap-2">
-            <Button variant="ghost" onClick={() => setShowOverrideModal(false)}>
-              Cancel
-            </Button>
-            <Button onClick={handleManualOverride} loading={overrideSubmitting}>
-              Apply override
-            </Button>
+      {showOverrideModal && (
+        <div className={s.modal}>
+          <div className={s.modalContent}>
+            <div className={s.modalHeader}>
+              <div>
+                <h2 className={s.modalTitle}>Manual warehouse override</h2>
+                <p className={s.modalDescription}>Reassign order fulfillment to a specific warehouse. Stock is strictly validated on the backend.</p>
+              </div>
+              <button className={s.modalClose} onClick={() => setShowOverrideModal(false)}>
+                ✕
+              </button>
+            </div>
+            <div className={s.modalBody}>
+              <form onSubmit={handleManualOverride}>
+                <div className={s.formGroup}>
+                  <label className={s.formLabel}>Destination warehouse</label>
+                  <select
+                    className={s.formSelect}
+                    value={overrideWarehouseId}
+                    onChange={(e) => setOverrideWarehouseId(e.target.value)}
+                  >
+                    {warehouses.map((w) => (
+                      <option key={w.id} value={w.id}>
+                        {w.name} (Priority {w.priority})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className={s.formGroup}>
+                  <label className={s.formLabel}>Quantity to ship</label>
+                  <input
+                    type="number"
+                    min={1}
+                    required
+                    value={overrideQty}
+                    onChange={(e) => setOverrideQty(e.target.value)}
+                    className={s.formInput}
+                  />
+                  <p className={s.formHint}>Testing with > 5 units on New York will trigger a backend stock validation error.</p>
+                </div>
+              </form>
+            </div>
+            <div className={s.modalFooter}>
+              <button className={s.ghostBtn} onClick={() => setShowOverrideModal(false)}>
+                Cancel
+              </button>
+              <button className={s.primaryBtn} onClick={handleManualOverride} disabled={overrideSubmitting}>
+                {overrideSubmitting ? "Applying..." : "Apply override"}
+              </button>
+            </div>
           </div>
-        }
+        </div>
+      )}
+    </main>
+  );
+}
       >
         <form onSubmit={handleManualOverride} className="space-y-4">
           <Field label="Destination warehouse" htmlFor="wh">
@@ -405,26 +403,5 @@ export default function FulfillmentPage() {
         </form>
       </Modal>
     </main>
-  );
-}
-
-function SummaryStat({
-  label,
-  value,
-  tone,
-}: {
-  label: string;
-  value: string;
-  tone?: "positive" | "brand";
-}) {
-  const valueColor =
-    tone === "positive" ? "text-emerald-400" : tone === "brand" ? "text-[var(--primary-hover)]" : "";
-  return (
-    <div className="rounded-lg border border-[var(--border)] bg-[var(--background)] p-3.5">
-      <p className="text-[11px] font-semibold uppercase tracking-wider text-[var(--muted-foreground)]">
-        {label}
-      </p>
-      <p className={`mt-1 text-lg font-semibold tabular ${valueColor}`}>{value}</p>
-    </div>
   );
 }

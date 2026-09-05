@@ -1,20 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { NavigationHeader } from "@/components/NavigationHeader";
-import {
-  Badge,
-  Card,
-  CardHeader,
-  CardTitle,
-  Modal,
-  Button,
-  Textarea,
-  Field,
-  RiskGauge,
-  badgeToneForQuoteStatus,
-  badgeToneForRisk,
-} from "@/components/ui";
 import {
   CheckSquare,
   CheckCircle2,
@@ -26,24 +12,84 @@ import {
   Sparkles,
   X,
 } from "lucide-react";
+import styles from "./approvals.module.css";
+
+interface RiskBreakdown {
+  lineId: string;
+  productName: string;
+  categoryName: string;
+  appliedDiscount: number;
+  allowedDiscount: number;
+  lineExcess: number;
+  weightedViolation: number;
+}
+
+interface ApprovalAction {
+  id: string;
+  action: string;
+  reason?: string;
+  timestamp: string;
+}
+
+interface ApprovalRequest {
+  id: string;
+  quotationId: string;
+  assignedRole: string;
+  riskScore: number;
+  reason?: string;
+  status: string;
+  level: string;
+  createdAt: string;
+  evaluation?: {
+    breakdown: RiskBreakdown[];
+  };
+  actions?: ApprovalAction[];
+}
+
+const BADGE_CLASSES: Record<string, string> = {
+  APPROVED: styles.statusBadgeApproved,
+  PENDING_APPROVAL: styles.statusBadgePending,
+  REJECTED: styles.statusBadgeRejected,
+  REVISION_REQUIRED: styles.statusBadgePending,
+  DRAFT: styles.statusBadgeDraft,
+};
+
+function badgeToneForRisk(score: number): string {
+  if (score < 25) return styles.statusBadgeApproved;
+  if (score < 50) return styles.statusBadgePending;
+  return styles.statusBadgeRejected;
+}
+
+function badgeToneForStatus(status: string): string {
+  return BADGE_CLASSES[status] || styles.statusBadge;
+}
+
+function getRiskGaugeClass(score: number): string {
+  if (score < 25) return styles.riskGaugeLow;
+  if (score < 50) return styles.riskGaugeMedium;
+  return styles.riskGaugeHigh;
+}
+
+function getActionDotClass(action: string): string {
+  switch (action) {
+    case "APPROVE": return styles.auditDotApproved;
+    case "REJECT": return styles.auditDotRejected;
+    case "REQUEST_REVISION": return styles.auditDotRevision;
+    default: return "";
+  }
+}
 
 export default function ApprovalsPage() {
-  const [requests, setRequests] = useState<any[]>([]);
+  const [requests, setRequests] = useState<ApprovalRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedRole, setSelectedRole] = useState<string>("ALL");
   const [selectedStatus, setSelectedStatus] = useState<string>("PENDING_APPROVAL");
-
-  // Selected request for detail modal
-  const [activeRequest, setActiveRequest] = useState<any | null>(null);
+  const [activeRequest, setActiveRequest] = useState<ApprovalRequest | null>(null);
   const [detailLoading, setDetailLoading] = useState(false);
-
-  // Action form
   const [actionReason, setActionReason] = useState("");
   const [submittingAction, setSubmittingAction] = useState(false);
   const [actionSuccess, setActionSuccess] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
-
-  // Evaluate quotation simulation
   const [evaluating, setEvaluating] = useState(false);
 
   const fetchRequests = async () => {
@@ -106,7 +152,6 @@ export default function ApprovalsPage() {
       const data = await res.json();
       if (data.success) {
         setActionSuccess(`Successfully processed action: ${actionType}`);
-        // Refresh details and list
         handleOpenDetail(activeRequest.id);
         fetchRequests();
       } else {
@@ -122,7 +167,6 @@ export default function ApprovalsPage() {
   const handleEvaluateDemoQuote = async () => {
     try {
       setEvaluating(true);
-      // Calls evaluate on the seeded demo quote: q1111111-1111-1111-1111-111111111111
       const res = await fetch("/api/approvals/evaluate/q1111111-1111-1111-1111-111111111111", {
         method: "POST",
       });
@@ -140,59 +184,56 @@ export default function ApprovalsPage() {
     }
   };
 
-    return (
-      <main className="surface-page min-h-screen flex flex-col">
-        <NavigationHeader />
-
-        <div className="flex-1 max-w-7xl w-full mx-auto px-6 py-8">
-          <Card tone="paper" className="mb-8">
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 p-6">
-              <div>
-                <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-[var(--foreground)]">
-                  Approval Queue & Audit Trail
-                </h1>
-                <p className="text-sm text-[var(--muted-foreground)] mt-1">
-                  Review flagged quotations with line-level risk attribution. Audit trail is strictly append-only.
-                </p>
-              </div>
-
-              <div className="flex items-center gap-3">
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  onClick={handleEvaluateDemoQuote}
-                  disabled={evaluating}
-                >
-                  <Sparkles className="h-4 w-4 text-[var(--primary)] mr-2" />
-                  {evaluating ? "Evaluating..." : "Run Evaluation on Demo Quote"}
-                </Button>
-              </div>
+  return (
+    <main className={styles.page}>
+      <div className={styles.container}>
+        <header className={styles.header}>
+          <div className={styles.headerContent}>
+            <div className={styles.headerIcon}>
+              <ShieldAlert size={16} />
+              <span>Approval Queue</span>
             </div>
-          </Card>
+            <h1 className={styles.title}>Approvals & Audit Trail</h1>
+            <p className={styles.subtitle}>
+              Review flagged quotations with line-level risk attribution. Every action is logged in the append-only audit trail.
+            </p>
+          </div>
+          <div className={styles.headerActions}>
+            <button
+              className={styles.primaryBtn}
+              onClick={handleEvaluateDemoQuote}
+              disabled={evaluating}
+            >
+              <Sparkles size={16} />
+              {evaluating ? "Evaluating..." : "Run Evaluation Demo"}
+            </button>
+          </div>
+        </header>
 
-          <Card tone="paper" className="mb-6">
-            <div className="p-4 flex flex-wrap items-center justify-between gap-4">
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-semibold uppercase text-[var(--muted-foreground)] mr-1">
-                  Role Queue:
-                </span>
+        <section className={`${styles.card} ${styles.animateFadeIn}`} style={{ marginBottom: "1.5rem" }}>
+          <div className={styles.filterSection}>
+            <div style={{ display: "flex", alignItems: "center", gap: "1rem", flexWrap: "wrap" }}>
+              <span style={{ fontSize: "0.75rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "#a78bfa" }}>
+                Role Queue:
+              </span>
+              <div className={styles.filterTabs}>
                 {["ALL", "SALES_MANAGER", "FINANCE"].map((role) => (
-                  <Button
+                  <button
                     key={role}
-                    variant={selectedRole === role ? "primary" : "ghost"}
-                    size="sm"
+                    className={`${styles.filterTab} ${selectedRole === role ? styles.filterTabActive : ""}`}
                     onClick={() => setSelectedRole(role)}
-                    className="text-xs"
                   >
                     {role === "ALL" ? "All Roles" : role === "SALES_MANAGER" ? "Sales Manager" : "Finance"}
-                  </Button>
+                  </button>
                 ))}
               </div>
+            </div>
 
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-semibold uppercase text-[var(--muted-foreground)] mr-1">
-                  Status:
-                </span>
+            <div style={{ display: "flex", alignItems: "center", gap: "1rem", flexWrap: "wrap", marginTop: "1rem" }}>
+              <span style={{ fontSize: "0.75rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "#a78bfa" }}>
+                Status:
+              </span>
+              <div className={styles.filterTabs}>
                 {[
                   { id: "ALL", label: "All" },
                   { id: "PENDING_APPROVAL", label: "Pending" },
@@ -200,252 +241,258 @@ export default function ApprovalsPage() {
                   { id: "REJECTED", label: "Rejected" },
                   { id: "REVISION_REQUIRED", label: "Revision Requested" },
                 ].map((st) => (
-                  <Button
+                  <button
                     key={st.id}
-                    variant={selectedStatus === st.id ? "primary" : "ghost"}
-                    size="sm"
+                    className={`${styles.filterTab} ${selectedStatus === st.id ? styles.filterTabActive : ""}`}
                     onClick={() => setSelectedStatus(st.id)}
-                    className="text-xs"
                   >
                     {st.label}
-                  </Button>
+                  </button>
                 ))}
               </div>
             </div>
-          </Card>
+          </div>
+        </section>
 
-          {loading ? (
-            <Card tone="paper" className="py-20 flex flex-col items-center justify-center gap-3">
-              <div className="w-8 h-8 border-2 border-[var(--primary)] border-t-transparent rounded-full animate-spin"></div>
-              <p className="text-sm text-[var(--muted-foreground)]">Loading approval requests...</p>
-            </Card>
-          ) : requests.length === 0 ? (
-            <Card tone="paper" className="py-16 text-center">
-              <CheckSquare className="h-10 w-10 text-[var(--muted-foreground)] mx-auto mb-3" />
-              <p className="font-medium text-[var(--foreground)]">No approval requests in this queue</p>
-              <p className="text-xs text-[var(--muted-foreground)] mt-1">
-                Click "Run Evaluation on Demo Quote" to generate a real risk-flagged approval.
-              </p>
-            </Card>
-          ) : (
-            <Card tone="paper" className="overflow-hidden">
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-sm tabular">
-                  <thead className="bg-[var(--background)] text-xs uppercase text-[var(--muted-foreground)]">
-                    <tr>
-                      <th className="px-5 py-3.5">Quotation / ID</th>
-                      <th className="px-5 py-3.5">Assigned To</th>
-                      <th className="px-5 py-3.5">Risk Score</th>
-                      <th className="px-5 py-3.5">Flag Reason</th>
-                      <th className="px-5 py-3.5">Status</th>
-                      <th className="px-5 py-3.5 text-right">Action</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-[var(--paper-border)]">
-                    {requests.map((req) => {
-                      const score = Number(req.riskScore);
-                      return (
-                        <tr key={req.id} className="hover:bg-[var(--paper)] transition-all">
-                          <td className="px-5 py-4">
-                            <span className="font-mono text-xs font-semibold text-[var(--primary)] block">
-                              {req.quotationId}
-                            </span>
-                            <span className="text-[11px] text-[var(--muted-foreground)]">
-                              Created {new Date(req.createdAt).toLocaleDateString()}
-                            </span>
-                          </td>
-
-                          <td className="px-5 py-4">
-                            <Badge tone="neutral">
-                              <User className="h-3 w-3 mr-1.5" /> {req.assignedRole}
-                            </Badge>
-                          </td>
-
-                          <td className="px-5 py-4">
-                            <Badge tone={badgeToneForRisk(score)} dot>
-                              {score.toFixed(1)} pts
-                            </Badge>
-                          </td>
-
-                          <td className="px-5 py-4 max-w-xs">
-                            <p className="text-xs text-[var(--foreground)] truncate" title={req.reason}>
-                              {req.reason || "Discount ceiling exceedance detected"}
-                            </p>
-                          </td>
-
-                          <td className="px-5 py-4">
-                            <Badge tone={badgeToneForQuoteStatus(req.status)}>
-                              {req.status.replace("_", " ")}
-                            </Badge>
-                          </td>
-
-                          <td className="px-5 py-4 text-right">
-                            <Button
-                              size="sm"
-                              onClick={() => handleOpenDetail(req.id)}
-                              className="text-xs"
-                            >
-                              <Eye className="h-3.5 w-3.5 mr-1.5" />
-                              Review & Act
-                            </Button>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-            </Card>
-          )}
-        </div>
-
-        <Modal
-          open={activeRequest !== null}
-          onClose={() => setActiveRequest(null)}
-          size="lg"
-          title={
-            <div className="flex items-center gap-2">
-              <span className="text-[11px] font-semibold uppercase tracking-wider text-[var(--muted-foreground)]">
-                Approval Request Inspector
-              </span>
-              <Badge tone={badgeToneForQuoteStatus(activeRequest?.status ?? "PENDING_APPROVAL")}>
-                {activeRequest?.status.replace("_", " ")}
-              </Badge>
+        {loading ? (
+          <section className={styles.loadingState}>
+            <div className={styles.spinner}></div>
+            <p style={{ color: "#94a3b8" }}>Loading approval requests...</p>
+          </section>
+        ) : requests.length === 0 ? (
+          <section className={`${styles.card} ${styles.animateFadeIn}`}>
+            <div className={styles.emptyState}>
+              <CheckSquare className={styles.emptyStateIcon} />
+              <p className={styles.emptyStateText}>No approval requests in this queue</p>
+              <p className={styles.emptyStateSubtext}>Click "Run Evaluation Demo" to generate a risk-flagged approval.</p>
             </div>
-          }
-          description={`Quotation: ${activeRequest?.quotationId} · Assigned: ${activeRequest?.assignedRole} · Level: ${activeRequest?.level}`}
-          footer={
-            activeRequest?.status === "PENDING_APPROVAL" ? (
-              <div className="flex items-center justify-end gap-2">
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  loading={submittingAction}
-                  onClick={() => handleAction("REQUEST_REVISION")}
-                  className="text-[var(--primary)]"
-                >
-                  Request revision
-                </Button>
-                <Button variant="destructive" size="sm" loading={submittingAction} onClick={() => handleAction("REJECT")}>
-                  Reject
-                </Button>
-                <Button variant="success" size="sm" loading={submittingAction} onClick={() => handleAction("APPROVE")}>
-                  {activeRequest?.level === "FINANCE" && activeRequest?.assignedRole === "SALES_MANAGER"
-                    ? "Approve & escalate"
-                    : "Approve"}
-                </Button>
-              </div>
-            ) : null
-          }
-        >
-          {activeRequest && (
-            <div className="space-y-6">
-              {actionSuccess && (
-                <div className="p-3.5 rounded-xl bg-[var(--status-approved-bg)] border border-[var(--status-approved-bd)] text-[var(--status-approved-fg)] text-xs font-medium flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-[var(--status-approved-fg)]" /> {actionSuccess}
-                </div>
-              )}
-              {actionError && (
-                <div className="p-3.5 rounded-xl bg-[var(--status-rejected-bg)] border border-[var(--status-rejected-bd)] text-[var(--status-rejected-fg)] text-xs font-medium flex items-center gap-2">
-                  <AlertTriangle className="h-4 w-4 text-[var(--status-rejected-fg)]" /> {actionError}
-                </div>
-              )}
-
-              <RiskGauge
-                score={activeRequest.riskScore}
-                breakdown={activeRequest.evaluation?.breakdown}
-              />
-
-              {activeRequest.evaluation?.breakdown?.length > 0 && (
-                <Card tone="paper" className="overflow-hidden">
-                  <div className="px-4 py-3 border-b border-[var(--paper-border)] text-xs font-semibold uppercase tracking-wider text-[var(--muted-foreground)] flex items-center gap-2">
-                    <ShieldAlert size={12} /> Line-by-line attribution
-                  </div>
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-xs text-left tabular">
-                      <thead className="bg-[var(--background)] text-[var(--muted-foreground)] uppercase text-[10px]">
-                        <tr>
-                          <th className="px-4 py-2.5">Product</th>
-                          <th className="px-3 py-2.5">Category</th>
-                          <th className="px-3 py-2.5">Applied</th>
-                          <th className="px-3 py-2.5">Ceiling</th>
-                          <th className="px-3 py-2.5">Excess</th>
-                          <th className="px-3 py-2.5">Contribution</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {activeRequest.evaluation.breakdown.map((line: any) => (
-                          <tr key={line.lineId} className="border-t border-[var(--paper-border)]">
-                            <td className="px-4 py-2.5 font-medium">{line.productName}</td>
-                            <td className="px-3 py-2.5 text-[var(--muted-foreground)]">{line.categoryName}</td>
-                            <td className="px-3 py-2.5 font-semibold">{line.appliedDiscount}%</td>
-                            <td className="px-3 py-2.5">{line.allowedDiscount}%</td>
-                            <td className="px-3 py-2.5">
-                              {line.lineExcess > 0 ? (
-                                <span className="font-semibold text-[var(--status-rejected-fg)]">+{line.lineExcess}%</span>
-                              ) : (
-                                <span className="text-[var(--status-approved-fg)]">0%</span>
-                              )}
-                            </td>
-                            <td className="px-3 py-2.5 text-[var(--primary-hover)] font-semibold">
-                              {line.weightedViolation} pts
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </Card>
-              )}
-
-              <div>
-                <h3 className="text-xs font-semibold uppercase tracking-wider text-[var(--muted-foreground)] mb-3 flex items-center gap-2">
-                  <History className="h-3.5 w-3.5 text-[var(--primary-hover)]" /> Append-only audit trail
-                </h3>
-                {activeRequest.actions?.length > 0 ? (
-                  <ul className="relative border-l border-[var(--paper-border)] ml-3 space-y-4 pl-4 text-xs">
-                    {activeRequest.actions.map((act: any) => (
-                      <li key={act.id} className="relative">
-                        <span className="absolute -left-[21px] top-1 h-2.5 w-2.5 rounded-full bg-[var(--primary)] border border-[var(--background)]" />
-                        <div className="flex items-center gap-2">
-                          <Badge
-                            tone={
-                              act.action === "APPROVE"
-                                ? "approved"
-                                : act.action === "REJECT"
-                                ? "rejected"
-                                : "negotiating"
-                            }
-                          >
-                            {act.action}
-                          </Badge>
-                          <span className="text-[var(--muted-foreground)]">
-                            {new Date(act.timestamp).toLocaleString()}
+          </section>
+        ) : (
+          <section className={`${styles.tableCard} ${styles.animateFadeIn}`}>
+            <div className={styles.tableWrapper}>
+              <table className={styles.table}>
+                <thead>
+                  <tr>
+                    <th>Quotation ID</th>
+                    <th>Assigned To</th>
+                    <th>Risk Score</th>
+                    <th>Flag Reason</th>
+                    <th>Status</th>
+                    <th style={{ textAlign: "right" }}>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {requests.map((req) => {
+                    const score = Number(req.riskScore);
+                    return (
+                      <tr key={req.id}>
+                        <td>
+                          <span className={styles.cellMono}>{req.quotationId}</span>
+                          <div className={styles.cellMuted} style={{ fontSize: "0.6875rem", marginTop: "0.25rem" }}>
+                            Created {new Date(req.createdAt).toLocaleDateString()}
+                          </div>
+                        </td>
+                        <td>
+                          <span className={styles.statusBadge}>
+                            <User size={12} style={{ marginRight: "0.375rem" }} />
+                            {req.assignedRole}
                           </span>
+                        </td>
+                        <td>
+                          <span className={`${styles.statusBadge} ${badgeToneForRisk(score)}`}>
+                            {score.toFixed(1)} pts
+                          </span>
+                        </td>
+                        <td>
+                          <span style={{ 
+                            maxWidth: "16rem", 
+                            display: "block",
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                            whiteSpace: "nowrap"
+                          }} title={req.reason}>
+                            {req.reason || "Discount ceiling exceedance detected"}
+                          </span>
+                        </td>
+                        <td>
+                          <span className={`${styles.statusBadge} ${badgeToneForStatus(req.status)}`}>
+                            {req.status.replace("_", " ")}
+                          </span>
+                        </td>
+                        <td style={{ textAlign: "right" }}>
+                          <button
+                            className={styles.actionBtn}
+                            onClick={() => handleOpenDetail(req.id)}
+                          >
+                            <Eye size={14} />
+                            Review
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </section>
+        )}
+
+        {activeRequest && (
+          <div className={styles.modal} onClick={() => setActiveRequest(null)}>
+            <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
+              <div className={styles.modalHeader}>
+                <div>
+                  <h2 className={styles.modalTitle}>Approval Request Inspector</h2>
+                  <p className={styles.modalDescription}>
+                    {activeRequest.quotationId} · {activeRequest.assignedRole} · Level: {activeRequest.level}
+                  </p>
+                </div>
+                <button className={styles.modalClose} onClick={() => setActiveRequest(null)}>
+                  <X size={18} />
+                </button>
+              </div>
+
+              <div className={styles.modalBody}>
+                {actionSuccess && (
+                  <div className={`${styles.alert} ${styles.alertSuccess}`}>
+                    <CheckCircle2 size={18} />
+                    {actionSuccess}
+                  </div>
+                )}
+                {actionError && (
+                  <div className={`${styles.alert} ${styles.alertError}`}>
+                    <AlertTriangle size={18} />
+                    {actionError}
+                  </div>
+                )}
+
+                <div className={styles.riskGauge}>
+                  <div className={styles.riskGaugeHeader}>
+                    <span className={styles.riskGaugeLabel}>Risk Score</span>
+                    <span className={styles.riskGaugeValue}>{Number(activeRequest.riskScore).toFixed(1)}</span>
+                  </div>
+                  <div className={styles.riskGaugeBar}>
+                    <div
+                      className={`${styles.riskGaugeFill} ${getRiskGaugeClass(Number(activeRequest.riskScore))}`}
+                      style={{ width: `${Math.min(Number(activeRequest.riskScore), 100)}%` }}
+                    ></div>
+                  </div>
+                </div>
+
+                {activeRequest.evaluation?.breakdown?.length > 0 && (
+                  <div className={styles.card} style={{ marginBottom: "1.5rem", padding: "0", overflow: "hidden" }}>
+                    <div style={{ padding: "1rem 1.25rem", borderBottom: "1px solid rgba(139,92,246,0.15)", display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                      <ShieldAlert size={14} style={{ color: "#a78bfa" }} />
+                      <span style={{ fontSize: "0.75rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "#a78bfa" }}>
+                        Line-by-line Attribution
+                      </span>
+                    </div>
+                    <div className={styles.tableWrapper}>
+                      <table className={styles.table}>
+                        <thead>
+                          <tr>
+                            <th>Product</th>
+                            <th>Category</th>
+                            <th>Applied</th>
+                            <th>Ceiling</th>
+                            <th>Excess</th>
+                            <th>Contribution</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {activeRequest.evaluation.breakdown.map((line) => (
+                            <tr key={line.lineId}>
+                              <td className={styles.cellPrimary}>{line.productName}</td>
+                              <td className={styles.cellMuted}>{line.categoryName}</td>
+                              <td style={{ fontWeight: 600 }}>{line.appliedDiscount}%</td>
+                              <td className={styles.cellMuted}>{line.allowedDiscount}%</td>
+                              <td>
+                                {line.lineExcess > 0 ? (
+                                  <span style={{ color: "#fca5a5", fontWeight: 600 }}>+{line.lineExcess}%</span>
+                                ) : (
+                                  <span style={{ color: "#6ee7b7" }}>0%</span>
+                                )}
+                              </td>
+                              <td style={{ color: "#c4b5fd", fontWeight: 600 }}>{line.weightedViolation} pts</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                )}
+
+                <div className={styles.auditTrail}>
+                  <div className={styles.auditTrailHeader}>
+                    <History size={14} />
+                    <span>Append-only Audit Trail</span>
+                  </div>
+                  {activeRequest.actions?.length > 0 ? (
+                    <div className={styles.auditTrailList}>
+                      {activeRequest.actions.map((act) => (
+                        <div key={act.id} className={styles.auditItem}>
+                          <div className={`${styles.auditDot} ${getActionDotClass(act.action)}`}></div>
+                          <div className={styles.auditTimestamp}>
+                            {new Date(act.timestamp).toLocaleString()}
+                          </div>
+                          <div className={styles.auditAction}>{act.action}</div>
+                          {act.reason && <div className={styles.auditReason}>{act.reason}</div>}
                         </div>
-                        {act.reason && <p className="mt-1 text-[var(--muted-foreground)]">{act.reason}</p>}
-                      </li>
-                    ))}
-                  </ul>
-                ) : (
-                  <p className="text-xs text-[var(--muted-foreground)]">No actions recorded yet.</p>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className={styles.cellMuted}>No actions recorded yet.</p>
+                  )}
+                </div>
+
+                {activeRequest.status === "PENDING_APPROVAL" && (
+                  <div style={{ marginTop: "1.5rem" }}>
+                    <label style={{ display: "block", fontSize: "0.75rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em", color: "#a78bfa", marginBottom: "0.5rem" }}>
+                      Decision Notes
+                    </label>
+                    <textarea
+                      className={styles.textarea}
+                      rows={3}
+                      value={actionReason}
+                      onChange={(e) => setActionReason(e.target.value)}
+                      placeholder="Enter approval rationale, revision conditions, or rejection reason..."
+                    />
+                  </div>
                 )}
               </div>
 
               {activeRequest.status === "PENDING_APPROVAL" && (
-                <Field label="Decision notes" htmlFor="reason">
-                  <Textarea
-                    id="reason"
-                    rows={2}
-                    value={actionReason}
-                    onChange={(e) => setActionReason(e.target.value)}
-                    placeholder="Enter approval rationale, revision conditions, or rejection reason…"
-                  />
-                </Field>
+                <div className={styles.modalFooter}>
+                  <button
+                    className={styles.secondaryBtn}
+                    onClick={() => handleAction("REQUEST_REVISION")}
+                    disabled={submittingAction}
+                  >
+                    Request Revision
+                  </button>
+                  <button
+                    className={styles.secondaryBtn}
+                    style={{ color: "#fca5a5", borderColor: "rgba(239,68,68,0.3)", background: "rgba(239,68,68,0.1)" }}
+                    onClick={() => handleAction("REJECT")}
+                    disabled={submittingAction}
+                  >
+                    Reject
+                  </button>
+                  <button
+                    className={styles.primaryBtn}
+                    onClick={() => handleAction("APPROVE")}
+                    disabled={submittingAction}
+                  >
+                    {activeRequest.level === "FINANCE" && activeRequest.assignedRole === "SALES_MANAGER"
+                      ? "Approve & Escalate"
+                      : "Approve"}
+                  </button>
+                </div>
               )}
             </div>
-          )}
-        </Modal>
-      </main>
+          </div>
+        )}
+      </div>
+    </main>
   );
 }
