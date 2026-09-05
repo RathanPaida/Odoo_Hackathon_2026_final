@@ -110,20 +110,20 @@ export interface QuoteTotalsPersist {
  * Returns the data payload to pass to prisma.quote.update.
  */
 export async function computeQuoteTotals(quoteId: string): Promise<QuoteTotalsPersist> {
-  const quote = await prisma.quote.findUnique({
+  const quote = await (prisma as any).quotation.findUnique({
     where: { id: quoteId },
     include: { lines: { include: { product: true } } },
   });
-  if (!quote) throw new Error(`Quote ${quoteId} not found`);
+  if (!quote) throw new Error(`Quotation ${quoteId} not found`);
 
-  const pricingLines: PricingLine[] = quote.lines.map((l) => ({
+  const pricingLines: PricingLine[] = quote.lines.map((l: any) => ({
     productId: l.productId,
-    qty: l.qty,
+    qty: l.quantity ?? l.qty ?? 1,
     unitPrice: l.unitPrice,
-    discountPct: l.discountPct,
-    unitCost: l.product.unitCost,
-    billingType: l.billingType,
-    subscriptionMonths: l.subscriptionMonths,
+    discountPct: l.discountPercentage ?? l.discountPct ?? 0,
+    unitCost: l.costPrice ?? l.product?.costPrice ?? 0,
+    billingType: l.product?.productType ?? "ONE_TIME",
+    subscriptionMonths: l.subscriptionMonths ?? 0,
   }));
 
   const totals = computeTotals(pricingLines);
