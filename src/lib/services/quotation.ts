@@ -157,5 +157,19 @@ export async function recomputeQuotationTotals(quotationId: string) {
     });
   });
 
-  return prisma.quote.findUnique({ where: { id: quotationId } });
+  return prisma.quote.findUnique({
+    where: { id: quotationId },
+    include: {
+      customer: true,
+      owner: { select: { name: true } },
+      lines: {
+        include: {
+          product: true,
+        },
+      },
+      approvals: {
+        orderBy: { cycle: "desc" },
+      },
+    },
+  });
 }

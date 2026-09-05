@@ -36,8 +36,9 @@ const baseInput =
   "disabled:opacity-50";
 
 export const Input = React.forwardRef<HTMLInputElement, React.InputHTMLAttributes<HTMLInputElement>>(
-  function Input({ className = "", ...rest }, ref) {
-    return <input ref={ref} className={`${baseInput} ${className}`} {...rest} />;
+  function Input({ className = "", value, ...rest }, ref) {
+    const sanitizedValue = typeof value === "number" && isNaN(value) ? "" : value;
+    return <input ref={ref} value={sanitizedValue} className={`${baseInput} ${className}`} {...rest} />;
   }
 );
 

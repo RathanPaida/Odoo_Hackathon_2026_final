@@ -12,18 +12,25 @@ export async function GET(req: NextRequest) {
     const searchParams = req.nextUrl.searchParams;
 
     const assignedRoleParam = searchParams.get("role") as Role | null;
-    const statusParam = searchParams.get("status") as ApprovalStatus | null;
+    const statusParam = searchParams.get("status");
     const quotationIdParam = searchParams.get("quotationId");
 
+    let status: ApprovalStatus | undefined = undefined;
+    if (statusParam) {
+      if (statusParam === "PENDING_APPROVAL" || statusParam === ApprovalStatus.PENDING) {
+        status = ApprovalStatus.PENDING;
+      } else if (statusParam in ApprovalStatus) {
+        status = statusParam as ApprovalStatus;
+      }
+    }
+
     let requiredRole: Role | undefined = undefined;
-    if (assignedRoleParam) {
+    if (assignedRoleParam && (assignedRoleParam as string) !== "ALL") {
       requiredRole = assignedRoleParam;
-    } else if (user && (user.role === Role.SALES_MANAGER || user.role === Role.FINANCE)) {
-      requiredRole = user.role;
     }
 
     const requests = await approvalFlowService.listApprovals({
-      status: statusParam || undefined,
+      status,
       requiredRole,
       quoteId: quotationIdParam || undefined,
     });

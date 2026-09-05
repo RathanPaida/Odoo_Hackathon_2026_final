@@ -45,6 +45,11 @@ export default async function QuoteDetailPage({
     orderBy: { category: "asc" },
   });
 
+  // Serialize Prisma Decimal objects and Dates into plain JSON objects
+  // so Next.js can safely pass them across Server-Client component boundaries
+  const serializedQuote = JSON.parse(JSON.stringify(quote));
+  const serializedProducts = JSON.parse(JSON.stringify(products));
+
   return (
     <main className="min-h-screen px-6 py-10 bg-[var(--paper)]">
       <div className="mx-auto max-w-6xl">
@@ -67,7 +72,7 @@ export default async function QuoteDetailPage({
           </div>
         </header>
 
-        <QuoteBuilder initialQuote={quote} products={products} />
+        <QuoteBuilder initialQuote={serializedQuote} products={serializedProducts} />
       </div>
     </main>
   );

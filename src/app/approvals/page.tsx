@@ -33,14 +33,26 @@ interface ApprovalAction {
 
 interface ApprovalRequest {
   id: string;
-  quotationId: string;
-  assignedRole: string;
-  riskScore: number;
+  quoteId?: string;
+  quotationId?: string;
+  requiredRole?: string;
+  assignedRole?: string;
+  riskScore?: number;
   reason?: string;
   status: string;
-  level: string;
+  level?: string;
   createdAt: string;
+  quote?: {
+    id: string;
+    quoteNumber: string;
+    riskScore?: number | string;
+    customer?: { name: string };
+    owner?: { name: string };
+    blendedDiscountPct?: number | string;
+  };
   evaluation?: {
+    riskScore?: number;
+    level?: string;
     breakdown: RiskBreakdown[];
   };
   actions?: ApprovalAction[];
@@ -48,6 +60,7 @@ interface ApprovalRequest {
 
 const BADGE_CLASSES: Record<string, string> = {
   APPROVED: styles.statusBadgeApproved,
+  PENDING: styles.statusBadgePending,
   PENDING_APPROVAL: styles.statusBadgePending,
   REJECTED: styles.statusBadgeRejected,
   REVISION_REQUIRED: styles.statusBadgePending,
@@ -83,7 +96,7 @@ export default function ApprovalsPage() {
   const [requests, setRequests] = useState<ApprovalRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedRole, setSelectedRole] = useState<string>("ALL");
-  const [selectedStatus, setSelectedStatus] = useState<string>("PENDING_APPROVAL");
+  const [selectedStatus, setSelectedStatus] = useState<string>("PENDING");
   const [activeRequest, setActiveRequest] = useState<ApprovalRequest | null>(null);
   const [detailLoading, setDetailLoading] = useState(false);
   const [actionReason, setActionReason] = useState("");
@@ -236,10 +249,9 @@ export default function ApprovalsPage() {
               <div className={styles.filterTabs}>
                 {[
                   { id: "ALL", label: "All" },
-                  { id: "PENDING_APPROVAL", label: "Pending" },
+                  { id: "PENDING", label: "Pending" },
                   { id: "APPROVED", label: "Approved" },
                   { id: "REJECTED", label: "Rejected" },
-                  { id: "REVISION_REQUIRED", label: "Revision Requested" },
                 ].map((st) => (
                   <button
                     key={st.id}
@@ -283,19 +295,21 @@ export default function ApprovalsPage() {
                 </thead>
                 <tbody>
                   {requests.map((req) => {
-                    const score = Number(req.riskScore);
+                    const score = Number(req.riskScore ?? req.quote?.riskScore ?? req.evaluation?.riskScore ?? 0);
+                    const qId = req.quote?.quoteNumber || req.quotationId || req.quoteId || req.id;
+                    const role = req.requiredRole || req.assignedRole || "SALES_MANAGER";
                     return (
                       <tr key={req.id}>
                         <td>
-                          <span className={styles.cellMono}>{req.quotationId}</span>
+                          <span className={styles.cellMono}>{qId}</span>
                           <div className={styles.cellMuted} style={{ fontSize: "0.6875rem", marginTop: "0.25rem" }}>
-                            Created {new Date(req.createdAt).toLocaleDateString()}
+                            {req.quote?.customer?.name ? `${req.quote.customer.name} · ` : ""}Created {new Date(req.createdAt).toLocaleDateString()}
                           </div>
                         </td>
                         <td>
                           <span className={styles.statusBadge}>
                             <User size={12} style={{ marginRight: "0.375rem" }} />
-                            {req.assignedRole}
+                            {role}
                           </span>
                         </td>
                         <td>
@@ -344,7 +358,7 @@ export default function ApprovalsPage() {
                 <div>
                   <h2 className={styles.modalTitle}>Approval Request Inspector</h2>
                   <p className={styles.modalDescription}>
-                    {activeRequest.quotationId} · {activeRequest.assignedRole} · Level: {activeRequest.level}
+                    {activeRequest.quote?.quoteNumber || activeRequest.quotationId || activeRequest.quoteId} · {activeRequest.requiredRole || activeRequest.assignedRole} · Level: {activeRequest.level || activeRequest.requiredRole || "SALES_MANAGER"}
                   </p>
                 </div>
                 <button className={styles.modalClose} onClick={() => setActiveRequest(null)}>
@@ -445,7 +459,7 @@ export default function ApprovalsPage() {
                   )}
                 </div>
 
-                {activeRequest.status === "PENDING_APPROVAL" && (
+                {(activeRequest.status === "PENDING" || activeRequest.status === "PENDING_APPROVAL") && (
                   <div style={{ marginTop: "1.5rem" }}>
                     <label style={{ display: "block", fontSize: "0.75rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em", color: "#a78bfa", marginBottom: "0.5rem" }}>
                       Decision Notes
@@ -461,7 +475,7 @@ export default function ApprovalsPage() {
                 )}
               </div>
 
-              {activeRequest.status === "PENDING_APPROVAL" && (
+              {(activeRequest.status === "PENDING" || activeRequest.status === "PENDING_APPROVAL") && (
                 <div className={styles.modalFooter}>
                   <button
                     className={styles.secondaryBtn}

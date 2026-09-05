@@ -21,18 +21,22 @@ import { Sparkles } from "lucide-react";
 export default function QuoteBuilder({ initialQuote, products }: { initialQuote: any; products: any[] }) {
   const router = useRouter();
   const toast = useToast();
-  const [quote, setQuote] = useState(initialQuote);
+  const [quote, setQuote] = useState({
+    ...initialQuote,
+    lines: initialQuote?.lines || [],
+  });
   const [loading, setLoading] = useState(false);
   const [selectedProductId, setSelectedProductId] = useState("");
-  const [qty, setQty] = useState(1);
-  const [discountPct, setDiscountPct] = useState(0);
+  const [qty, setQty] = useState<number | string>(1);
+  const [discountPct, setDiscountPct] = useState<number | string>(0);
   const [subscriptionMonths, setSubscriptionMonths] = useState("");
   const [recommendations, setRecommendations] = useState<any[]>([]);
 
   const isEditable = ["DRAFT", "NEGOTIATING", "REJECTED"].includes(quote.status);
+  const lines = quote.lines || [];
 
   useEffect(() => {
-    if (quote.lines.length > 0) {
+    if (lines.length > 0) {
       fetch(`/api/quotes/${quote.id}/recommendations`)
         .then((res) => res.json())
         .then((data) => {
@@ -42,16 +46,18 @@ export default function QuoteBuilder({ initialQuote, products }: { initialQuote:
     } else {
       setRecommendations([]);
     }
-  }, [quote.lines, quote.id]);
+  }, [lines.length, quote.id]);
 
   const handleAddLine = async (e?: React.FormEvent, productData?: any) => {
     if (e) e.preventDefault();
 
     const pId = productData?.productId || selectedProductId;
-    const pQty = productData?.qty || qty;
-    const pDiscount = productData?.discountPct || discountPct;
+    const rawQty = productData?.qty ?? qty;
+    const numQty = typeof rawQty === "string" ? parseInt(rawQty, 10) || 1 : rawQty;
+    const rawDiscount = productData?.discountPct ?? discountPct;
+    const numDiscount = typeof rawDiscount === "string" ? (rawDiscount === "" ? 0 : parseFloat(rawDiscount) || 0) : rawDiscount;
 
-    if (!pId || pQty < 1) return;
+    if (!pId || numQty < 1) return;
 
     setLoading(true);
     try {
@@ -60,8 +66,8 @@ export default function QuoteBuilder({ initialQuote, products }: { initialQuote:
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           productId: pId,
-          qty: pQty,
-          discountPct: pDiscount,
+          qty: numQty,
+          discountPct: numDiscount,
           subscriptionMonths: subscriptionMonths ? parseInt(subscriptionMonths) : undefined,
         }),
       });
@@ -69,7 +75,11 @@ export default function QuoteBuilder({ initialQuote, products }: { initialQuote:
       const body = await res.json();
       if (!res.ok) throw new Error(body.error?.message || "Failed to add line");
 
-      setQuote(body.data);
+      setQuote((prev: any) => ({
+        ...prev,
+        ...body.data,
+        lines: body.data.lines || prev.lines || [],
+      }));
       setSelectedProductId("");
       setQty(1);
       setDiscountPct(0);
@@ -99,7 +109,11 @@ export default function QuoteBuilder({ initialQuote, products }: { initialQuote:
       const body = await res.json();
       if (!res.ok) throw new Error(body.error?.message || "Failed to remove line");
 
-      setQuote(body.data);
+      setQuote((prev: any) => ({
+        ...prev,
+        ...body.data,
+        lines: body.data.lines || (prev.lines || []).filter((l: any) => l.id !== lineId),
+      }));
       router.refresh();
     } catch (err: any) {
       toast.error("Couldn’t remove line", err.message);
@@ -124,7 +138,11 @@ export default function QuoteBuilder({ initialQuote, products }: { initialQuote:
       const body = await res.json();
       if (!res.ok) throw new Error(body.error?.message || "Failed to submit quote");
 
-      setQuote(body.data.quote);
+      setQuote((prev: any) => ({
+        ...prev,
+        ...body.data.quote,
+        lines: body.data.quote.lines || prev.lines || [],
+      }));
 
       if (body.data.evaluation?.status === "REJECTED") {
         toast.warning("Auto-rejected", body.data.evaluation.reason);
@@ -177,7 +195,10 @@ export default function QuoteBuilder({ initialQuote, products }: { initialQuote:
                   type="number"
                   min={1}
                   value={qty}
-                  onChange={(e) => setQty(parseInt(e.target.value))}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setQty(val === "" ? "" : isNaN(Number(val)) ? "" : Number(val));
+                  }}
                   required
                 />
               </Field>
@@ -190,7 +211,10 @@ export default function QuoteBuilder({ initialQuote, products }: { initialQuote:
                   max={100}
                   step="0.01"
                   value={discountPct}
-                  onChange={(e) => setDiscountPct(parseFloat(e.target.value))}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setDiscountPct(val === "" ? "" : isNaN(Number(val)) ? "" : val);
+                  }}
                 />
               </Field>
 
@@ -220,9 +244,9 @@ export default function QuoteBuilder({ initialQuote, products }: { initialQuote:
         <Card padded={false}>
           <div className="px-5 sm:px-6 py-4 border-b border-[var(--border)] flex items-center justify-between">
             <h3 className="text-base font-semibold tracking-tight">Line items</h3>
-            <span className="text-xs text-[var(--muted-foreground)] tabular">{quote.lines.length}</span>
+            <span className="text-xs text-[var(--muted-foreground)] tabular">{lines.length}</span>
           </div>
-          {quote.lines.length === 0 ? (
+          {lines.length === 0 ? (
             <div className="px-6 py-10 text-center text-sm text-[var(--muted-foreground)]">
               No lines yet — add a product to start.
             </div>
@@ -240,25 +264,25 @@ export default function QuoteBuilder({ initialQuote, products }: { initialQuote:
                   </tr>
                 </thead>
                 <tbody>
-                  {quote.lines.map((line: any) => {
+                  {lines.map((line: any) => {
                     const isOverCeiling =
                       line.maxCategoryDiscount !== undefined &&
                       Number(line.discountPct) > Number(line.maxCategoryDiscount);
                     return (
                       <tr key={line.id} className="border-b border-[var(--border)] last:border-0">
                         <td className="px-5 py-3.5">
-                          <p className="font-medium">{line.product.name}</p>
+                          <p className="font-medium">{line.product?.name || "Product"}</p>
                           <p className="text-xs text-[var(--muted-foreground)]">
-                            {line.product.sku} · {line.billingType}
+                            {line.product?.sku || ""} · {line.billingType}
                           </p>
                         </td>
                         <td className="px-3 py-3.5 text-right">{line.qty}</td>
                         <td className="px-3 py-3.5 text-right">
-                          ₹{Number(line.unitPrice).toLocaleString()}
+                          ₹{Number(line.unitPrice || 0).toLocaleString()}
                         </td>
                         <td className="px-3 py-3.5 text-right">
                           <span className={isOverCeiling ? "text-rose-400 font-semibold" : ""}>
-                            {Number(line.discountPct)}%
+                            {Number(line.discountPct || 0)}%
                           </span>
                           {isOverCeiling && line.maxCategoryDiscount !== undefined && (
                             <p className="text-[10px] text-rose-400/80">
@@ -267,7 +291,7 @@ export default function QuoteBuilder({ initialQuote, products }: { initialQuote:
                           )}
                         </td>
                         <td className="px-3 py-3.5 text-right font-semibold">
-                          ₹{Number(line.lineTotal).toLocaleString()}
+                          ₹{Number(line.lineTotal || 0).toLocaleString()}
                         </td>
                         {isEditable && (
                           <td className="px-3 py-3.5 text-right">
@@ -298,17 +322,17 @@ export default function QuoteBuilder({ initialQuote, products }: { initialQuote:
           <CardHeader>
             <CardTitle>Quote summary</CardTitle>
             <Badge tone={quote.status === "APPROVED" ? "approved" : quote.status === "REJECTED" ? "rejected" : quote.status === "PENDING_APPROVAL" ? "pending" : "info"}>
-              {quote.status.replace("_", " ")}
+              {quote.status?.replace("_", " ") || "DRAFT"}
             </Badge>
           </CardHeader>
 
           <div className="space-y-2.5 text-sm tabular">
-            <Row label="Subtotal" value={`₹${Number(quote.subtotal).toLocaleString()}`} />
-            <Row label="Discount" value={`-₹${Number(quote.discountTotal).toLocaleString()}`} tone="negative" />
-            <Row label="Tax" value={`₹${Number(quote.taxTotal).toLocaleString()}`} />
+            <Row label="Subtotal" value={`₹${Number(quote.subtotal || 0).toLocaleString()}`} />
+            <Row label="Discount" value={`-₹${Number(quote.discountTotal || 0).toLocaleString()}`} tone="negative" />
+            <Row label="Tax" value={`₹${Number(quote.taxTotal || 0).toLocaleString()}`} />
             <div className="flex justify-between pt-3 mt-3 border-t border-[var(--border)] font-semibold text-base">
               <span>Grand total</span>
-              <span>₹{Number(quote.grandTotal).toLocaleString()}</span>
+              <span>₹{Number(quote.grandTotal || 0).toLocaleString()}</span>
             </div>
           </div>
 
@@ -317,13 +341,13 @@ export default function QuoteBuilder({ initialQuote, products }: { initialQuote:
               Deal metrics
             </p>
             <div className="space-y-2 text-sm tabular">
-              <Row label="Total cost" value={`₹${Number(quote.totalCost).toLocaleString()}`} muted />
+              <Row label="Total cost" value={`₹${Number(quote.totalCost || 0).toLocaleString()}`} muted />
               <Row
                 label="Margin"
-                value={`${Number(quote.marginPct).toFixed(2)}%`}
-                tone={Number(quote.marginPct) < 10 ? "negative" : "positive"}
+                value={`${Number(quote.marginPct || 0).toFixed(2)}%`}
+                tone={Number(quote.marginPct || 0) < 10 ? "negative" : "positive"}
               />
-              <Row label="Blended disc." value={`${Number(quote.blendedDiscountPct).toFixed(2)}%`} />
+              <Row label="Blended disc." value={`${Number(quote.blendedDiscountPct || 0).toFixed(2)}%`} />
             </div>
           </div>
 
@@ -333,7 +357,7 @@ export default function QuoteBuilder({ initialQuote, products }: { initialQuote:
                 className="w-full"
                 onClick={handleSubmitQuote}
                 loading={loading}
-                disabled={quote.lines.length === 0}
+                disabled={lines.length === 0}
               >
                 Submit for approval
               </Button>

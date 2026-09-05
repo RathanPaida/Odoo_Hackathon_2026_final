@@ -3,6 +3,7 @@ import { getCurrentUser } from "@/lib/auth/session";
 import { prisma } from "@/lib/db";
 import Link from "next/link";
 import { LogoutButton } from "@/components/LogoutButton";
+import NewQuoteButton from "../quotes/NewQuoteButton";
 import { CustomerTier } from "@/generated/prisma";
 import styles from "../../dashboard.module.css";
 
@@ -166,13 +167,14 @@ export default async function RepCustomersPage({
                         </span>
                       </td>
                       <td>
-                        <div style={{ display: "flex", gap: "0.5rem" }}>
+                        <div style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
                           <Link
                             href={`/dashboard/rep/customers/${c.id}`}
                             className={styles.actionLink}
                           >
                             Edit
                           </Link>
+                          <NewQuoteButton customerId={c.id} />
                         </div>
                       </td>
                     </tr>

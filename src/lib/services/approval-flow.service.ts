@@ -5,6 +5,7 @@
 import { prisma } from "@/lib/db";
 import { ApprovalStatus, Role, Prisma } from "@/generated/prisma";
 import { blendedRiskService, EvaluationResult } from "./blended-risk.service";
+import { transitionQuotation } from "./quotation";
 
 export interface TakeActionInput {
   approvalId: string;
@@ -165,6 +166,17 @@ export const approvalFlowService = {
         approver: true,
       },
     });
+
+    // Synchronize Quotation status state machine
+    try {
+      if (action === "APPROVE") {
+        await transitionQuotation(approval.quoteId, "APPROVE", actorId);
+      } else {
+        await transitionQuotation(approval.quoteId, "REJECT", actorId);
+      }
+    } catch (transitionErr) {
+      console.error("Failed to transition quote status:", transitionErr);
+    }
 
     return {
       approval: updatedApproval,

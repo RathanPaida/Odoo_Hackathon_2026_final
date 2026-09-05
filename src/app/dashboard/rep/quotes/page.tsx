@@ -39,15 +39,22 @@ export default async function QuotesPage({
     where.status = status;
   }
 
-  const quotes = await prisma.quote.findMany({
-    where,
-    orderBy: { updatedAt: "desc" },
-    include: {
-      customer: { select: { companyName: true } },
-      owner: { select: { name: true } },
-      _count: { select: { lines: true } },
-    },
-  });
+  const [quotes, customers] = await Promise.all([
+    prisma.quote.findMany({
+      where,
+      orderBy: { updatedAt: "desc" },
+      include: {
+        customer: { select: { companyName: true } },
+        owner: { select: { name: true } },
+        _count: { select: { lines: true } },
+      },
+    }),
+    prisma.customer.findMany({
+      where: { active: true },
+      select: { id: true, companyName: true, contactName: true, tier: true },
+      orderBy: { companyName: "asc" },
+    }),
+  ]);
 
   return (
     <main className={styles.page}>
@@ -60,7 +67,7 @@ export default async function QuotesPage({
             <h1 className={styles.title}>Quotations</h1>
           </div>
           <div className={styles.headerActions}>
-            <NewQuoteButton />
+            <NewQuoteButton initialCustomers={customers} />
             <LogoutButton />
           </div>
         </header>
