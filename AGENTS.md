@@ -6,7 +6,7 @@ date: "Version 1.0"
 
 # 0. How to use this document
 
-This is a build specification written to be executed by a coding agent. Read it end to end before writing any code.
+This is a build specification written to be executed by a coding agent. Read it end to end before writing any code
 
 **Execution rules for the agent:**
 
