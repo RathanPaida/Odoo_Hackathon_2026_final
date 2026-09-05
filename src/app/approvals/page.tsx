@@ -379,7 +379,7 @@ export default function ApprovalsPage() {
                   </div>
                 </div>
 
-                {activeRequest.evaluation?.breakdown?.length > 0 && (
+                {(activeRequest.evaluation?.breakdown?.length ?? 0) > 0 && (
                   <div className={styles.card} style={{ marginBottom: "1.5rem", padding: "0", overflow: "hidden" }}>
                     <div style={{ padding: "1rem 1.25rem", borderBottom: "1px solid rgba(139,92,246,0.15)", display: "flex", alignItems: "center", gap: "0.5rem" }}>
                       <ShieldAlert size={14} style={{ color: "#a78bfa" }} />
@@ -400,7 +400,7 @@ export default function ApprovalsPage() {
                           </tr>
                         </thead>
                         <tbody>
-                          {activeRequest.evaluation.breakdown.map((line) => (
+                          {activeRequest.evaluation?.breakdown?.map((line) => (
                             <tr key={line.lineId}>
                               <td className={styles.cellPrimary}>{line.productName}</td>
                               <td className={styles.cellMuted}>{line.categoryName}</td>
@@ -427,9 +427,9 @@ export default function ApprovalsPage() {
                     <History size={14} />
                     <span>Append-only Audit Trail</span>
                   </div>
-                  {activeRequest.actions?.length > 0 ? (
+                  {(activeRequest.actions?.length ?? 0) > 0 ? (
                     <div className={styles.auditTrailList}>
-                      {activeRequest.actions.map((act) => (
+                      {activeRequest.actions?.map((act) => (
                         <div key={act.id} className={styles.auditItem}>
                           <div className={`${styles.auditDot} ${getActionDotClass(act.action)}`}></div>
                           <div className={styles.auditTimestamp}>

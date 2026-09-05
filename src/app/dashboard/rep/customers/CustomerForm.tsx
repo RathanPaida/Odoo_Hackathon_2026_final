@@ -62,112 +62,201 @@ export default function CustomerForm({ initialData }: { initialData?: Customer }
   }
 
   return (
-    <form onSubmit={onSubmit} className="space-y-6">
+    <form onSubmit={onSubmit} style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
       {error && (
-        <div className="p-3 bg-red-500/10 border border-red-500/20 text-red-600 rounded-md text-sm">
+        <div style={{
+          padding: "0.75rem 1rem",
+          background: "rgba(239, 68, 68, 0.15)",
+          border: "1px solid rgba(239, 68, 68, 0.3)",
+          color: "#fca5a5",
+          borderRadius: "0.75rem",
+          fontSize: "0.875rem",
+        }}>
           {error}
         </div>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="space-y-2">
-          <label className="text-sm font-medium text-[var(--ink)]">Company Name</label>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: "1.25rem" }}>
+        <div>
+          <label style={{ display: "block", fontSize: "0.875rem", fontWeight: 500, color: "#c4b5fd", marginBottom: "0.5rem" }}>Company Name</label>
           <input
             type="text"
             name="companyName"
             defaultValue={initialData?.companyName}
             required
-            className="w-full rounded-md border border-[var(--border)] bg-transparent px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[var(--ink)]"
+            style={{
+              width: "100%",
+              padding: "0.75rem 1rem",
+              background: "rgba(15, 15, 35, 0.8)",
+              border: "1px solid rgba(139, 92, 246, 0.25)",
+              borderRadius: "0.75rem",
+              color: "#f1f5f9",
+              fontSize: "0.875rem",
+              outline: "none",
+            }}
           />
         </div>
 
-        <div className="space-y-2">
-          <label className="text-sm font-medium text-[var(--ink)]">Contact Name</label>
+        <div>
+          <label style={{ display: "block", fontSize: "0.875rem", fontWeight: 500, color: "#c4b5fd", marginBottom: "0.5rem" }}>Contact Name</label>
           <input
             type="text"
             name="contactName"
             defaultValue={initialData?.contactName}
             required
-            className="w-full rounded-md border border-[var(--border)] bg-transparent px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[var(--ink)]"
+            style={{
+              width: "100%",
+              padding: "0.75rem 1rem",
+              background: "rgba(15, 15, 35, 0.8)",
+              border: "1px solid rgba(139, 92, 246, 0.25)",
+              borderRadius: "0.75rem",
+              color: "#f1f5f9",
+              fontSize: "0.875rem",
+              outline: "none",
+            }}
           />
         </div>
 
-        <div className="space-y-2">
-          <label className="text-sm font-medium text-[var(--ink)]">Email</label>
+        <div>
+          <label style={{ display: "block", fontSize: "0.875rem", fontWeight: 500, color: "#c4b5fd", marginBottom: "0.5rem" }}>Email Address</label>
           <input
             type="email"
             name="email"
             defaultValue={initialData?.email}
             required
-            className="w-full rounded-md border border-[var(--border)] bg-transparent px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[var(--ink)]"
+            style={{
+              width: "100%",
+              padding: "0.75rem 1rem",
+              background: "rgba(15, 15, 35, 0.8)",
+              border: "1px solid rgba(139, 92, 246, 0.25)",
+              borderRadius: "0.75rem",
+              color: "#f1f5f9",
+              fontSize: "0.875rem",
+              outline: "none",
+            }}
           />
         </div>
 
-        <div className="space-y-2">
-          <label className="text-sm font-medium text-[var(--ink)]">Phone</label>
+        <div>
+          <label style={{ display: "block", fontSize: "0.875rem", fontWeight: 500, color: "#c4b5fd", marginBottom: "0.5rem" }}>Phone (Optional)</label>
           <input
             type="tel"
             name="phone"
             defaultValue={initialData?.phone || ""}
-            className="w-full rounded-md border border-[var(--border)] bg-transparent px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[var(--ink)]"
+            style={{
+              width: "100%",
+              padding: "0.75rem 1rem",
+              background: "rgba(15, 15, 35, 0.8)",
+              border: "1px solid rgba(139, 92, 246, 0.25)",
+              borderRadius: "0.75rem",
+              color: "#f1f5f9",
+              fontSize: "0.875rem",
+              outline: "none",
+            }}
           />
         </div>
 
-        <div className="space-y-2">
-          <label className="text-sm font-medium text-[var(--ink)]">Customer Tier</label>
+        <div>
+          <label style={{ display: "block", fontSize: "0.875rem", fontWeight: 500, color: "#c4b5fd", marginBottom: "0.5rem" }}>Customer Tier</label>
           <select
             name="tier"
             defaultValue={initialData?.tier || "BRONZE"}
-            className="w-full rounded-md border border-[var(--border)] bg-transparent px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[var(--ink)]"
+            style={{
+              width: "100%",
+              padding: "0.75rem 1rem",
+              background: "rgba(15, 15, 35, 0.8)",
+              border: "1px solid rgba(139, 92, 246, 0.25)",
+              borderRadius: "0.75rem",
+              color: "#f1f5f9",
+              fontSize: "0.875rem",
+              outline: "none",
+              cursor: "pointer",
+            }}
           >
-            <option value="BRONZE">Bronze</option>
-            <option value="SILVER">Silver</option>
-            <option value="GOLD">Gold</option>
-            <option value="PLATINUM">Platinum</option>
+            <option value="BRONZE" style={{ background: "#1e1b4b" }}>Bronze</option>
+            <option value="SILVER" style={{ background: "#1e1b4b" }}>Silver</option>
+            <option value="GOLD" style={{ background: "#1e1b4b" }}>Gold</option>
+            <option value="PLATINUM" style={{ background: "#1e1b4b" }}>Platinum</option>
           </select>
         </div>
 
-        <div className="space-y-2">
-          <label className="text-sm font-medium text-[var(--ink)]">Currency</label>
+        <div>
+          <label style={{ display: "block", fontSize: "0.875rem", fontWeight: 500, color: "#c4b5fd", marginBottom: "0.5rem" }}>Currency</label>
           <select
             name="currency"
             defaultValue={initialData?.currency || "INR"}
-            className="w-full rounded-md border border-[var(--border)] bg-transparent px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[var(--ink)]"
+            style={{
+              width: "100%",
+              padding: "0.75rem 1rem",
+              background: "rgba(15, 15, 35, 0.8)",
+              border: "1px solid rgba(139, 92, 246, 0.25)",
+              borderRadius: "0.75rem",
+              color: "#f1f5f9",
+              fontSize: "0.875rem",
+              outline: "none",
+              cursor: "pointer",
+            }}
           >
-            <option value="INR">INR</option>
-            <option value="USD">USD</option>
-            <option value="EUR">EUR</option>
+            <option value="INR" style={{ background: "#1e1b4b" }}>INR</option>
+            <option value="USD" style={{ background: "#1e1b4b" }}>USD</option>
+            <option value="EUR" style={{ background: "#1e1b4b" }}>EUR</option>
           </select>
         </div>
 
         {isEdit && (
-          <div className="space-y-2 md:col-span-2 flex items-center gap-2">
+          <div style={{ gridColumn: "1 / -1", display: "flex", alignItems: "center", gap: "0.5rem", marginTop: "0.5rem" }}>
             <input
               type="checkbox"
               name="active"
               id="active"
               defaultChecked={initialData?.active !== false}
-              className="rounded border-[var(--border)] text-[var(--ink)] focus:ring-[var(--ink)]"
+              style={{ width: "1rem", height: "1rem", accentColor: "#7c3aed", cursor: "pointer" }}
             />
-            <label htmlFor="active" className="text-sm font-medium text-[var(--ink)]">
+            <label htmlFor="active" style={{ fontSize: "0.875rem", fontWeight: 500, color: "#e2e8f0", cursor: "pointer" }}>
               Active Customer
             </label>
           </div>
         )}
       </div>
 
-      <div className="flex justify-end gap-3 pt-4 border-t border-[var(--border)]">
+      <div style={{
+        display: "flex",
+        justifyContent: "flex-end",
+        gap: "0.75rem",
+        paddingTop: "1.25rem",
+        borderTop: "1px solid rgba(139, 92, 246, 0.15)",
+        marginTop: "0.5rem",
+      }}>
         <button
           type="button"
           onClick={() => router.back()}
-          className="px-4 py-2 rounded-md text-sm font-medium text-[var(--muted-foreground)] hover:bg-[var(--border)] transition-colors"
+          style={{
+            padding: "0.625rem 1.25rem",
+            background: "rgba(109, 40, 217, 0.15)",
+            border: "1px solid rgba(139, 92, 246, 0.25)",
+            borderRadius: "0.625rem",
+            color: "#c4b5fd",
+            fontSize: "0.875rem",
+            cursor: "pointer",
+          }}
         >
           Cancel
         </button>
         <button
           type="submit"
           disabled={loading}
-          className="bg-[var(--ink)] text-[var(--paper)] px-4 py-2 rounded-md text-sm font-medium hover:opacity-90 disabled:opacity-50 transition-opacity"
+          style={{
+            padding: "0.625rem 1.25rem",
+            background: "linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%)",
+            border: "none",
+            borderRadius: "0.75rem",
+            color: "white",
+            fontSize: "0.875rem",
+            fontWeight: 600,
+            cursor: loading ? "not-allowed" : "pointer",
+            boxShadow: "0 4px 14px 0 rgba(109, 40, 217, 0.4)",
+            opacity: loading ? 0.6 : 1,
+          }}
         >
           {loading ? "Saving..." : isEdit ? "Update Customer" : "Create Customer"}
         </button>

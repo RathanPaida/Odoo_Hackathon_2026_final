@@ -81,9 +81,9 @@ const DISCOUNT_RULES = [
   { customerTier: CustomerTier.SILVER, productCategory: "Support", maxAutoApprovePct: 10, requiredRole: Role.SALES_MANAGER },
   { customerTier: CustomerTier.SILVER, productCategory: "Networking", maxAutoApprovePct: 10, requiredRole: Role.SALES_MANAGER },
   // GOLD — generous discounts
-  { customerTier: CustomerTier.GOLD, productCategory: "Hardware", maxAutoApprovePct: 15, requiredRole: Role.FINANCE },
-  { customerTier: CustomerTier.GOLD, productCategory: "Services", maxAutoApprovePct: 10, requiredRole: Role.FINANCE },
-  { customerTier: CustomerTier.GOLD, productCategory: "Software", maxAutoApprovePct: 15, requiredRole: Role.FINANCE },
+  { customerTier: CustomerTier.GOLD, productCategory: "Hardware", maxAutoApprovePct: 15, requiredRole: Role.SALES_MANAGER },
+  { customerTier: CustomerTier.GOLD, productCategory: "Services", maxAutoApprovePct: 10, requiredRole: Role.SALES_MANAGER },
+  { customerTier: CustomerTier.GOLD, productCategory: "Software", maxAutoApprovePct: 20, requiredRole: Role.SALES_MANAGER },
   { customerTier: CustomerTier.GOLD, productCategory: "Support", maxAutoApprovePct: 15, requiredRole: Role.FINANCE },
   { customerTier: CustomerTier.GOLD, productCategory: "Networking", maxAutoApprovePct: 15, requiredRole: Role.FINANCE },
   // PLATINUM

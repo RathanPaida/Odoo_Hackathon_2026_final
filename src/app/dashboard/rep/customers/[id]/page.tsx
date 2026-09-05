@@ -3,6 +3,7 @@ import { getCurrentUser } from "@/lib/auth/session";
 import { prisma } from "@/lib/db";
 import Link from "next/link";
 import CustomerForm from "../CustomerForm";
+import styles from "../../../dashboard.module.css";
 
 export const dynamic = "force-dynamic";
 
@@ -27,22 +28,25 @@ export default async function EditCustomerPage({
   }
 
   return (
-    <main className="min-h-screen px-6 py-10 bg-[var(--paper)]">
-      <div className="mx-auto max-w-3xl">
-        <header className="mb-8">
-          <Link href="/dashboard/rep/customers" className="text-sm text-[var(--muted-foreground)] hover:text-[var(--ink)]">
-            ← Back to Customers
-          </Link>
-          <h1 className="text-3xl font-semibold mt-2">Edit Customer</h1>
-          <p className="text-sm text-[var(--muted-foreground)] mt-1">
-            Update {customer.companyName}'s details.
-          </p>
+    <main className={styles.page}>
+      <div className={styles.container} style={{ maxWidth: "56rem" }}>
+        <header className={styles.header}>
+          <div className={styles.headerLeft}>
+            <Link href="/dashboard/rep/customers" className={styles.backLink}>
+              ← Back to Customers
+            </Link>
+            <h1 className={styles.title}>Edit Customer</h1>
+            <p className={styles.subtitle}>
+              Update {customer.companyName}'s details and tier.
+            </p>
+          </div>
         </header>
 
-        <section className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-6 shadow-sm">
+        <section className={`${styles.card} ${styles.animateFadeIn}`}>
           <CustomerForm initialData={customer} />
         </section>
       </div>
     </main>
   );
 }
+

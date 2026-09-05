@@ -187,7 +187,7 @@ export const blendedRiskService = {
     let requiredRole: Role = Role.SALES_REP;
 
     if (roundedRiskScore > 0) {
-      if (roundedRiskScore <= 30) {
+      if (roundedRiskScore <= 5.0) {
         level = "SALES_MANAGER";
         requiredRole = strictestRole === Role.FINANCE || strictestRole === Role.ADMIN
           ? strictestRole : Role.SALES_MANAGER;

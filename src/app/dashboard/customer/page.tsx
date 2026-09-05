@@ -4,9 +4,6 @@ import { LogoutButton } from "@/components/LogoutButton";
 import { 
   User, 
   FileText, 
-  Clock, 
-  CheckCircle2, 
-  AlertTriangle,
   ChevronRight,
   Users
 } from "lucide-react";

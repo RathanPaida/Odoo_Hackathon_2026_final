@@ -130,7 +130,7 @@ export default function GovernancePage() {
 
   let simLevel = "NONE";
   if (weightedViolation > 0) {
-    if (weightedViolation <= 25) {
+    if (weightedViolation <= 5.0) {
       simLevel = "MANAGER";
     } else {
       simLevel = "FINANCE";

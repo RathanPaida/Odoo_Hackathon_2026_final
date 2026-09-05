@@ -7,8 +7,14 @@ const globalForRedis = globalThis as unknown as {
 export const redis =
   globalForRedis.redis ??
   new Redis(process.env.REDIS_URL ?? "redis://localhost:6379", {
-    maxRetriesPerRequest: 3,
+    maxRetriesPerRequest: 1,
     lazyConnect: true,
+    enableOfflineQueue: false,
   });
 
+redis.on("error", (err) => {
+  // Gracefully log or suppress when Redis is not running in local environment
+});
+
 if (process.env.NODE_ENV !== "production") globalForRedis.redis = redis;
+

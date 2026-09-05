@@ -18,17 +18,20 @@ interface Category {
   name: string;
   description?: string;
   _count?: { products: number };
+  productCount?: number;
 }
 
 interface Product {
   id: string;
   name: string;
+  sku?: string;
   description?: string;
-  categoryId: string;
-  category?: Category;
-  productType: string;
-  basePrice: string;
-  costPrice: string;
+  category?: any;
+  categoryId?: string;
+  billingType?: string;
+  productType?: string;
+  basePrice: string | number;
+  costPrice: string | number;
   minimumMargin: number;
 }
 
@@ -90,7 +93,13 @@ export default function CatalogPage() {
   const filteredProducts =
     selectedCategory === "ALL"
       ? products
-      : products.filter((p) => p.categoryId === selectedCategory);
+      : products.filter(
+          (p) =>
+            p.category === selectedCategory ||
+            p.categoryId === selectedCategory ||
+            (p.category && p.category.toLowerCase() === selectedCategory.toLowerCase()) ||
+            (p.category && categories.find((c) => c.id === selectedCategory)?.name === p.category)
+        );
 
   const showToast = (message: string, type: "success" | "error") => {
     setToast({ message, type });
@@ -101,13 +110,17 @@ export default function CatalogPage() {
     e.preventDefault();
     setSaving(true);
     try {
+      const matchedCat = categories.find((c) => c.id === categoryId);
+      const categoryName = matchedCat ? matchedCat.name : categoryId;
+
       const res = await fetch("/api/catalog/products", {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
           name,
           description,
-          categoryId,
+          category: categoryName,
+          categoryId: categoryName,
           productType,
           basePrice: parseFloat(basePrice),
           costPrice: parseFloat(costPrice),
@@ -225,10 +238,10 @@ export default function CatalogPage() {
                   <div className={styles.productHeader}>
                     <span className={`${styles.statusBadge} ${styles.badgePrimary}`}>
                       <Tag size={10} style={{ marginRight: "0.25rem" }} />
-                      {product.category?.name ?? "General"}
+                      {typeof product.category === "string" ? product.category : product.category?.name || "General"}
                     </span>
-                    <span className={`${styles.statusBadge} ${product.productType === "SUBSCRIPTION" ? styles.badgeNegotiating : styles.badgeInfo}`}>
-                      {product.productType}
+                    <span className={`${styles.statusBadge} ${product.billingType === "RECURRING" || product.productType === "SUBSCRIPTION" ? styles.badgeNegotiating : styles.badgeInfo}`}>
+                      {product.billingType || product.productType || "ONE_TIME"}
                     </span>
                   </div>
 

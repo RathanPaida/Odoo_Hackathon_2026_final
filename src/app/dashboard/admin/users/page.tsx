@@ -168,6 +168,7 @@ export default function AdminUsersPage() {
         <nav className={s.navLinks}>
           <a href="/dashboard/admin" className={s.navLink}>Dashboard</a>
           <a href="/dashboard/admin/users" className={s.navLinkActive}>Users</a>
+          <a href="/dashboard/admin/categories" className={s.navLink}>Categories</a>
         </nav>
       </header>
 

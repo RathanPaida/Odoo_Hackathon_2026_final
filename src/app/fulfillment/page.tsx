@@ -353,7 +353,7 @@ export default function FulfillmentPage() {
                     onChange={(e) => setOverrideQty(e.target.value)}
                     className={s.formInput}
                   />
-                  <p className={s.formHint}>Testing with > 5 units on New York will trigger a backend stock validation error.</p>
+                  <p className={s.formHint}>Testing with &gt; 5 units on New York will trigger a backend stock validation error.</p>
                 </div>
               </form>
             </div>
@@ -371,37 +371,4 @@ export default function FulfillmentPage() {
     </main>
   );
 }
-      >
-        <form onSubmit={handleManualOverride} className="space-y-4">
-          <Field label="Destination warehouse" htmlFor="wh">
-            <Select
-              id="wh"
-              value={overrideWarehouseId}
-              onChange={(e) => setOverrideWarehouseId(e.target.value)}
-            >
-              {warehouses.map((w) => (
-                <option key={w.id} value={w.id}>
-                  {w.name} (Priority {w.priority})
-                </option>
-              ))}
-            </Select>
-          </Field>
-          <Field
-            label="Quantity to ship"
-            htmlFor="qty"
-            hint="Testing with > 5 units on New York will trigger a backend stock validation error."
-          >
-            <Input
-              id="qty"
-              type="number"
-              min={1}
-              required
-              value={overrideQty}
-              onChange={(e) => setOverrideQty(e.target.value)}
-            />
-          </Field>
-        </form>
-      </Modal>
-    </main>
-  );
-}
+

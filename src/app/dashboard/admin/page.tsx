@@ -115,6 +115,13 @@ export default function AdminDashboardPage() {
                 <p className={styles.navDescription}>View and manage user accounts</p>
               </Link>
               <Link
+                href="/dashboard/admin/categories"
+                className={styles.navLink}
+              >
+                <h3 className={styles.navTitle}>Product Categories</h3>
+                <p className={styles.navDescription}>Hardware, Software, Services & governance</p>
+              </Link>
+              <Link
                 href="/dashboard/finance"
                 className={styles.navLink}
               >
