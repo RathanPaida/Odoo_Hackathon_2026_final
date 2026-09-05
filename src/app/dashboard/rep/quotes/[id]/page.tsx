@@ -2,6 +2,7 @@ import { redirect, notFound } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth/session";
 import { prisma } from "@/lib/db";
 import Link from "next/link";
+import { RoleSidebar } from "@/components/navbar/RoleSidebar";
 import QuoteBuilder from "./QuoteBuilder";
 
 export const dynamic = "force-dynamic";

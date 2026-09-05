@@ -9,6 +9,7 @@ import {
   ChevronRight,
   Users
 } from "lucide-react";
+import { CustomerNewQuoteButton } from "./quotations/CustomerNewQuoteButton";
 import s from "./customer.module.css";
 
 export const dynamic = "force-dynamic";
@@ -67,6 +68,9 @@ export default async function CustomerDashboardPage() {
               <p className={s.subtitle}>
                 Manage your quotations, track approvals, and review your account details.
               </p>
+            </div>
+            <div className={s.headerActions}>
+              <CustomerNewQuoteButton />
             </div>
           </div>
 

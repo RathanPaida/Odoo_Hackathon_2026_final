@@ -4,6 +4,7 @@ import { prisma } from "@/lib/db";
 import { RoleSidebar } from "@/components/navbar/RoleSidebar";
 import Link from "next/link";
 import { FileText, ChevronRight } from "lucide-react";
+import { CustomerNewQuoteButton } from "./CustomerNewQuoteButton";
 import styles from "../../dashboard.module.css";
 
 export const dynamic = "force-dynamic";
@@ -35,6 +36,9 @@ export default async function CustomerQuotationsPage() {
             <div className={styles.headerLeft}>
               <h1 className={styles.title}>My Quotations</h1>
               <p className={styles.subtitle}>Review quotation proposals, item breakdowns, and terms</p>
+            </div>
+            <div className={styles.headerActions}>
+              <CustomerNewQuoteButton />
             </div>
           </header>
 
