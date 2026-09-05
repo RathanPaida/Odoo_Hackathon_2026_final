@@ -11,7 +11,6 @@ import {
   verifyRefreshToken,
   tokenConfig,
   parseExpiryToSeconds,
-  type AccessTokenClaims,
   type RefreshTokenClaims,
 } from "@/lib/auth/jwt";
 import crypto from "crypto";
@@ -73,11 +72,6 @@ export async function createSession(opts: CreateSessionOpts): Promise<void> {
 
   await prisma.refreshToken.create({
     data: { userId: opts.userId, tokenHash, expiresAt },
-  });
-
-  await prisma.user.update({
-    where: { id: opts.userId },
-    data: { updatedAt: new Date() },
   });
 
   const refreshMaxAge = opts.remember ? REFRESH_MAX : 60 * 60 * 24;

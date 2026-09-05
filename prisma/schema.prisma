@@ -73,6 +73,7 @@ model User {
   name             String
   role             Role
   approvalLimitPct Decimal        @db.Decimal(5, 2)
+  emailVerified    Boolean        @default(false)
   createdAt        DateTime       @default(now())
 
   refreshTokens    RefreshToken[]
@@ -89,6 +90,17 @@ model RefreshToken {
 
   user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
+
+model OTP {
+  id        String   @id @default(cuid())
+  email     String
+  code      String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([email])
+}
+
 
 model Customer {
   id     String       @id @default(cuid())

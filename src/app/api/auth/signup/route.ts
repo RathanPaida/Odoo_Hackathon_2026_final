@@ -49,12 +49,30 @@ export async function POST(req: NextRequest) {
       name,
       role: (role as Role) ?? Role.SALES_REP,
       approvalLimitPct: 0,
+      emailVerified: false,
     },
     select: { id: true, email: true, name: true, role: true },
   });
 
+  const otp = Math.floor(100000 + Math.random() * 900000).toString();
+  await prisma.oTP.create({
+    data: {
+      email,
+      code: otp,
+      expiresAt: new Date(Date.now() + 15 * 60 * 1000), // 15 mins
+    },
+  });
+
+  try {
+    const { sendOTP } = await import("@/lib/email");
+    await sendOTP(email, otp);
+  } catch (err) {
+    console.error("Failed to send OTP email:", err);
+    // Ignore error for now, maybe in production we'd want to fail the signup
+  }
+
   return Response.json(
-    { ok: true, message: "Account created.", data: user },
+    { ok: true, message: "Account created. Verification required.", requiresVerification: true, data: user },
     { status: 201 }
   );
 }

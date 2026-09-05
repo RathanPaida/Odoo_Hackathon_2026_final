@@ -58,6 +58,30 @@ export async function POST(req: NextRequest) {
     );
   }
 
+  if (!user.emailVerified) {
+    // Generate new OTP
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    await prisma.oTP.create({
+      data: {
+        email,
+        code: otp,
+        expiresAt: new Date(Date.now() + 15 * 60 * 1000), // 15 mins
+      },
+    });
+
+    try {
+      const { sendOTP } = await import("@/lib/email");
+      await sendOTP(email, otp);
+    } catch (err) {
+      console.error("Failed to send OTP email:", err);
+    }
+
+    return Response.json(
+      { error: { code: "UNVERIFIED_EMAIL", message: "Email not verified. A new code has been sent." }, requiresVerification: true },
+      { status: 401 }
+    );
+  }
+
   await createSession({
     userId: user.id,
     role: user.role,

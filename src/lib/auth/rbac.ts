@@ -3,7 +3,6 @@
 // Maps the 4 spec roles (§4.1) to permissions.
 // Fine-grained checks happen in route handlers, not middleware (spec §1.1).
 import { Role } from "@prisma/client";
-import type { NextResponse } from "next/server";
 
 export { Role };
 
@@ -81,11 +80,6 @@ export function hasAllPermissions(role: Role, permissions: Permission[]): boolea
 // These import from session.ts (Node runtime only — never call from middleware).
 
 import { getCurrentUser } from "@/lib/auth/session";
-import { NextRequest } from "next/server";
-
-type GuardResult<T = null> =
-  | { user: Awaited<ReturnType<typeof getCurrentUser>> & object; response: null; data: T }
-  | { user: null; response: Response; data: null };
 
 export async function requireUser(): Promise<{
   user: NonNullable<Awaited<ReturnType<typeof getCurrentUser>>> | null;

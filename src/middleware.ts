@@ -3,10 +3,9 @@
 // Spec §1.1: "Middleware does coarse route gating; fine-grained role checks
 // happen inside route handlers."
 import { NextRequest, NextResponse } from "next/server";
-import { verifyAccessToken, parseExpiryToSeconds, tokenConfig } from "@/lib/auth/jwt";
+import { verifyAccessToken } from "@/lib/auth/jwt";
 
 const ACCESS_COOKIE = "df_access";
-const REFRESH_COOKIE = "df_refresh";
 
 // Routes that require an authenticated session
 const PROTECTED_PREFIXES = [
@@ -30,8 +29,6 @@ const GUEST_ONLY = ["/login", "/signup"];
 
 // Portal routes are handled by their own token-based auth, not session
 // /api/portal/:token — excluded from this middleware
-
-const ACCESS_MAX = parseExpiryToSeconds(tokenConfig.accessExpires);
 
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
