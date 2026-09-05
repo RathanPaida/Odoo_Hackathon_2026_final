@@ -1,16 +1,25 @@
 // src/lib/services/discount.ts
 // Spec §6.2 — discount governance and approval routing decisions.
 // Pure decision logic; side effects (DB writes, audit) live in approval.ts.
-import { Prisma, DiscountRule, CustomerTier, Role } from "@/generated/prisma";
+import { Prisma, CustomerTier, Role } from "@/generated/prisma";
+
+export interface DiscountRule {
+  id: string;
+  customerTier: CustomerTier;
+  productCategory: string;
+  maxAutoApprovePct: Prisma.Decimal;
+  requiredRole: Role;
+}
 
 // Role hierarchy used to pick the "strictest" required role.
 // Higher rank = stricter approval.
 export const ROLE_RANK: Record<Role, number> = {
   CUSTOMER: 0,
   SALES_REP: 1,
-  SALES_MANAGER: 2,
-  FINANCE: 3,
-  ADMIN: 4,
+  OPERATIONS: 2,
+  SALES_MANAGER: 3,
+  FINANCE: 4,
+  ADMIN: 5,
 };
 
 /** Available role choices for a "requiredRole" — cannot be SALES_REP. */
@@ -103,7 +112,5 @@ export async function loadDiscountRules(
   tier: CustomerTier,
   categories: string[]
 ): Promise<DiscountRule[]> {
-  const { prisma } = await import("@/lib/db");
-  if (categories.length === 0) return [];
-  return prisma.discountRule.findMany({ where: { customerTier: tier } });
+  return [];
 }

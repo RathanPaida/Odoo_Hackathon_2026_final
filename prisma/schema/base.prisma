@@ -1,0 +1,135 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Shared Enums ─────────────────────────────────────────────────────────────
+
+enum Role {
+  ADMIN
+  SALES_REP
+  SALES_MANAGER
+  FINANCE
+  OPERATIONS
+  CUSTOMER
+}
+
+enum CustomerTier {
+  BRONZE
+  SILVER
+  GOLD
+}
+
+enum ProductType {
+  ONE_TIME
+  SUBSCRIPTION
+}
+
+enum QuotationStatus {
+  DRAFT
+  PENDING_APPROVAL
+  APPROVED
+  REJECTED
+  UNDER_NEGOTIATION
+  CONFIRMED
+  CANCELLED
+}
+
+enum OrderStatus {
+  CONFIRMED
+  FULFILLING
+  PARTIALLY_FULFILLED
+  FULFILLED
+  BILLING_PENDING
+  COMPLETED
+  CANCELLED
+}
+
+enum ApprovalLevel {
+  NONE
+  MANAGER
+  FINANCE
+}
+
+enum ApprovalOutcome {
+  APPROVED
+  PENDING_APPROVAL
+  REJECTED
+  REVISION_REQUIRED
+}
+
+enum ApprovalActionType {
+  APPROVE
+  REJECT
+  REQUEST_REVISION
+}
+
+// ─── Shared Base Models ───────────────────────────────────────────────────────
+
+model User {
+  id               String         @id @default(uuid())
+  email            String         @unique
+  passwordHash     String
+  name             String
+  role             Role
+  approvalLimitPct Decimal        @default(15.00) @db.Decimal(5, 2)
+  emailVerified    Boolean        @default(false)
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @default(now()) @updatedAt
+
+  refreshTokens    RefreshToken[]
+}
+
+model RefreshToken {
+  id        String    @id @default(uuid())
+  userId    String
+  tokenHash String    @unique
+  expiresAt DateTime
+  revokedAt DateTime?
+
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model OTP {
+  id        String   @id @default(uuid())
+  email     String
+  code      String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([email])
+}
+
+model Customer {
+  id           String       @id @default(uuid())
+  companyName  String
+  contactName  String
+  email        String       @unique
+  phone        String?
+  customerTier CustomerTier @default(BRONZE)
+  currency     String       @default("USD")
+  active       Boolean      @default(true)
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+
+  quotations   Quotation[]
+  orders       Order[]
+}
+
+model AuditLog {
+  id         String   @id @default(uuid())
+  entityType String
+  entityId   String
+  action     String
+  actorId    String?
+  beforeJson Json?
+  afterJson  Json?
+  createdAt  DateTime @default(now())
+
+  @@index([entityType, entityId])
+}

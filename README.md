@@ -1,6 +1,6 @@
 # DealFlow360
 
-> B2B Quoting, Approval & Fulfillment Platform — Odoo Hackathon 2026
+> B2B Quoting, Approval & Fulfillment Platform — Odoo Hackathon 2026.
 
 ---
 
