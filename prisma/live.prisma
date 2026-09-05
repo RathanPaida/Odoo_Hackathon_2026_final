@@ -1,0 +1,389 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Allocation {
+  id          String           @id @default(cuid())
+  quoteLineId String
+  warehouseId String?
+  qty         Int
+  status      AllocationStatus
+  createdAt   DateTime         @default(now())
+  QuoteLine   QuoteLine        @relation(fields: [quoteLineId], references: [id], onDelete: Cascade)
+  Warehouse   Warehouse?       @relation(fields: [warehouseId], references: [id])
+
+  @@index([quoteLineId])
+}
+
+model Anomaly {
+  id         String      @id @default(cuid())
+  quoteId    String
+  kind       AnomalyKind
+  detail     String
+  detectedAt DateTime    @default(now())
+  Quote      Quote       @relation(fields: [quoteId], references: [id], onDelete: Cascade)
+}
+
+model Approval {
+  id           String         @id @default(cuid())
+  quoteId      String
+  approverId   String?
+  requiredRole Role
+  status       ApprovalStatus
+  reason       String?
+  decidedAt    DateTime?
+  cycle        Int
+  createdAt    DateTime       @default(now())
+  User         User?          @relation(fields: [approverId], references: [id])
+  Quote        Quote          @relation(fields: [quoteId], references: [id], onDelete: Cascade)
+
+  @@index([quoteId])
+}
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  entityType String
+  entityId   String
+  action     String
+  actorId    String?
+  beforeJson Json?
+  afterJson  Json?
+  createdAt  DateTime @default(now())
+
+  @@index([entityType, entityId])
+}
+
+model Customer {
+  id                 String               @id @default(cuid())
+  email              String               @unique
+  tier               CustomerTier
+  active             Boolean              @default(true)
+  companyName        String
+  contactName        String
+  createdAt          DateTime             @default(now())
+  currency           String               @default("INR")
+  phone              String?
+  updatedAt          DateTime
+  NegotiationComment NegotiationComment[]
+  Order              Order[]
+  Quote              Quote[]
+}
+
+model DiscountRule {
+  id                String       @id @default(cuid())
+  customerTier      CustomerTier
+  productCategory   String
+  maxAutoApprovePct Decimal      @db.Decimal(5, 2)
+  requiredRole      Role
+
+  @@unique([customerTier, productCategory])
+}
+
+model Invoice {
+  id               String             @id @default(cuid())
+  quoteId          String             @unique
+  invoiceNumber    String             @unique
+  amount           Decimal            @db.Decimal(12, 2)
+  issuedAt         DateTime           @default(now())
+  dueAt            DateTime
+  Quote            Quote              @relation(fields: [quoteId], references: [id])
+  SubscriptionLine SubscriptionLine[]
+}
+
+model NegotiationComment {
+  id          String    @id @default(cuid())
+  quoteId     String
+  customerId  String?
+  actorId     String?
+  lineId      String?
+  content     String
+  commentType String    @default("COMMENT")
+  metadata    Json?
+  createdAt   DateTime  @default(now())
+  User        User?     @relation(fields: [actorId], references: [id])
+  Customer    Customer? @relation(fields: [customerId], references: [id])
+  Quote       Quote     @relation(fields: [quoteId], references: [id], onDelete: Cascade)
+
+  @@index([quoteId])
+}
+
+model OTP {
+  id        String   @id @default(cuid())
+  email     String
+  code      String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([email])
+}
+
+model Order {
+  id          String      @id @default(cuid())
+  orderNumber String      @unique
+  quotationId String
+  customerId  String
+  status      OrderStatus @default(CONFIRMED)
+  subtotal    Decimal     @db.Decimal(12, 2)
+  taxAmount   Decimal     @db.Decimal(12, 2)
+  totalAmount Decimal     @db.Decimal(12, 2)
+  currency    String      @default("INR")
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime
+  Customer    Customer    @relation(fields: [customerId], references: [id])
+  Quote       Quote       @relation(fields: [quotationId], references: [id])
+  OrderLine   OrderLine[]
+
+  @@index([customerId])
+  @@index([quotationId])
+}
+
+model OrderLine {
+  id                 String      @id @default(cuid())
+  orderId            String
+  productId          String
+  quantity           Int
+  unitPrice          Decimal     @db.Decimal(12, 2)
+  taxAmount          Decimal     @default(0) @db.Decimal(12, 2)
+  totalAmount        Decimal     @db.Decimal(12, 2)
+  productType        BillingType
+  subscriptionPlanId String?
+  Order              Order       @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  Product            Product     @relation(fields: [productId], references: [id])
+
+  @@index([orderId])
+}
+
+model PortalToken {
+  id        String    @id @default(cuid())
+  quoteId   String
+  tokenHash String    @unique
+  expiresAt DateTime
+  revokedAt DateTime?
+  createdAt DateTime  @default(now())
+  Quote     Quote     @relation(fields: [quoteId], references: [id], onDelete: Cascade)
+}
+
+model PriceList {
+  id            String          @id @default(cuid())
+  name          String
+  currency      String          @default("USD")
+  PriceListItem PriceListItem[]
+}
+
+model PriceListItem {
+  id          String    @id @default(cuid())
+  priceListId String
+  productId   String
+  price       Decimal   @db.Decimal(12, 2)
+  PriceList   PriceList @relation(fields: [priceListId], references: [id], onDelete: Cascade)
+  Product     Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([priceListId, productId])
+}
+
+model Product {
+  id                                                  String          @id @default(cuid())
+  sku                                                 String          @unique
+  name                                                String
+  category                                            String
+  listPrice                                           Decimal         @db.Decimal(12, 2)
+  unitCost                                            Decimal         @db.Decimal(12, 2)
+  billingType                                         BillingType
+  minimumMargin                                       Decimal         @default(10) @db.Decimal(5, 2)
+  taxRate                                             Decimal         @default(18) @db.Decimal(5, 2)
+  OrderLine                                           OrderLine[]
+  PriceListItem                                       PriceListItem[]
+  QuoteLine                                           QuoteLine[]
+  Stock                                               Stock[]
+  UpsellRule_UpsellRule_recommendedProductIdToProduct UpsellRule[]    @relation("UpsellRule_recommendedProductIdToProduct")
+  UpsellRule_UpsellRule_triggerProductIdToProduct     UpsellRule[]    @relation("UpsellRule_triggerProductIdToProduct")
+}
+
+model Quote {
+  id                 String               @id @default(cuid())
+  quoteNumber        String               @unique
+  customerId         String
+  ownerId            String
+  status             QuoteStatus
+  subtotal           Decimal              @default(0) @db.Decimal(12, 2)
+  discountTotal      Decimal              @default(0) @db.Decimal(12, 2)
+  taxTotal           Decimal              @default(0) @db.Decimal(12, 2)
+  grandTotal         Decimal              @default(0) @db.Decimal(12, 2)
+  blendedDiscountPct Decimal              @default(0) @db.Decimal(5, 2)
+  marginPct          Decimal              @default(0) @db.Decimal(5, 2)
+  reapprovalCount    Int                  @default(0)
+  createdAt          DateTime             @default(now())
+  updatedAt          DateTime
+  currency           String               @default("INR")
+  lastActivityAt     DateTime             @default(now())
+  marginAmount       Decimal              @default(0) @db.Decimal(12, 2)
+  riskScore          Decimal              @default(0) @db.Decimal(5, 2)
+  totalCost          Decimal              @default(0) @db.Decimal(12, 2)
+  Anomaly            Anomaly[]
+  Approval           Approval[]
+  Invoice            Invoice?
+  NegotiationComment NegotiationComment[]
+  Order              Order[]
+  PortalToken        PortalToken[]
+  Customer           Customer             @relation(fields: [customerId], references: [id])
+  User               User                 @relation(fields: [ownerId], references: [id])
+  QuoteLine          QuoteLine[]
+
+  @@index([customerId])
+  @@index([ownerId])
+  @@index([status])
+}
+
+model QuoteLine {
+  id                 String            @id @default(cuid())
+  quoteId            String
+  productId          String
+  qty                Int
+  unitPrice          Decimal           @db.Decimal(12, 2)
+  discountPct        Decimal           @db.Decimal(5, 2)
+  lineTotal          Decimal           @db.Decimal(12, 2)
+  billingType        BillingType
+  subscriptionMonths Int?
+  Allocation         Allocation[]
+  Product            Product           @relation(fields: [productId], references: [id])
+  Quote              Quote             @relation(fields: [quoteId], references: [id], onDelete: Cascade)
+  SubscriptionLine   SubscriptionLine?
+
+  @@index([quoteId])
+}
+
+model RefreshToken {
+  id        String    @id @default(cuid())
+  userId    String
+  tokenHash String    @unique
+  expiresAt DateTime
+  revokedAt DateTime?
+  User      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Stock {
+  id          String    @id @default(cuid())
+  warehouseId String
+  productId   String
+  qtyOnHand   Int
+  version     Int       @default(0)
+  Product     Product   @relation(fields: [productId], references: [id])
+  Warehouse   Warehouse @relation(fields: [warehouseId], references: [id])
+
+  @@unique([warehouseId, productId])
+}
+
+model SubscriptionLine {
+  id                  String    @id @default(cuid())
+  quoteLineId         String    @unique
+  invoiceId           String?
+  monthlyAmount       Decimal   @db.Decimal(12, 2)
+  startDate           DateTime
+  months              Int
+  proratedFirstAmount Decimal   @db.Decimal(12, 2)
+  Invoice             Invoice?  @relation(fields: [invoiceId], references: [id])
+  QuoteLine           QuoteLine @relation(fields: [quoteLineId], references: [id], onDelete: Cascade)
+}
+
+model UpsellRule {
+  id                                               String     @id @default(cuid())
+  triggerProductId                                 String?
+  triggerCategory                                  String?
+  recommendedProductId                             String
+  kind                                             UpsellKind
+  priority                                         Int
+  Product_UpsellRule_recommendedProductIdToProduct Product    @relation("UpsellRule_recommendedProductIdToProduct", fields: [recommendedProductId], references: [id])
+  Product_UpsellRule_triggerProductIdToProduct     Product?   @relation("UpsellRule_triggerProductIdToProduct", fields: [triggerProductId], references: [id])
+}
+
+model User {
+  id                 String               @id @default(cuid())
+  email              String               @unique
+  passwordHash       String
+  name               String
+  role               Role
+  approvalLimitPct   Decimal              @db.Decimal(5, 2)
+  createdAt          DateTime             @default(now())
+  emailVerified      Boolean              @default(false)
+  Approval           Approval[]
+  NegotiationComment NegotiationComment[]
+  Quote              Quote[]
+  RefreshToken       RefreshToken[]
+}
+
+model Warehouse {
+  id         String       @id @default(cuid())
+  code       String       @unique
+  name       String
+  region     String
+  Allocation Allocation[]
+  Stock      Stock[]
+}
+
+enum AllocationStatus {
+  RESERVED
+  BACKORDERED
+  SHIPPED
+}
+
+enum AnomalyKind {
+  DEEP_DISCOUNT
+  NEGATIVE_MARGIN
+  EXCESSIVE_REAPPROVAL
+}
+
+enum ApprovalStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum BillingType {
+  ONE_TIME
+  RECURRING
+}
+
+enum CustomerTier {
+  BRONZE
+  SILVER
+  GOLD
+  PLATINUM
+}
+
+enum OrderStatus {
+  CONFIRMED
+  FULFILLING
+  PARTIALLY_FULFILLED
+  FULFILLED
+  BILLING_PENDING
+  COMPLETED
+  CANCELLED
+}
+
+enum QuoteStatus {
+  DRAFT
+  PENDING_APPROVAL
+  APPROVED
+  REJECTED
+  NEGOTIATING
+  CONFIRMED
+}
+
+enum Role {
+  SALES_REP
+  SALES_MANAGER
+  FINANCE
+  ADMIN
+  CUSTOMER
+}
+
+enum UpsellKind {
+  UPSELL
+  CROSS_SELL
+}

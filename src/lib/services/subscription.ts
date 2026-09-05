@@ -72,9 +72,6 @@ export async function createSubscription(params: {
   if (!plan.active) throw new Error("Subscription plan is not active");
 
   const monthlyAmount = dec(plan.price).times(params.quantity);
-  const proratedFirst = plan.prorationEnabled
-    ? computeProration(monthlyAmount, params.startDate)
-    : monthlyAmount;
   const periodStart = params.startDate;
   const periodEnd = computePeriodEnd(params.startDate, plan.billingCycle);
   const nextBilling = computeNextBillingDate(params.startDate, plan.billingCycle);
@@ -83,6 +80,7 @@ export async function createSubscription(params: {
     data: {
       customerId: params.customerId,
       orderId: params.orderId,
+      orderLineId: params.orderLineId,
       productId: params.productId,
       planId: params.planId,
       quantity: params.quantity,
@@ -92,17 +90,6 @@ export async function createSubscription(params: {
       currentPeriodEnd: periodEnd,
       nextBillingDate: nextBilling,
       autoPayEnabled: params.autoPayEnabled,
-    },
-  });
-
-  await prisma.subscriptionLine.create({
-    data: {
-      subscriptionId: subscription.id,
-      quoteLineId: params.orderLineId,
-      monthlyAmount,
-      startDate: params.startDate,
-      months: 1,
-      proratedFirstAmount: proratedFirst,
     },
   });
 
@@ -236,7 +223,6 @@ export async function getSubscriptionById(subscriptionId: string) {
     include: {
       plan: true,
       customer: true,
-      lines: true,
     },
   });
 }

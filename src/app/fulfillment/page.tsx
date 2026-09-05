@@ -2,21 +2,15 @@
 
 import { useState, useEffect } from "react";
 import { NavigationHeader } from "@/components/NavigationHeader";
-import { 
-  Truck, 
-  Warehouse as WarehouseIcon, 
-  Package, 
-  MapPin, 
-  CheckCircle2, 
-  AlertTriangle, 
-  Layers, 
-  Edit3, 
-  Plus, 
-  ArrowRight, 
-  DollarSign, 
+import { Card, CardHeader, CardTitle, Badge, Button, Modal, Field, Select, Input } from "@/components/ui";
+import {
+  Truck,
+  Warehouse as WarehouseIcon,
+  CheckCircle2,
+  AlertTriangle,
+  Edit3,
   Clock,
   Sparkles,
-  Sliders
 } from "lucide-react";
 
 export default function FulfillmentPage() {
@@ -146,301 +140,291 @@ export default function FulfillmentPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col">
+    <main className="surface-page min-h-screen flex flex-col">
       <NavigationHeader />
 
-      <main className="flex-1 max-w-7xl w-full mx-auto px-6 py-8">
-        {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
-          <div>
-            <div className="flex items-center gap-2 text-indigo-400 text-xs font-semibold uppercase tracking-wider mb-1">
-              <Truck className="h-4 w-4" />
-              <span>Person 2 Responsibility</span>
+      <div className="flex-1 max-w-7xl w-full mx-auto px-6 py-8">
+        <Card tone="paper" className="mb-8">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 p-6">
+            <div>
+              <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-[var(--foreground)]">
+                Multi-warehouse fulfillment &amp; backorders
+              </h1>
+              <p className="text-sm text-[var(--muted-foreground)] mt-1">
+                Multi-factor scoring (distance, shipping base cost, shipment consolidation) with backend stock validation.
+              </p>
             </div>
-            <h1 className="text-3xl font-extrabold tracking-tight text-white">Multi-Warehouse Fulfillment & Backorders</h1>
-            <p className="text-slate-400 text-sm mt-1">
-              Multi-factor scoring algorithm (distance, shipping base cost, shipment consolidation penalty) with backend stock validation.
-            </p>
+            <Button onClick={handleRunAllocation} loading={allocating} leftIcon={<Sparkles size={14} />}>
+              Simulate allocation on demo order
+            </Button>
           </div>
+        </Card>
 
-          <div className="flex items-center gap-3">
-            <button
-              onClick={handleRunAllocation}
-              disabled={allocating}
-              className="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-semibold shadow-md shadow-indigo-600/20 transition-all disabled:opacity-50"
-            >
-              <Sparkles className="h-4 w-4" />
-              {allocating ? "Running Algorithm..." : "Simulate Allocation on Demo Order"}
-            </button>
-          </div>
-        </div>
-
-        {/* Alerts */}
         {overrideSuccess && (
-          <div className="mb-6 p-4 rounded-xl bg-emerald-950/60 border border-emerald-800 text-emerald-300 text-sm font-medium flex items-center gap-2">
-            <CheckCircle2 className="h-5 w-5 text-emerald-400" />
-            {overrideSuccess}
-          </div>
+          <Card tone="paper" className="mb-6 p-4 flex items-center gap-2 bg-[var(--status-approved-bg)] border-[var(--status-approved-bd)]">
+            <CheckCircle2 className="h-5 w-5 text-[var(--status-approved-fg)]" />
+            <span className="text-sm font-medium text-[var(--status-approved-fg)]">{overrideSuccess}</span>
+          </Card>
         )}
         {overrideError && (
-          <div className="mb-6 p-4 rounded-xl bg-rose-950/60 border border-rose-800 text-rose-300 text-sm font-medium flex items-center gap-2">
-            <AlertTriangle className="h-5 w-5 text-rose-400" />
-            {overrideError}
-          </div>
+          <Card tone="paper" className="mb-6 p-4 flex items-center gap-2 bg-[var(--status-rejected-bg)] border-[var(--status-rejected-bd)]">
+            <AlertTriangle className="h-5 w-5 text-[var(--status-rejected-fg)]" />
+            <span className="text-sm font-medium text-[var(--status-rejected-fg)]">{overrideError}</span>
+          </Card>
         )}
 
-        {/* Warehouses Grid */}
         <div className="mb-10">
-          <h2 className="text-lg font-bold text-white mb-3 flex items-center gap-2">
-            <WarehouseIcon className="h-5 w-5 text-indigo-400" />
-            Active Regional Warehouses
+          <h2 className="text-base font-semibold tracking-tight mb-4 flex items-center gap-2 text-[var(--foreground)]">
+            <WarehouseIcon className="h-4 w-4 text-[var(--primary-hover)]" />
+            Active regional warehouses
           </h2>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {warehouses.map((wh) => (
-              <div
-                key={wh.id}
-                className="rounded-2xl border border-slate-800/80 bg-slate-900/60 p-5 flex flex-col justify-between"
-              >
+              <Card key={wh.id} tone="paper" className="flex flex-col gap-3">
+                <div className="flex items-center justify-between">
+                  <Badge tone="info">Priority {wh.priority}</Badge>
+                  <span className="text-xs text-[var(--muted-foreground)] tabular">
+                    {Number(wh.latitude).toFixed(2)}, {Number(wh.longitude).toFixed(2)}
+                  </span>
+                </div>
                 <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs font-bold text-indigo-400 bg-indigo-950/80 px-2 py-0.5 rounded border border-indigo-800/60">
-                      Priority {wh.priority}
-                    </span>
-                    <span className="text-xs text-slate-500 font-mono">
-                      {Number(wh.latitude).toFixed(2)}, {Number(wh.longitude).toFixed(2)}
-                    </span>
-                  </div>
-
-                  <h3 className="text-base font-bold text-white mt-1">{wh.name}</h3>
-                  <p className="text-xs text-slate-400 mt-1 flex items-center gap-1">
-                    <MapPin className="h-3 w-3 text-slate-500" />
-                    Base Shipping Rate: ${Number(wh.shippingBaseCost).toFixed(2)}
+                  <h3 className="text-base font-semibold tracking-tight text-[var(--foreground)]">{wh.name}</h3>
+                  <p className="text-xs text-[var(--muted-foreground)] mt-0.5">
+                    Base shipping rate: ${Number(wh.shippingBaseCost).toFixed(2)}
                   </p>
                 </div>
-
-                <div className="mt-4 pt-3 border-t border-slate-800/80">
-                  <span className="text-xs text-slate-500 block mb-1 font-medium">Stock Levels:</span>
-                  <div className="space-y-1">
-                    {wh.stocks && wh.stocks.length > 0 ? (
-                      wh.stocks.map((st: any) => {
+                <div className="pt-3 border-t border-[var(--paper-border)]">
+                  <p className="text-[11px] font-semibold uppercase tracking-wider text-[var(--muted-foreground)] mb-2">
+                    Stock
+                  </p>
+                  {wh.stocks?.length > 0 ? (
+                    <ul className="space-y-1 text-xs tabular">
+                      {wh.stocks.map((st: any) => {
                         const usable = st.availableQuantity - st.reservedQuantity;
                         return (
-                          <div key={st.id} className="flex justify-between items-center text-xs">
-                            <span className="text-slate-300 truncate max-w-[140px]">{st.product?.name}</span>
-                            <span className="font-mono">
-                              <span className="font-semibold text-emerald-400">{usable} usable</span>
-                              <span className="text-slate-500 text-[10px] ml-1">({st.availableQuantity} avail)</span>
+                          <li key={st.id} className="flex justify-between items-center">
+                            <span className="truncate max-w-[140px] text-[var(--muted-foreground)]">
+                              {st.product?.name}
                             </span>
-                          </div>
+                            <span>
+                              <span className="font-semibold text-[var(--status-approved-fg)]">{usable}</span>
+                              <span className="text-[var(--muted-foreground)] ml-1 text-[10px]">
+                                ({st.availableQuantity} on hand)
+                              </span>
+                            </span>
+                          </li>
                         );
-                      })
-                    ) : (
-                      <span className="text-xs text-slate-600">No stock recorded</span>
-                    )}
-                  </div>
+                      })}
+                    </ul>
+                  ) : (
+                    <span className="text-xs text-[var(--muted-foreground)]">No stock recorded</span>
+                  )}
                 </div>
-              </div>
+              </Card>
             ))}
           </div>
         </div>
 
-        {/* Allocation Visualizer Banner */}
         {allocationResult && (
-          <div className="mb-10 rounded-2xl border border-indigo-900/60 bg-gradient-to-br from-indigo-950/40 via-slate-900 to-slate-900 p-6 shadow-xl">
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6 pb-4 border-b border-slate-800">
+          <Card tone="paper" className="mb-10 border-[var(--primary)]/30 bg-[var(--background)]/40">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6 pb-4 border-b border-[var(--paper-border)]">
               <div>
-                <span className="text-xs font-bold uppercase tracking-wider text-indigo-400 block mb-1">
-                  Multi-Warehouse Split Result (Section 15)
-                </span>
-                <h2 className="text-xl font-black text-white">
-                  Order Fulfillment Plan: {allocationResult.fulfillment.orderId}
+                <p className="text-[11px] font-semibold uppercase tracking-wider text-[var(--primary-hover)] mb-1">
+                  Multi-warehouse split result
+                </p>
+                <h2 className="text-lg font-semibold tracking-tight text-[var(--foreground)]">
+                  Order fulfillment plan: {allocationResult.fulfillment.orderId}
                 </h2>
               </div>
-
-              <div className="flex items-center gap-3">
-                <button
-                  onClick={() => {
-                    setOverrideQty("8");
-                    setShowOverrideModal(true);
-                  }}
-                  className="flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold border border-slate-700 transition-all"
-                >
-                  <Edit3 className="h-3.5 w-3.5 text-indigo-400" />
-                  Test Manual Override
-                </button>
-              </div>
+              <Button
+                variant="secondary"
+                size="sm"
+                leftIcon={<Edit3 size={14} />}
+                onClick={() => {
+                  setOverrideQty("8");
+                  setShowOverrideModal(true);
+                }}
+              >
+                Test manual override
+              </Button>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-              <div className="p-4 rounded-xl bg-slate-950 border border-slate-800">
-                <span className="text-xs text-slate-400 block font-medium">Fulfillment Status</span>
-                <span className="text-lg font-bold text-emerald-400 mt-1 block">
-                  {allocationResult.fulfillment.status}
-                </span>
-              </div>
-              <div className="p-4 rounded-xl bg-slate-950 border border-slate-800">
-                <span className="text-xs text-slate-400 block font-medium">Consolidated Shipments</span>
-                <span className="text-lg font-bold text-white mt-1 block">
-                  {allocationResult.shipmentCount} Shipments
-                </span>
-              </div>
-              <div className="p-4 rounded-xl bg-slate-950 border border-slate-800">
-                <span className="text-xs text-slate-400 block font-medium">Total Shipping Cost</span>
-                <span className="text-lg font-bold text-indigo-300 mt-1 block">
-                  ${Number(allocationResult.estimatedShippingCost).toFixed(2)}
-                </span>
-              </div>
+              <SummaryStat
+                label="Fulfillment status"
+                value={allocationResult.fulfillment.status}
+                tone="positive"
+              />
+              <SummaryStat
+                label="Consolidated shipments"
+                value={`${allocationResult.shipmentCount} shipments`}
+              />
+              <SummaryStat
+                label="Total shipping cost"
+                value={`$${Number(allocationResult.estimatedShippingCost).toFixed(2)}`}
+                tone="brand"
+              />
             </div>
 
-            {/* Split Breakdown */}
             <div>
-              <h3 className="text-sm font-bold text-white mb-2">Greedy Warehouse Allocations:</h3>
-              <div className="border border-slate-800 rounded-xl overflow-hidden bg-slate-950/60">
-                <table className="w-full text-xs text-left">
-                  <thead className="bg-slate-950 text-slate-400 uppercase text-[10px]">
+              <h3 className="text-xs font-semibold uppercase tracking-wider text-[var(--muted-foreground)] mb-2">
+                Greedy warehouse allocations
+              </h3>
+              <Card tone="paper" className="overflow-hidden">
+                <table className="w-full text-xs text-left tabular">
+                  <thead className="bg-[var(--background)] text-[var(--muted-foreground)] uppercase text-[10px]">
                     <tr>
-                      <th className="p-3">Order Line</th>
-                      <th className="p-3">Allocated Warehouse</th>
-                      <th className="p-3">Quantity</th>
-                      <th className="p-3">Shipping Cost</th>
+                      <th className="px-4 py-2.5">Order line</th>
+                      <th className="px-4 py-2.5">Allocated warehouse</th>
+                      <th className="px-4 py-2.5">Quantity</th>
+                      <th className="px-4 py-2.5">Shipping cost</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-800/60">
+                  <tbody>
                     {allocationResult.allocations.map((alloc: any, idx: number) => {
                       const wh = warehouses.find((w) => w.id === alloc.warehouseId);
                       return (
-                        <tr key={idx} className="hover:bg-slate-800/20">
-                          <td className="p-3 font-mono text-slate-300">{alloc.orderLineId}</td>
-                          <td className="p-3 font-medium text-white">{wh?.name ?? alloc.warehouseId}</td>
-                          <td className="p-3 font-bold text-indigo-400">{alloc.quantity} units</td>
-                          <td className="p-3 text-slate-300 font-medium">${alloc.shippingCost.toFixed(2)}</td>
+                        <tr key={idx} className="border-t border-[var(--paper-border)]">
+                          <td className="px-4 py-2.5 text-[var(--muted-foreground)]">{alloc.orderLineId}</td>
+                          <td className="px-4 py-2.5 font-medium">{wh?.name ?? alloc.warehouseId}</td>
+                          <td className="px-4 py-2.5 text-[var(--primary-hover)] font-semibold">
+                            {alloc.quantity} units
+                          </td>
+                          <td className="px-4 py-2.5">${alloc.shippingCost.toFixed(2)}</td>
                         </tr>
                       );
                     })}
                   </tbody>
                 </table>
-              </div>
+              </Card>
             </div>
-          </div>
+          </Card>
         )}
 
-        {/* Backorders Section */}
-        <div className="rounded-2xl border border-slate-800/80 bg-slate-900/60 p-6">
-          <div className="flex items-center justify-between mb-4">
+        <Card tone="paper">
+          <CardHeader>
             <div>
-              <h2 className="text-lg font-bold text-white flex items-center gap-2">
-                <Clock className="h-5 w-5 text-amber-400" />
-                Backorders Log
-              </h2>
-              <p className="text-xs text-slate-400 mt-0.5">
-                Automatically created when usable inventory across all warehouses cannot fulfill line quantity.
+              <CardTitle>
+                <span className="inline-flex items-center gap-2">
+                  <Clock className="h-4 w-4 text-[var(--status-pending-fg)]" />
+                  Backorders log
+                </span>
+              </CardTitle>
+              <p className="text-xs text-[var(--muted-foreground)] mt-1">
+                Created automatically when usable inventory across all warehouses can’t fulfill a line quantity.
               </p>
             </div>
-            <span className="text-xs font-semibold px-2.5 py-1 rounded bg-slate-800 text-slate-300">
-              {backorders.length} Open Backorders
-            </span>
-          </div>
+            <Badge tone={backorders.length > 0 ? "pending" : "neutral"} dot>
+              {backorders.length} open
+            </Badge>
+          </CardHeader>
 
           {backorders.length === 0 ? (
-            <p className="text-xs text-slate-500 py-4 text-center">No open backorders currently.</p>
+            <div className="px-2 py-8 text-center text-sm text-[var(--muted-foreground)]">
+              No open backorders.
+            </div>
           ) : (
-            <div className="border border-slate-800 rounded-xl overflow-hidden">
-              <table className="w-full text-xs text-left">
-                <thead className="bg-slate-950 text-slate-400 uppercase text-[10px]">
+            <Card tone="paper" className="overflow-hidden">
+              <table className="w-full text-xs text-left tabular">
+                <thead className="bg-[var(--background)] text-[var(--muted-foreground)] uppercase text-[10px]">
                   <tr>
-                    <th className="p-3">Backorder ID</th>
-                    <th className="p-3">Order Line</th>
-                    <th className="p-3">Unfulfilled Quantity</th>
-                    <th className="p-3">Status</th>
-                    <th className="p-3">Created</th>
+                    <th className="px-4 py-2.5">Backorder ID</th>
+                    <th className="px-4 py-2.5">Order line</th>
+                    <th className="px-4 py-2.5">Unfulfilled</th>
+                    <th className="px-4 py-2.5">Status</th>
+                    <th className="px-4 py-2.5">Created</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-800/60">
+                <tbody>
                   {backorders.map((bo) => (
-                    <tr key={bo.id}>
-                      <td className="p-3 font-mono text-slate-400">{bo.id}</td>
-                      <td className="p-3 font-mono text-slate-300">{bo.orderLineId}</td>
-                      <td className="p-3 font-bold text-amber-400">{bo.quantity} units</td>
-                      <td className="p-3">
-                        <span className="bg-amber-950 text-amber-300 border border-amber-800 px-2 py-0.5 rounded text-[10px] font-bold">
-                          {bo.status}
-                        </span>
+                    <tr key={bo.id} className="border-t border-[var(--paper-border)]">
+                      <td className="px-4 py-2.5 text-[var(--muted-foreground)]">{bo.id}</td>
+                      <td className="px-4 py-2.5">{bo.orderLineId}</td>
+                      <td className="px-4 py-2.5 text-[var(--status-pending-fg)] font-semibold">{bo.quantity} units</td>
+                      <td className="px-4 py-2.5">
+                        <Badge tone="pending">{bo.status}</Badge>
                       </td>
-                      <td className="p-3 text-slate-500">{new Date(bo.createdAt).toLocaleDateString()}</td>
+                      <td className="px-4 py-2.5 text-[var(--muted-foreground)]">
+                        {new Date(bo.createdAt).toLocaleDateString()}
+                      </td>
                     </tr>
                   ))}
                 </tbody>
               </table>
-            </div>
+            </Card>
           )}
-        </div>
-      </main>
+        </Card>
+      </div>
 
       {/* Manual Override Modal */}
-      {showOverrideModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-sm p-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md p-6 shadow-2xl">
-            <h2 className="text-xl font-bold text-white mb-1">Manual Warehouse Override</h2>
-            <p className="text-xs text-slate-400 mb-5">
-              Reassign order fulfillment to a specific warehouse. Stock is strictly validated on the backend.
-            </p>
-
-            <form onSubmit={handleManualOverride} className="space-y-4">
-              <div>
-                <label className="block text-xs font-semibold text-slate-300 uppercase mb-1">
-                  Destination Warehouse
-                </label>
-                <select
-                  value={overrideWarehouseId}
-                  onChange={(e) => setOverrideWarehouseId(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500"
-                >
-                  {warehouses.map((w) => (
-                    <option key={w.id} value={w.id}>
-                      {w.name} (Priority {w.priority})
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-slate-300 uppercase mb-1">
-                  Quantity to Ship
-                </label>
-                <input
-                  type="number"
-                  min="1"
-                  required
-                  value={overrideQty}
-                  onChange={(e) => setOverrideQty(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500"
-                />
-                <span className="text-[11px] text-slate-500 mt-1 block">
-                  Tip: Testing with &gt; 5 units on New York will trigger backend stock validation error!
-                </span>
-              </div>
-
-              <div className="flex justify-end gap-3 pt-3 border-t border-slate-800">
-                <button
-                  type="button"
-                  onClick={() => setShowOverrideModal(false)}
-                  className="px-4 py-2 rounded-lg text-sm text-slate-400 hover:text-white"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={overrideSubmitting}
-                  className="px-5 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-semibold disabled:opacity-50"
-                >
-                  {overrideSubmitting ? "Validating..." : "Apply Override"}
-                </button>
-              </div>
-            </form>
+      <Modal
+        open={showOverrideModal}
+        onClose={() => setShowOverrideModal(false)}
+        title="Manual warehouse override"
+        description="Reassign order fulfillment to a specific warehouse. Stock is strictly validated on the backend."
+        size="md"
+        footer={
+          <div className="flex justify-end gap-2">
+            <Button variant="ghost" onClick={() => setShowOverrideModal(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleManualOverride} loading={overrideSubmitting}>
+              Apply override
+            </Button>
           </div>
-        </div>
-      )}
+        }
+      >
+        <form onSubmit={handleManualOverride} className="space-y-4">
+          <Field label="Destination warehouse" htmlFor="wh">
+            <Select
+              id="wh"
+              value={overrideWarehouseId}
+              onChange={(e) => setOverrideWarehouseId(e.target.value)}
+            >
+              {warehouses.map((w) => (
+                <option key={w.id} value={w.id}>
+                  {w.name} (Priority {w.priority})
+                </option>
+              ))}
+            </Select>
+          </Field>
+          <Field
+            label="Quantity to ship"
+            htmlFor="qty"
+            hint="Testing with > 5 units on New York will trigger a backend stock validation error."
+          >
+            <Input
+              id="qty"
+              type="number"
+              min={1}
+              required
+              value={overrideQty}
+              onChange={(e) => setOverrideQty(e.target.value)}
+            />
+          </Field>
+        </form>
+      </Modal>
+    </main>
+  );
+}
+
+function SummaryStat({
+  label,
+  value,
+  tone,
+}: {
+  label: string;
+  value: string;
+  tone?: "positive" | "brand";
+}) {
+  const valueColor =
+    tone === "positive" ? "text-emerald-400" : tone === "brand" ? "text-[var(--primary-hover)]" : "";
+  return (
+    <div className="rounded-lg border border-[var(--border)] bg-[var(--background)] p-3.5">
+      <p className="text-[11px] font-semibold uppercase tracking-wider text-[var(--muted-foreground)]">
+        {label}
+      </p>
+      <p className={`mt-1 text-lg font-semibold tabular ${valueColor}`}>{value}</p>
     </div>
   );
 }

@@ -2,12 +2,26 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import {
+  Button,
+  Card,
+  CardHeader,
+  CardTitle,
+  Field,
+  Input,
+  Select,
+  Textarea,
+  Badge,
+  RiskGauge,
+  useToast,
+} from "@/components/ui";
+import { Sparkles } from "lucide-react";
 
-export default function QuoteBuilder({ initialQuote, products }: { initialQuote: any, products: any[] }) {
+export default function QuoteBuilder({ initialQuote, products }: { initialQuote: any; products: any[] }) {
   const router = useRouter();
+  const toast = useToast();
   const [quote, setQuote] = useState(initialQuote);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
   const [selectedProductId, setSelectedProductId] = useState("");
   const [qty, setQty] = useState(1);
   const [discountPct, setDiscountPct] = useState(0);
@@ -19,8 +33,8 @@ export default function QuoteBuilder({ initialQuote, products }: { initialQuote:
   useEffect(() => {
     if (quote.lines.length > 0) {
       fetch(`/api/quotes/${quote.id}/recommendations`)
-        .then(res => res.json())
-        .then(data => {
+        .then((res) => res.json())
+        .then((data) => {
           if (data.success) setRecommendations(data.data);
         })
         .catch(console.error);
@@ -31,16 +45,14 @@ export default function QuoteBuilder({ initialQuote, products }: { initialQuote:
 
   const handleAddLine = async (e?: React.FormEvent, productData?: any) => {
     if (e) e.preventDefault();
-    
+
     const pId = productData?.productId || selectedProductId;
     const pQty = productData?.qty || qty;
     const pDiscount = productData?.discountPct || discountPct;
-    
+
     if (!pId || pQty < 1) return;
 
     setLoading(true);
-    setError("");
-
     try {
       const res = await fetch(`/api/quotes/${quote.id}/lines`, {
         method: "POST",
@@ -63,17 +75,21 @@ export default function QuoteBuilder({ initialQuote, products }: { initialQuote:
       setSubscriptionMonths("");
       router.refresh();
     } catch (err: any) {
-      setError(err.message);
+      toast.error("Couldn’t add line", err.message);
     } finally {
       setLoading(false);
     }
   };
 
   const handleRemoveLine = async (lineId: string) => {
-    if (!confirm("Are you sure you want to remove this line?")) return;
+    const ok = await toast.confirm({
+      title: "Remove this line?",
+      description: "The product will be removed from this quote.",
+      confirmLabel: "Remove",
+      destructive: true,
+    });
+    if (!ok) return;
     setLoading(true);
-    setError("");
-
     try {
       const res = await fetch(`/api/quotes/${quote.id}/lines?lineId=${lineId}`, {
         method: "DELETE",
@@ -85,17 +101,20 @@ export default function QuoteBuilder({ initialQuote, products }: { initialQuote:
       setQuote(body.data);
       router.refresh();
     } catch (err: any) {
-      setError(err.message);
+      toast.error("Couldn’t remove line", err.message);
     } finally {
       setLoading(false);
     }
   };
 
   const handleSubmitQuote = async () => {
-    if (!confirm("Submit this quote for approval?")) return;
+    const ok = await toast.confirm({
+      title: "Submit for approval?",
+      description: "Once submitted, the quote cannot be edited until it’s reviewed.",
+      confirmLabel: "Submit",
+    });
+    if (!ok) return;
     setLoading(true);
-    setError("");
-
     try {
       const res = await fetch(`/api/quotes/${quote.id}/submit`, {
         method: "POST",
@@ -105,308 +124,341 @@ export default function QuoteBuilder({ initialQuote, products }: { initialQuote:
       if (!res.ok) throw new Error(body.error?.message || "Failed to submit quote");
 
       setQuote(body.data.quote);
-      
+
       if (body.data.evaluation?.status === "REJECTED") {
-        alert("Quote was auto-rejected: " + body.data.evaluation.reason);
+        toast.warning("Auto-rejected", body.data.evaluation.reason);
       } else if (body.data.evaluation?.requiresApproval) {
-        alert(`Quote submitted for ${body.data.evaluation.level} approval.`);
+        toast.info("Routed for approval", `Sent to ${body.data.evaluation.level}.`);
       } else {
-        alert("Quote auto-approved!");
+        toast.success("Quote auto-approved");
       }
-      
+
       router.refresh();
     } catch (err: any) {
-      setError(err.message);
+      toast.error("Submission failed", err.message);
     } finally {
       setLoading(false);
     }
   };
 
-  const selectedProduct = products.find(p => p.id === selectedProductId);
+  const selectedProduct = products.find((p) => p.id === selectedProductId);
   const isRecurring = selectedProduct?.billingType === "RECURRING";
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-      {/* Main Quote Workspace */}
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      {/* Main */}
       <div className="lg:col-span-2 space-y-6">
-        {error && (
-          <div className="p-3 bg-red-500/10 border border-red-500/20 text-red-600 rounded-md text-sm">
-            {error}
-          </div>
-        )}
-
-        {/* Add Line Form */}
         {isEditable && (
-          <form onSubmit={handleAddLine} className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-6 space-y-4 shadow-sm">
-            <h3 className="font-medium text-lg border-b border-[var(--border)] pb-2 mb-4">Add Product</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-1">
-                <label className="text-sm font-medium text-[var(--ink)]">Product</label>
-                <select
+          <Card>
+            <CardHeader>
+              <CardTitle>Add a product</CardTitle>
+            </CardHeader>
+            <form onSubmit={handleAddLine} className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Field label="Product" htmlFor="product" className="md:col-span-2">
+                <Select
+                  id="product"
                   value={selectedProductId}
                   onChange={(e) => setSelectedProductId(e.target.value)}
-                  className="w-full rounded-md border border-[var(--border)] bg-transparent px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[var(--ink)]"
                   required
                 >
-                  <option value="">Select a product...</option>
-                  {products.map(p => (
+                  <option value="">Select a product…</option>
+                  {products.map((p) => (
                     <option key={p.id} value={p.id}>
-                      {p.name} ({p.sku}) - ₹{Number(p.listPrice).toLocaleString()}
+                      {p.name} ({p.sku}) — ₹{Number(p.listPrice).toLocaleString()}
                     </option>
                   ))}
-                </select>
-              </div>
+                </Select>
+              </Field>
 
-              <div className="space-y-1">
-                <label className="text-sm font-medium text-[var(--ink)]">Quantity</label>
-                <input
+              <Field label="Quantity" htmlFor="qty">
+                <Input
+                  id="qty"
                   type="number"
-                  min="1"
+                  min={1}
                   value={qty}
                   onChange={(e) => setQty(parseInt(e.target.value))}
-                  className="w-full rounded-md border border-[var(--border)] bg-transparent px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[var(--ink)]"
                   required
                 />
-              </div>
+              </Field>
 
-              <div className="space-y-1">
-                <label className="text-sm font-medium text-[var(--ink)]">Discount (%)</label>
-                <input
+              <Field label="Discount %" htmlFor="disc">
+                <Input
+                  id="disc"
                   type="number"
-                  min="0"
-                  max="100"
+                  min={0}
+                  max={100}
                   step="0.01"
                   value={discountPct}
                   onChange={(e) => setDiscountPct(parseFloat(e.target.value))}
-                  className="w-full rounded-md border border-[var(--border)] bg-transparent px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[var(--ink)]"
                 />
-              </div>
+              </Field>
 
               {isRecurring && (
-                <div className="space-y-1">
-                  <label className="text-sm font-medium text-[var(--ink)]">Subscription Months</label>
-                  <input
+                <Field label="Subscription months" htmlFor="months" className="md:col-span-2">
+                  <Input
+                    id="months"
                     type="number"
-                    min="1"
+                    min={1}
                     placeholder="e.g. 12"
                     value={subscriptionMonths}
                     onChange={(e) => setSubscriptionMonths(e.target.value)}
-                    className="w-full rounded-md border border-[var(--border)] bg-transparent px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[var(--ink)]"
                     required
                   />
-                </div>
+                </Field>
               )}
-            </div>
-            <div className="flex justify-end pt-2">
-              <button
-                type="submit"
-                disabled={loading || !selectedProductId}
-                className="bg-[var(--muted)] text-[var(--ink)] px-4 py-2 rounded-md text-sm font-medium hover:bg-[var(--border)] disabled:opacity-50"
-              >
-                + Add Line
-              </button>
-            </div>
-          </form>
+
+              <div className="md:col-span-2 flex justify-end">
+                <Button type="submit" loading={loading} disabled={!selectedProductId}>
+                  Add line
+                </Button>
+              </div>
+            </form>
+          </Card>
         )}
 
-        {/* Line Items Table */}
-        <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] overflow-hidden shadow-sm">
-          <div className="p-4 border-b border-[var(--border)] bg-[var(--muted)]/30">
-            <h3 className="font-medium text-lg">Line Items</h3>
+        <Card padded={false}>
+          <div className="px-5 sm:px-6 py-4 border-b border-[var(--border)] flex items-center justify-between">
+            <h3 className="text-base font-semibold tracking-tight">Line items</h3>
+            <span className="text-xs text-[var(--muted-foreground)] tabular">{quote.lines.length}</span>
           </div>
           {quote.lines.length === 0 ? (
-            <div className="p-8 text-center text-[var(--muted-foreground)]">
-              No line items added yet.
+            <div className="px-6 py-10 text-center text-sm text-[var(--muted-foreground)]">
+              No lines yet — add a product to start.
             </div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full text-left text-sm">
-                <thead>
+              <table className="w-full text-left text-sm tabular">
+                <thead className="text-[11px] uppercase tracking-wider text-[var(--muted-foreground)]">
                   <tr className="border-b border-[var(--border)]">
-                    <th className="p-4 font-medium text-[var(--muted-foreground)]">Product</th>
-                    <th className="p-4 font-medium text-[var(--muted-foreground)]">Qty</th>
-                    <th className="p-4 font-medium text-[var(--muted-foreground)]">Unit Price</th>
-                    <th className="p-4 font-medium text-[var(--muted-foreground)]">Disc %</th>
-                    <th className="p-4 font-medium text-[var(--muted-foreground)]">Total</th>
-                    {isEditable && <th className="p-4 font-medium text-[var(--muted-foreground)]"></th>}
+                    <th className="px-5 py-3 font-semibold">Product</th>
+                    <th className="px-3 py-3 font-semibold text-right">Qty</th>
+                    <th className="px-3 py-3 font-semibold text-right">Unit</th>
+                    <th className="px-3 py-3 font-semibold text-right">Disc %</th>
+                    <th className="px-3 py-3 font-semibold text-right">Total</th>
+                    {isEditable && <th className="px-3 py-3 font-semibold text-right">{" "}</th>}
                   </tr>
                 </thead>
                 <tbody>
-                  {quote.lines.map((line: any) => (
-                    <tr key={line.id} className="border-b border-[var(--border)] last:border-0 hover:bg-[var(--muted)]/20">
-                      <td className="p-4">
-                        <p className="font-medium">{line.product.name}</p>
-                        <p className="text-xs text-[var(--muted-foreground)]">{line.product.sku} ({line.billingType})</p>
-                      </td>
-                      <td className="p-4">{line.qty}</td>
-                      <td className="p-4">₹{Number(line.unitPrice).toLocaleString()}</td>
-                      <td className="p-4">{Number(line.discountPct)}%</td>
-                      <td className="p-4 font-medium text-[var(--ink)]">₹{Number(line.lineTotal).toLocaleString()}</td>
-                      {isEditable && (
-                        <td className="p-4 text-right">
-                          <button
-                            type="button"
-                            onClick={() => handleRemoveLine(line.id)}
-                            disabled={loading}
-                            className="text-red-500 hover:text-red-700 disabled:opacity-50"
-                          >
-                            Remove
-                          </button>
+                  {quote.lines.map((line: any) => {
+                    const isOverCeiling =
+                      line.maxCategoryDiscount !== undefined &&
+                      Number(line.discountPct) > Number(line.maxCategoryDiscount);
+                    return (
+                      <tr key={line.id} className="border-b border-[var(--border)] last:border-0">
+                        <td className="px-5 py-3.5">
+                          <p className="font-medium">{line.product.name}</p>
+                          <p className="text-xs text-[var(--muted-foreground)]">
+                            {line.product.sku} · {line.billingType}
+                          </p>
                         </td>
-                      )}
-                    </tr>
-                  ))}
+                        <td className="px-3 py-3.5 text-right">{line.qty}</td>
+                        <td className="px-3 py-3.5 text-right">
+                          ₹{Number(line.unitPrice).toLocaleString()}
+                        </td>
+                        <td className="px-3 py-3.5 text-right">
+                          <span className={isOverCeiling ? "text-rose-400 font-semibold" : ""}>
+                            {Number(line.discountPct)}%
+                          </span>
+                          {isOverCeiling && line.maxCategoryDiscount !== undefined && (
+                            <p className="text-[10px] text-rose-400/80">
+                              over {line.maxCategoryDiscount}% cap
+                            </p>
+                          )}
+                        </td>
+                        <td className="px-3 py-3.5 text-right font-semibold">
+                          ₹{Number(line.lineTotal).toLocaleString()}
+                        </td>
+                        {isEditable && (
+                          <td className="px-3 py-3.5 text-right">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleRemoveLine(line.id)}
+                              disabled={loading}
+                              className="text-rose-400 hover:text-rose-300"
+                            >
+                              Remove
+                            </Button>
+                          </td>
+                        )}
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
           )}
-        </div>
+        </Card>
       </div>
 
-      {/* Summary Sidebar */}
+      {/* Sidebar */}
       <div className="space-y-6">
-        <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-6 shadow-sm sticky top-6">
-          <h3 className="font-medium text-lg border-b border-[var(--border)] pb-4 mb-4">Quote Summary</h3>
-          
-          <div className="space-y-3 text-sm">
-            <div className="flex justify-between">
-              <span className="text-[var(--muted-foreground)]">Subtotal</span>
-              <span>₹{Number(quote.subtotal).toLocaleString()}</span>
-            </div>
-            <div className="flex justify-between text-red-600">
-              <span>Discount</span>
-              <span>-₹{Number(quote.discountTotal).toLocaleString()}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-[var(--muted-foreground)]">Tax</span>
-              <span>₹{Number(quote.taxTotal).toLocaleString()}</span>
-            </div>
-            <div className="flex justify-between font-bold text-lg pt-4 border-t border-[var(--border)]">
-              <span>Grand Total</span>
+        <Card>
+          <CardHeader>
+            <CardTitle>Quote summary</CardTitle>
+            <Badge tone={quote.status === "APPROVED" ? "approved" : quote.status === "REJECTED" ? "rejected" : quote.status === "PENDING_APPROVAL" ? "pending" : "info"}>
+              {quote.status.replace("_", " ")}
+            </Badge>
+          </CardHeader>
+
+          <div className="space-y-2.5 text-sm tabular">
+            <Row label="Subtotal" value={`₹${Number(quote.subtotal).toLocaleString()}`} />
+            <Row label="Discount" value={`-₹${Number(quote.discountTotal).toLocaleString()}`} tone="negative" />
+            <Row label="Tax" value={`₹${Number(quote.taxTotal).toLocaleString()}`} />
+            <div className="flex justify-between pt-3 mt-3 border-t border-[var(--border)] font-semibold text-base">
+              <span>Grand total</span>
               <span>₹{Number(quote.grandTotal).toLocaleString()}</span>
             </div>
           </div>
 
-          <div className="mt-8 pt-6 border-t border-[var(--border)]">
-            <h4 className="text-xs font-semibold text-[var(--muted-foreground)] uppercase tracking-wider mb-3">
-              Deal Metrics
-            </h4>
-            <div className="space-y-2 text-sm">
-              <div className="flex justify-between">
-                <span>Total Cost</span>
-                <span className="text-[var(--muted-foreground)]">₹{Number(quote.totalCost).toLocaleString()}</span>
-              </div>
-              <div className="flex justify-between">
-                <span>Margin</span>
-                <span className={`font-medium ${Number(quote.marginPct) < 10 ? "text-red-600" : "text-green-600"}`}>
-                  {Number(quote.marginPct).toFixed(2)}%
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span>Blended Disc.</span>
-                <span className="font-medium">{Number(quote.blendedDiscountPct).toFixed(2)}%</span>
-              </div>
+          <div className="mt-6 pt-5 border-t border-[var(--border)]">
+            <p className="text-[11px] font-semibold uppercase tracking-wider text-[var(--muted-foreground)] mb-3">
+              Deal metrics
+            </p>
+            <div className="space-y-2 text-sm tabular">
+              <Row label="Total cost" value={`₹${Number(quote.totalCost).toLocaleString()}`} muted />
+              <Row
+                label="Margin"
+                value={`${Number(quote.marginPct).toFixed(2)}%`}
+                tone={Number(quote.marginPct) < 10 ? "negative" : "positive"}
+              />
+              <Row label="Blended disc." value={`${Number(quote.blendedDiscountPct).toFixed(2)}%`} />
             </div>
           </div>
 
           {isEditable && (
-            <div className="mt-8 pt-6 border-t border-[var(--border)]">
-              <button
-                type="button"
+            <div className="mt-6 pt-5 border-t border-[var(--border)]">
+              <Button
+                className="w-full"
                 onClick={handleSubmitQuote}
-                disabled={loading || quote.lines.length === 0}
-                className="w-full bg-[var(--ink)] text-[var(--paper)] px-4 py-3 rounded-lg text-sm font-medium hover:opacity-90 disabled:opacity-50 transition-opacity"
+                loading={loading}
+                disabled={quote.lines.length === 0}
               >
-                Submit for Approval
-              </button>
+                Submit for approval
+              </Button>
             </div>
           )}
 
           {quote.status === "APPROVED" && (
-            <div className="mt-8 pt-6 border-t border-[var(--border)]">
-              <button
-                type="button"
+            <div className="mt-4">
+              <Button
+                variant="success"
+                className="w-full"
                 onClick={async () => {
-                  if (!confirm("Confirm this quote and convert it to an Order?")) return;
+                  const ok = await toast.confirm({
+                    title: "Convert this quote to an order?",
+                    description: "Once confirmed, the order is binding.",
+                    confirmLabel: "Convert to order",
+                  });
+                  if (!ok) return;
                   setLoading(true);
                   try {
                     const res = await fetch(`/api/quotes/${quote.id}/confirm`, { method: "POST" });
                     const body = await res.json();
                     if (!res.ok) throw new Error(body.error?.message || "Failed to confirm");
-                    alert("Quote converted to Order successfully!");
+                    toast.success("Order created");
                     router.push("/dashboard/rep/quotes");
                     router.refresh();
                   } catch (err: any) {
-                    alert(err.message);
+                    toast.error("Conversion failed", err.message);
                     setLoading(false);
                   }
                 }}
-                disabled={loading}
-                className="w-full bg-green-600 text-white px-4 py-3 rounded-lg text-sm font-medium hover:bg-green-700 disabled:opacity-50 transition-opacity"
+                loading={loading}
               >
-                Confirm & Create Order
-              </button>
+                Confirm &amp; create order
+              </Button>
             </div>
           )}
 
           {(quote.status === "APPROVED" || quote.status === "NEGOTIATING") && (
-            <div className="mt-4 pt-4 border-t border-[var(--border)]">
-              <button
-                type="button"
+            <div className="mt-4">
+              <Button
+                variant="secondary"
+                className="w-full"
                 onClick={async () => {
                   setLoading(true);
                   try {
                     const res = await fetch(`/api/quotes/${quote.id}/portal-link`, { method: "POST" });
                     const body = await res.json();
                     if (!res.ok) throw new Error(body.error?.message || "Failed to generate link");
-                    
-                    // Copy to clipboard
                     await navigator.clipboard.writeText(body.data.link);
-                    alert("Portal link generated and copied to clipboard!\n" + body.data.link);
+                    toast.success("Portal link copied to clipboard");
                   } catch (err: any) {
-                    alert(err.message);
+                    toast.error("Couldn’t generate link", err.message);
                   } finally {
                     setLoading(false);
                   }
                 }}
-                disabled={loading}
-                className="w-full bg-[var(--muted)] text-[var(--ink)] border border-[var(--border)] px-4 py-3 rounded-lg text-sm font-medium hover:bg-[var(--border)] disabled:opacity-50 transition-opacity"
+                loading={loading}
               >
-                🔗 Copy Portal Link
-              </button>
+                Copy portal link
+              </Button>
             </div>
           )}
-        </div>
+        </Card>
 
-        {/* AI Recommendations */}
+        {/* Recommendations */}
         {isEditable && recommendations.length > 0 && (
-          <div className="rounded-xl border border-[var(--border)] bg-indigo-50/50 dark:bg-indigo-950/20 p-6 shadow-sm border-indigo-100 dark:border-indigo-900/30 sticky top-[400px]">
-            <h3 className="font-medium text-lg border-b border-indigo-200/50 dark:border-indigo-800/50 pb-4 mb-4 flex items-center gap-2 text-indigo-900 dark:text-indigo-300">
-              <span className="text-xl">✨</span> Recommendations
-            </h3>
-            
-            <div className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>
+                <span className="inline-flex items-center gap-1.5">
+                  <Sparkles size={14} className="text-[var(--primary-hover)]" /> Recommendations
+                </span>
+              </CardTitle>
+            </CardHeader>
+            <ul className="space-y-3">
               {recommendations.map((rec) => (
-                <div key={rec.productId} className="bg-white dark:bg-gray-900 p-3 rounded-lg border border-indigo-100 dark:border-indigo-900/30 text-sm">
-                  <div className="flex justify-between items-start mb-1">
-                    <span className="font-medium">{rec.productName}</span>
-                    <span className="text-indigo-600 dark:text-indigo-400 font-medium">₹{Number(rec.listPrice).toLocaleString()}</span>
+                <li key={rec.productId} className="rounded-lg border border-[var(--border)] bg-[var(--background)] p-3">
+                  <div className="flex items-start justify-between gap-2 mb-1">
+                    <span className="text-sm font-medium">{rec.productName}</span>
+                    <span className="text-sm text-[var(--primary-hover)] font-semibold tabular">
+                      ₹{Number(rec.listPrice).toLocaleString()}
+                    </span>
                   </div>
                   <p className="text-xs text-[var(--muted-foreground)] mb-3">{rec.reason}</p>
-                  
-                  <button
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    className="w-full"
                     onClick={() => handleAddLine(undefined, { productId: rec.productId, qty: 1, discountPct: 0 })}
-                    disabled={loading}
-                    className="w-full text-xs font-medium py-1.5 rounded bg-indigo-100 text-indigo-700 dark:bg-indigo-900/50 dark:text-indigo-300 hover:bg-indigo-200 dark:hover:bg-indigo-900 transition-colors"
+                    loading={loading}
                   >
-                    Add to Quote
-                  </button>
-                </div>
+                    Add to quote
+                  </Button>
+                </li>
               ))}
-            </div>
-          </div>
+            </ul>
+          </Card>
+        )}
+
+        {/* Risk preview, if backend provides one on quote load */}
+        {quote.riskBreakdown && (
+          <RiskGauge score={quote.riskScore} breakdown={quote.riskBreakdown} />
         )}
       </div>
+    </div>
+  );
+}
+
+function Row({
+  label,
+  value,
+  tone,
+  muted,
+}: {
+  label: string;
+  value: string;
+  tone?: "positive" | "negative";
+  muted?: boolean;
+}) {
+  const toneClass =
+    tone === "negative" ? "text-rose-400" : tone === "positive" ? "text-emerald-400" : "";
+  return (
+    <div className="flex justify-between">
+      <span className={muted ? "text-[var(--muted-foreground)]" : ""}>{label}</span>
+      <span className={`font-medium ${toneClass}`}>{value}</span>
     </div>
   );
 }

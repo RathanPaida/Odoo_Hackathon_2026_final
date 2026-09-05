@@ -1,21 +1,20 @@
 "use client";
-
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { Button, useToast } from "@/components/ui";
 
 export default function NewQuoteButton({ customerId }: { customerId?: string }) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  const toast = useToast();
 
   const handleCreate = async () => {
-    // If no customerId provided directly, we'll prompt for one using window.prompt for now
-    // In a real app, you'd open a modal with a customer selector
-    const idToUse = customerId || window.prompt("Enter Customer ID to create a quote for:");
+    const idToUse =
+      customerId ||
+      window.prompt("Enter Customer ID to create a quote for:");
     if (!idToUse) return;
 
     setLoading(true);
-    setError("");
 
     try {
       const res = await fetch("/api/quotes", {
@@ -31,19 +30,14 @@ export default function NewQuoteButton({ customerId }: { customerId?: string }) 
 
       router.push(`/dashboard/rep/quotes/${body.data.id}`);
     } catch (err: any) {
-      setError(err.message);
+      toast.error("Couldn’t create quote", err.message);
       setLoading(false);
-      alert(err.message); // Simple error display
     }
   };
 
   return (
-    <button
-      onClick={handleCreate}
-      disabled={loading}
-      className="bg-[var(--ink)] text-[var(--paper)] px-4 py-2 rounded-lg text-sm font-medium hover:opacity-90 disabled:opacity-50"
-    >
-      {loading ? "Creating..." : "+ New Quote"}
-    </button>
+    <Button variant="primary" onClick={handleCreate} loading={loading}>
+      New quote
+    </Button>
   );
 }

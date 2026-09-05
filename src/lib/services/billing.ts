@@ -1,10 +1,9 @@
 // src/lib/services/billing.ts
 // Spec §16 — hybrid billing: one-time invoice + recurring subscription schedule.
 // Money is always Prisma.Decimal. Never use JS number for money.
-import { Prisma, InvoiceStatus as PrismaInvoiceStatus } from "@/generated/prisma";
+import { Prisma } from "@/generated/prisma";
 import { prisma } from "@/lib/db";
 import { writeAudit } from "@/lib/audit";
-import { InvoiceStatus } from "@/lib/contracts/billing";
 
 export type DecimalInput = string | number | Prisma.Decimal;
 
@@ -47,29 +46,29 @@ function generateInvoiceNumber(): string {
 }
 
 export async function createOneTimeInvoice(
-  quoteId: string,
+  orderId: string,
   dueDays: number = 30
 ): Promise<CreateInvoiceResult> {
-  const quote = await prisma.quote.findUnique({
-    where: { id: quoteId },
+  const order = await prisma.order.findUnique({
+    where: { id: orderId },
     include: {
       lines: {
-        where: { billingType: "ONE_TIME" },
+        where: { productType: "ONE_TIME" },
         include: { product: true },
       },
       customer: true,
     },
   });
 
-  if (!quote) throw new Error(`Quote ${quoteId} not found`);
-  if (quote.lines.length === 0) throw new Error("No one-time lines to invoice");
+  if (!order) throw new Error(`Order ${orderId} not found`);
+  if (order.lines.length === 0) throw new Error("No one-time lines to invoice");
 
   const lineItems: InvoiceLineItem[] = [];
   let subtotal = new Prisma.Decimal(0);
   let taxAmount = new Prisma.Decimal(0);
 
-  for (const line of quote.lines) {
-    const totalAmount = dec(line.lineTotal);
+  for (const line of order.lines) {
+    const totalAmount = dec(line.totalAmount);
     const taxLine = new Prisma.Decimal(0);
     subtotal = subtotal.plus(totalAmount);
     taxAmount = taxAmount.plus(taxLine);
@@ -77,7 +76,7 @@ export async function createOneTimeInvoice(
     lineItems.push({
       description: line.product.name,
       productId: line.productId,
-      quantity: line.qty,
+      quantity: line.quantity,
       unitPrice: line.unitPrice,
       taxAmount: taxLine,
       totalAmount,
@@ -90,15 +89,15 @@ export async function createOneTimeInvoice(
 
   const invoice = await prisma.invoice.create({
     data: {
-      quoteId,
-      customerId: quote.customerId,
+      orderId,
+      customerId: order.customerId,
       invoiceNumber: generateInvoiceNumber(),
-      amount: totalAmount,
+      totalAmount: totalAmount,
       subtotal: round2(subtotal),
       taxAmount: round2(taxAmount),
-      issuedAt: new Date(),
-      dueAt: dueDate,
-      status: PrismaInvoiceStatus.ISSUED,
+      dueDate: dueDate,
+      status: "ISSUED",
+      invoiceType: "ONE_TIME",
     },
   });
 
@@ -121,7 +120,7 @@ export async function createOneTimeInvoice(
     entityId: invoice.id,
     action: "CREATED_ONE_TIME",
     before: undefined,
-    after: { quoteId, invoiceNumber: invoice.invoiceNumber, amount: totalAmount.toString() },
+    after: { orderId, invoiceNumber: invoice.invoiceNumber, amount: totalAmount.toString() },
   });
 
   return {
@@ -144,7 +143,6 @@ export async function recordPayment(
 ): Promise<{ paymentId: string; invoiceStatus: string }> {
   const invoice = await prisma.invoice.findUnique({
     where: { id: invoiceId },
-    include: { customer: true },
   });
   if (!invoice) throw new Error(`Invoice ${invoiceId} not found`);
 
@@ -162,13 +160,17 @@ export async function recordPayment(
     },
   });
 
-  const newPaidAmount = (invoice.paidAmount ?? new Prisma.Decimal(0)).plus(paidAmount);
-  const isFullyPaid = newPaidAmount.greaterThanOrEqualTo(invoice.amount);
-  const newStatus = isFullyPaid ? PrismaInvoiceStatus.PAID : PrismaInvoiceStatus.PARTIALLY_PAID;
+  // Calculate total paid amounts from payments since `paidAmount` doesn't exist on invoice
+  const payments = await prisma.payment.findMany({
+    where: { invoiceId, status: "SUCCESS" }
+  });
+  const newPaidAmount = payments.reduce((acc, p) => acc.plus(p.amount), new Prisma.Decimal(0));
+  const isFullyPaid = newPaidAmount.greaterThanOrEqualTo(invoice.totalAmount);
+  const newStatus = isFullyPaid ? "PAID" : "PARTIALLY_PAID";
 
   await prisma.invoice.update({
     where: { id: invoiceId },
-    data: { paidAmount: newPaidAmount, status: newStatus },
+    data: { status: newStatus },
   });
 
   await writeAudit({
@@ -187,15 +189,14 @@ export async function getInvoiceById(invoiceId: string) {
     where: { id: invoiceId },
     include: {
       lines: true,
-      quote: { include: { customer: true } },
-      subscriptions: true,
+      payments: true,
     },
   });
 }
 
 export async function listInvoices(options: {
   customerId?: string;
-  status?: InvoiceStatus;
+  status?: string;
   limit?: number;
   offset?: number;
 }) {
@@ -208,11 +209,7 @@ export async function listInvoices(options: {
   const [invoices, total] = await Promise.all([
     prisma.invoice.findMany({
       where,
-      include: {
-        quote: { include: { customer: true } },
-        subscriptions: true,
-      },
-      orderBy: { issuedAt: "desc" },
+      orderBy: { createdAt: "desc" },
       take: limit,
       skip: offset,
     }),
@@ -225,13 +222,13 @@ export async function listInvoices(options: {
 export async function cancelInvoice(invoiceId: string, reason?: string) {
   const invoice = await prisma.invoice.findUnique({ where: { id: invoiceId } });
   if (!invoice) throw new Error(`Invoice ${invoiceId} not found`);
-  if (invoice.status === PrismaInvoiceStatus.PAID) {
+  if (invoice.status === "PAID") {
     throw new Error("Cannot cancel a fully paid invoice");
   }
 
   const updated = await prisma.invoice.update({
     where: { id: invoiceId },
-    data: { status: PrismaInvoiceStatus.CANCELLED },
+    data: { status: "CANCELLED" },
   });
 
   await writeAudit({
@@ -239,7 +236,7 @@ export async function cancelInvoice(invoiceId: string, reason?: string) {
     entityId: invoiceId,
     action: "CANCELLED",
     before: { status: invoice.status },
-    after: { status: PrismaInvoiceStatus.CANCELLED, reason },
+    after: { status: "CANCELLED", reason },
   });
 
   return updated;

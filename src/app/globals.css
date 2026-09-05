@@ -1,20 +1,63 @@
 @import "tailwindcss";
 
+/* ─── Design Tokens ──────────────────────────────────────────────────────────
+   Single source of truth for color, surface, semantic status, and shape.
+
+   Two surfaces share this token set:
+     - Internal workspace (rep / manager / finance / admin): dense, dark
+     - Customer portal: low-density, light
+
+   Density / typography differs per surface. Tokens do not.
+   ──────────────────────────────────────────────────────────────────────────── */
+
 :root {
+  /* Surfaces (dark, internal) */
   --background: #0a0a0f;
   --foreground: #e2e8f0;
   --card: #111827;
   --card-foreground: #f1f5f9;
   --border: #1e293b;
   --input: #1e293b;
-  --primary: #6366f1;
-  --primary-foreground: #ffffff;
   --secondary: #1e293b;
+
+  /* Surfaces (light, portal) — used by the customer portal only */
+  --paper: #f5f6f8;          /* page bg */
+  --paper-card: #ffffff;     /* card bg */
+  --paper-border: #e2e5ea;  /* card border */
+
+  /* Aliases for legacy components still referencing --ink / --paper */
+  --ink: var(--foreground);
   --muted: #1e293b;
-  --muted-foreground: #64748b;
+  --muted-foreground: #94a3b8;
+
+  /* Brand */
+  --primary: #6366f1;
+  --primary-hover: #818cf8;
+  --primary-foreground: #ffffff;
   --accent: #6366f1;
-  --destructive: #ef4444;
   --ring: #6366f1;
+
+  /* Semantic status — used for quote / approval / payment pills */
+  --status-pending-fg: #fbbf24;        --status-pending-bg: #422006;        --status-pending-bd: #92400e;
+  --status-approved-fg: #34d399;       --status-approved-bg: #052e2b;       --status-approved-bd: #065f46;
+  --status-rejected-fg: #f87171;       --status-rejected-bg: #450a0a;       --status-rejected-bd: #991b1b;
+  --status-info-fg: #93c5fd;           --status-info-bg: #0c2547;           --status-info-bd: #1e40af;
+  --status-neutral-fg: #cbd5e1;        --status-neutral-bg: #1e293b;        --status-neutral-bd: #475569;
+  --status-negotiating-fg: #c4b5fd;    --status-negotiating-bg: #2e1065;    --status-negotiating-bd: #5b21b6;
+
+  /* Risk tiers (computed by backend; this UI only renders) */
+  --risk-low-fg: #6ee7b7;       --risk-low-bg: #052e2b;       --risk-low-bd: #065f46;
+  --risk-medium-fg: #fcd34d;    --risk-medium-bg: #422006;    --risk-medium-bd: #92400e;
+  --risk-high-fg: #fca5a5;      --risk-high-bg: #450a0a;      --risk-high-bd: #991b1b;
+
+  /* Destructive */
+  --destructive: #ef4444;
+  --destructive-foreground: #ffffff;
+
+  /* Radius & shadow */
+  --radius: 0.625rem;
+  --shadow-card: 0 1px 0 rgba(255, 255, 255, 0.04) inset, 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-pop: 0 10px 30px rgba(0, 0, 0, 0.45);
 }
 
 * {
@@ -29,7 +72,10 @@ body {
   overflow-x: hidden;
   background-color: var(--background);
   color: var(--foreground);
-  font-family: "Inter", system-ui, sans-serif;
+  font-family: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-feature-settings: "cv11", "ss01", "ss03";
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
 
 a {
@@ -37,12 +83,40 @@ a {
   text-decoration: none;
 }
 
-/* Fix for Webkit autofill in dark mode */
-input:-webkit-autofill,
-input:-webkit-autofill:hover, 
-input:-webkit-autofill:focus, 
-input:-webkit-autofill:active{
-    -webkit-box-shadow: 0 0 0 30px #18181b inset !important; /* zinc-900 roughly */
-    -webkit-text-fill-color: white !important;
-    transition: background-color 5000s ease-in-out 0s;
+/* Visible focus everywhere — meets the no-hover-only-affordance rule. */
+:where(button, a, input, select, textarea, [tabindex]):focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+  border-radius: 4px;
 }
+
+/* Webkit autofill */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 30px #18181b inset !important;
+  -webkit-text-fill-color: white !important;
+  transition: background-color 5000s ease-in-out 0s;
+}
+
+/* ─── Utility surface classes used by primitives ─────────────────────────────
+   These give primitives semantic surface treatments without each consumer
+   re-rolling the same Tailwind strings. */
+
+.surface-page { background-color: var(--background); color: var(--foreground); }
+.surface-card {
+  background-color: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-card);
+}
+.surface-paper { background-color: var(--paper); color: var(--foreground); }
+.surface-paper-card {
+  background-color: var(--paper-card);
+  border: 1px solid var(--paper-border);
+  border-radius: var(--radius);
+}
+
+/* Tabular numerals for any data cell */
+.tabular { font-variant-numeric: tabular-nums; }

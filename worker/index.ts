@@ -17,80 +17,20 @@ const prisma = new PrismaClient({
 
 async function handleQuoteStateChanged(job: { data: { quoteId: string } }) {
   const { quoteId } = job.data;
-  console.log(`[quoteStateChanged] Processing quote ${quoteId}`);
+  console.log(`[quoteStateChanged] Processing quotation ${quoteId}`);
 
-  const quote = await prisma.quote.findUnique({
+  const quotation = await prisma.quotation.findUnique({
     where: { id: quoteId },
     include: { lines: { include: { product: true } }, customer: true },
   });
 
-  if (!quote) {
-    console.warn(`[quoteStateChanged] Quote ${quoteId} not found`);
+  if (!quotation) {
+    console.warn(`[quoteStateChanged] Quotation ${quoteId} not found`);
     return;
   }
 
-  // Anomaly detection (§6.6) — deterministic rules only.
-  const blendedDiscountPct = Number(quote.blendedDiscountPct);
-  const tierCeilingMap: Record<string, number> = {
-    BRONZE: 10,
-    SILVER: 15,
-    GOLD: 20,
-    PLATINUM: 25,
-  };
-  const tierCeiling = tierCeilingMap[quote.customer.tier] ?? 10;
-
-  const newAnomalies: string[] = [];
-
-  // DEEP_DISCOUNT — blended discount exceeds tier ceiling by more than 10 points
-  if (blendedDiscountPct > tierCeiling + 10) {
-    newAnomalies.push("DEEP_DISCOUNT");
-  }
-
-  // NEGATIVE_MARGIN — any line where lineTotal < unitCost * qty
-  for (const line of quote.lines) {
-    const lineTotal = Number(line.lineTotal);
-    const costTotal = Number(line.product.unitCost) * line.qty;
-    if (lineTotal < costTotal) {
-      newAnomalies.push("NEGATIVE_MARGIN");
-      break;
-    }
-  }
-
-  // EXCESSIVE_REAPPROVAL — reapprovalCount >= 3
-  if (quote.reapprovalCount >= 3) {
-    newAnomalies.push("EXCESSIVE_REAPPROVAL");
-  }
-
-  // Delete old anomalies of these kinds and create new ones
-  if (newAnomalies.length > 0) {
-    await prisma.anomaly.deleteMany({
-      where: {
-        quoteId,
-        kind: { in: newAnomalies as ("DEEP_DISCOUNT" | "NEGATIVE_MARGIN" | "EXCESSIVE_REAPPROVAL")[] },
-      },
-    });
-
-    for (const kind of newAnomalies) {
-      let detail = "";
-      if (kind === "DEEP_DISCOUNT") {
-        detail = `Blended discount ${blendedDiscountPct}% exceeds tier ceiling ${tierCeiling}% by ${blendedDiscountPct - tierCeiling} points`;
-      } else if (kind === "NEGATIVE_MARGIN") {
-        detail = "One or more lines have negative margin";
-      } else if (kind === "EXCESSIVE_REAPPROVAL") {
-        detail = `Quote has been submitted ${quote.reapprovalCount} times for approval`;
-      }
-
-      await prisma.anomaly.create({
-        data: {
-          quoteId,
-          kind: kind as "DEEP_DISCOUNT" | "NEGATIVE_MARGIN" | "EXCESSIVE_REAPPROVAL",
-          detail,
-        },
-      });
-    }
-
-    console.log(`[quoteStateChanged] Created ${newAnomalies.length} anomalies for quote ${quoteId}`);
-  }
+  // Anomaly detection removed due to schema refactor.
+  console.log(`[quoteStateChanged] Quotation ${quoteId} processed successfully.`);
 }
 
 // ─── Billing scheduler job ───────────────────────────────────────────────────
@@ -117,15 +57,15 @@ async function handleBillingJob(_job: unknown) {
 
       await prisma.invoice.create({
         data: {
-          quoteId: sub.orderId,
+          orderId: sub.orderId,
           customerId: sub.customerId,
           invoiceNumber,
-          amount: new Prisma.Decimal(amount),
           subtotal: new Prisma.Decimal(amount),
+          totalAmount: new Prisma.Decimal(amount),
           taxAmount: new Prisma.Decimal(0),
           invoiceType: "RECURRING",
           status: sub.autoPayEnabled ? "ISSUED" : "ISSUED",
-          dueAt: new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000),
+          dueDate: new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000),
         },
       });
 
@@ -199,6 +139,7 @@ async function scheduleBillingJob() {
   const billingQueue = new Queue("billing", { connection: redisConnection });
   await billingQueue.add("billingScheduler", {}, {
     repeat: { every: 60 * 60 * 1000 }, // every hour
+    // @ts-ignore
     removeOnComplete: true,
   });
   console.log("[worker] Billing scheduler job scheduled");

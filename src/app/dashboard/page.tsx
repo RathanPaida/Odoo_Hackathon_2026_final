@@ -17,18 +17,18 @@ export default async function DashboardPage() {
   if (user.role === "ADMIN") redirect("/dashboard/admin");
 
   return (
-    <main className="min-h-screen px-6 py-10">
+    <main className="surface-page min-h-screen px-6 py-10">
       <div className="mx-auto max-w-3xl">
         <header className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-3xl font-semibold">DealFlow360</h1>
+            <h1 className="text-3xl font-semibold tracking-tight text-[var(--foreground)]">DealFlow360</h1>
             <p className="text-sm text-[var(--muted-foreground)]">Welcome back, {user.name}</p>
           </div>
           <LogoutButton />
         </header>
 
-        <section className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-6">
-          <h2 className="text-lg font-medium mb-2">Session</h2>
+        <section className="surface-paper-card p-6">
+          <h2 className="text-lg font-medium text-[var(--foreground)] mb-2">Session</h2>
           <dl className="grid grid-cols-[120px_1fr] gap-y-2 text-sm">
             <dt className="text-[var(--muted-foreground)]">Name</dt>
             <dd>{user.name}</dd>

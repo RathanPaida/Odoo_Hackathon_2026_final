@@ -117,8 +117,9 @@ model Customer {
   createdAt    DateTime     @default(now())
   updatedAt    DateTime     @updatedAt
 
-  quotations   Quotation[]
-  orders       Order[]
+  quotations    Quotation[]
+  orders        Order[]
+  subscriptions Subscription[]
 }
 
 model AuditLog {

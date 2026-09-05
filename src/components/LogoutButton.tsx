@@ -1,7 +1,7 @@
 "use client";
-
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { Button } from "./ui";
 
 export function LogoutButton() {
   const router = useRouter();
@@ -12,19 +12,15 @@ export function LogoutButton() {
     try {
       await fetch("/api/auth/logout", { method: "POST" });
     } catch {
-      // ignore — still redirect
+      // still redirect
     }
     router.push("/login");
     router.refresh();
   }
 
   return (
-    <button
-      onClick={handleLogout}
-      disabled={loading}
-      className="rounded-md border border-[var(--border)] px-3 py-1.5 text-sm hover:bg-[var(--secondary)] disabled:opacity-50"
-    >
-      {loading ? "Signing out…" : "Sign out"}
-    </button>
+    <Button variant="secondary" size="sm" onClick={handleLogout} loading={loading}>
+      Sign out
+    </Button>
   );
 }

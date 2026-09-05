@@ -24,28 +24,37 @@ export interface PricingLine {
   discountPct: DecimalInput; // percent, 0–100
   unitCost: DecimalInput;
   billingType: string;
-  subscriptionMonths?: number | null;
+  taxPercentage?: DecimalInput;
 }
 
 export interface PricingTotals {
   subtotal: Prisma.Decimal;
-  discountTotal: Prisma.Decimal;
-  taxTotal: Prisma.Decimal;
-  grandTotal: Prisma.Decimal;
-  blendedDiscountPct: Prisma.Decimal;
-  marginPct: Prisma.Decimal;
+  discountAmount: Prisma.Decimal;
+  taxAmount: Prisma.Decimal;
+  totalAmount: Prisma.Decimal;
+  totalCost: Prisma.Decimal;
+  marginAmount: Prisma.Decimal;
+  marginPercentage: Prisma.Decimal;
   lineTotals: Prisma.Decimal[];
 }
 
-/** lineTotal = unitPrice * qty * (1 - discountPct/100), rounded to 2dp */
+/** lineTotal = unitPrice * qty * (1 - discountPct/100) * (1 + taxPercentage/100), rounded to 2dp */
 export function computeLineTotal(
   unitPrice: DecimalInput,
   qty: number,
-  discountPct: DecimalInput
+  discountPct: DecimalInput,
+  taxPct: DecimalInput = 0
 ): Prisma.Decimal {
   const unit = dec(unitPrice);
   const disc = dec(discountPct);
-  const lineTotal = unit.times(qty).times(new Prisma.Decimal(1).minus(disc.dividedBy(100)));
+  const tax = dec(taxPct);
+  
+  const subtotal = unit.times(qty);
+  const discountAmt = subtotal.times(disc.dividedBy(100));
+  const postDiscount = subtotal.minus(discountAmt);
+  const taxAmt = postDiscount.times(tax.dividedBy(100));
+  const lineTotal = postDiscount.plus(taxAmt);
+  
   return round2(lineTotal);
 }
 
@@ -53,86 +62,88 @@ const ZERO = new Prisma.Decimal(0);
 
 /**
  * Compute quote-level totals from a set of pricing lines (§6.1):
- *   subtotal         = Σ unitPrice*qty
- *   discountTotal    = subtotal - Σ lineTotal
- *   blendedDiscountPct = discountTotal / subtotal * 100
- *   marginPct        = (Σ lineTotal - Σ unitCost*qty) / Σ lineTotal * 100
  */
 export function computeTotals(lines: PricingLine[]): PricingTotals {
   let subtotal = ZERO;
-  let lineTotalSum = ZERO;
-  let costSum = ZERO;
+  let discountAmount = ZERO;
+  let taxAmount = ZERO;
+  let totalAmount = ZERO;
+  let totalCost = ZERO;
   const lineTotals: Prisma.Decimal[] = [];
 
   for (const line of lines) {
     const subtotalLine = dec(line.unitPrice).times(line.qty);
-    const lineTotal = computeLineTotal(line.unitPrice, line.qty, line.discountPct);
+    const discLine = subtotalLine.times(dec(line.discountPct).dividedBy(100));
+    const postDisc = subtotalLine.minus(discLine);
+    const taxLine = postDisc.times(dec(line.taxPercentage ?? 0).dividedBy(100));
+    const totalLine = postDisc.plus(taxLine);
     const costLine = dec(line.unitCost).times(line.qty);
+    
     subtotal = subtotal.plus(subtotalLine);
-    lineTotalSum = lineTotalSum.plus(lineTotal);
-    costSum = costSum.plus(costLine);
-    lineTotals.push(lineTotal);
+    discountAmount = discountAmount.plus(discLine);
+    taxAmount = taxAmount.plus(taxLine);
+    totalAmount = totalAmount.plus(totalLine);
+    totalCost = totalCost.plus(costLine);
+    lineTotals.push(round2(totalLine));
   }
 
-  const discountTotal = subtotal.minus(lineTotalSum);
-  const blendedDiscountPct = subtotal.greaterThan(ZERO)
-    ? discountTotal.dividedBy(subtotal).times(100)
+  const marginAmount = subtotal.minus(discountAmount).minus(totalCost);
+  const netRevenue = subtotal.minus(discountAmount);
+  const marginPercentage = netRevenue.greaterThan(ZERO)
+    ? marginAmount.dividedBy(netRevenue).times(100)
     : ZERO;
-  const marginPct = lineTotalSum.greaterThan(ZERO)
-    ? lineTotalSum.minus(costSum).dividedBy(lineTotalSum).times(100)
-    : ZERO;
-
-  const grandTotal = round2(lineTotalSum);
-  const taxTotal = ZERO; // no tax model in scope
 
   return {
     subtotal: round2(subtotal),
-    discountTotal: round2(discountTotal),
-    taxTotal,
-    grandTotal,
-    blendedDiscountPct: round2(blendedDiscountPct),
-    marginPct: round2(marginPct),
+    discountAmount: round2(discountAmount),
+    taxAmount: round2(taxAmount),
+    totalAmount: round2(totalAmount),
+    totalCost: round2(totalCost),
+    marginAmount: round2(marginAmount),
+    marginPercentage: round2(marginPercentage),
     lineTotals,
   };
 }
 
 export interface QuoteTotalsPersist {
   subtotal: Prisma.Decimal;
-  discountTotal: Prisma.Decimal;
-  taxTotal: Prisma.Decimal;
-  grandTotal: Prisma.Decimal;
-  blendedDiscountPct: Prisma.Decimal;
-  marginPct: Prisma.Decimal;
+  discountAmount: Prisma.Decimal;
+  taxAmount: Prisma.Decimal;
+  totalAmount: Prisma.Decimal;
+  totalCost: Prisma.Decimal;
+  marginAmount: Prisma.Decimal;
+  marginPercentage: Prisma.Decimal;
 }
 
 /**
  * Re-read a quote with its lines and recompute persisted totals.
- * Returns the data payload to pass to prisma.quote.update.
+ * Returns the data payload to pass to prisma.quotation.update.
  */
-export async function computeQuoteTotals(quoteId: string): Promise<QuoteTotalsPersist> {
-  const quote = await (prisma as any).quotation.findUnique({
-    where: { id: quoteId },
+export async function computeQuoteTotals(quotationId: string): Promise<QuoteTotalsPersist> {
+  const quotation = await prisma.quotation.findUnique({
+    where: { id: quotationId },
     include: { lines: { include: { product: true } } },
   });
-  if (!quote) throw new Error(`Quotation ${quoteId} not found`);
+  if (!quotation) throw new Error(`Quotation ${quotationId} not found`);
 
-  const pricingLines: PricingLine[] = quote.lines.map((l: any) => ({
+  const pricingLines: PricingLine[] = quotation.lines.map((l) => ({
     productId: l.productId,
-    qty: l.quantity ?? l.qty ?? 1,
+    qty: l.quantity,
     unitPrice: l.unitPrice,
-    discountPct: l.discountPercentage ?? l.discountPct ?? 0,
-    unitCost: l.costPrice ?? l.product?.costPrice ?? 0,
+    discountPct: l.discountPercentage,
+    unitCost: l.costPrice,
+    taxPercentage: l.taxPercentage,
     billingType: l.product?.productType ?? "ONE_TIME",
-    subscriptionMonths: l.subscriptionMonths ?? 0,
   }));
 
   const totals = computeTotals(pricingLines);
   return {
     subtotal: totals.subtotal,
-    discountTotal: totals.discountTotal,
-    taxTotal: totals.taxTotal,
-    grandTotal: totals.grandTotal,
-    blendedDiscountPct: totals.blendedDiscountPct,
-    marginPct: totals.marginPct,
+    discountAmount: totals.discountAmount,
+    taxAmount: totals.taxAmount,
+    totalAmount: totals.totalAmount,
+    totalCost: totals.totalCost,
+    marginAmount: totals.marginAmount,
+    marginPercentage: totals.marginPercentage,
   };
 }

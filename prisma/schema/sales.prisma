@@ -1,5 +1,5 @@
 // prisma/schema/sales.prisma
-// PERSON 1 OWNED: Quotation, QuotationLine, Order, OrderLine
+// PERSON 1 OWNED: Quotation, QuotationLine, Order, OrderLine, PortalToken, NegotiationComment, UpsellRule
 
 model Quotation {
   id               String          @id @default(uuid())
@@ -23,6 +23,7 @@ model Quotation {
   customer         Customer        @relation(fields: [customerId], references: [id])
   lines            QuotationLine[]
   orders           Order[]
+  portalTokens     PortalToken[]
 }
 
 model QuotationLine {
@@ -45,6 +46,7 @@ model QuotationLine {
 
   quotation          Quotation @relation(fields: [quotationId], references: [id], onDelete: Cascade)
   product            Product   @relation(fields: [productId], references: [id])
+  comments           NegotiationComment[]
 }
 
 model Order {
@@ -80,4 +82,33 @@ model OrderLine {
 
   order              Order       @relation(fields: [orderId], references: [id], onDelete: Cascade)
   product            Product     @relation(fields: [productId], references: [id])
+}
+
+model PortalToken {
+  id        String    @id @default(uuid())
+  quoteId   String
+  tokenHash String    @unique
+  expiresAt DateTime
+  revokedAt DateTime?
+
+  quotation Quotation @relation(fields: [quoteId], references: [id], onDelete: Cascade)
+}
+
+model NegotiationComment {
+  id              String   @id @default(uuid())
+  quotationLineId String
+  authorRole      String
+  text            String
+  createdAt       DateTime @default(now())
+
+  line            QuotationLine @relation(fields: [quotationLineId], references: [id], onDelete: Cascade)
+}
+
+model UpsellRule {
+  id                  String  @id @default(uuid())
+  triggerProductId    String?
+  triggerCategory     String?
+  recommendedProductId String
+  kind                String
+  priority            Int
 }

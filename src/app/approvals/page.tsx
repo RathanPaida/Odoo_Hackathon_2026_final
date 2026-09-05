@@ -2,22 +2,29 @@
 
 import { useState, useEffect } from "react";
 import { NavigationHeader } from "@/components/NavigationHeader";
-import { 
-  CheckSquare, 
-  Clock, 
-  CheckCircle2, 
-  XCircle, 
-  RotateCcw, 
-  AlertTriangle, 
-  ShieldAlert, 
-  Eye, 
-  FileText, 
-  User, 
-  History, 
-  Percent, 
-  TrendingUp, 
+import {
+  Badge,
+  Card,
+  CardHeader,
+  CardTitle,
+  Modal,
+  Button,
+  Textarea,
+  Field,
+  RiskGauge,
+  badgeToneForQuoteStatus,
+  badgeToneForRisk,
+} from "@/components/ui";
+import {
+  CheckSquare,
+  CheckCircle2,
+  AlertTriangle,
+  ShieldAlert,
+  Eye,
+  User,
+  History,
   Sparkles,
-  ArrowRight
+  X,
 } from "lucide-react";
 
 export default function ApprovalsPage() {
@@ -133,279 +140,254 @@ export default function ApprovalsPage() {
     }
   };
 
-  return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col">
-      <NavigationHeader />
+    return (
+      <main className="surface-page min-h-screen flex flex-col">
+        <NavigationHeader />
 
-      <main className="flex-1 max-w-7xl w-full mx-auto px-6 py-8">
-        {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
-          <div>
-            <div className="flex items-center gap-2 text-indigo-400 text-xs font-semibold uppercase tracking-wider mb-1">
-              <CheckSquare className="h-4 w-4" />
-              <span>Person 2 Responsibility</span>
-            </div>
-            <h1 className="text-3xl font-extrabold tracking-tight text-white">Approval Queue & Audit Trail</h1>
-            <p className="text-slate-400 text-sm mt-1">
-              Review flagged quotations with line-level risk attribution. Audit trail is strictly append-only.
-            </p>
-          </div>
-
-          <div className="flex items-center gap-3">
-            <button
-              onClick={handleEvaluateDemoQuote}
-              disabled={evaluating}
-              className="flex items-center gap-2 px-4 py-2.5 rounded-lg border border-indigo-700/60 bg-indigo-950/40 hover:bg-indigo-900/60 text-indigo-300 text-sm font-semibold transition-all disabled:opacity-50"
-            >
-              <Sparkles className="h-4 w-4 text-indigo-400" />
-              {evaluating ? "Evaluating..." : "Run Evaluation on Demo Quote"}
-            </button>
-          </div>
-        </div>
-
-        {/* Filters Bar */}
-        <div className="flex flex-wrap items-center justify-between gap-4 mb-6 p-4 rounded-xl border border-slate-800/80 bg-slate-900/50">
-          <div className="flex items-center gap-2">
-            <span className="text-xs text-slate-400 font-semibold uppercase mr-1">Role Queue:</span>
-            {["ALL", "SALES_MANAGER", "FINANCE"].map((role) => (
-              <button
-                key={role}
-                onClick={() => setSelectedRole(role)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
-                  selectedRole === role
-                    ? "bg-indigo-600 text-white"
-                    : "bg-slate-950 text-slate-400 hover:text-white"
-                }`}
-              >
-                {role === "ALL" ? "All Roles" : role === "SALES_MANAGER" ? "Sales Manager" : "Finance"}
-              </button>
-            ))}
-          </div>
-
-          <div className="flex items-center gap-2">
-            <span className="text-xs text-slate-400 font-semibold uppercase mr-1">Status:</span>
-            {[
-              { id: "ALL", label: "All" },
-              { id: "PENDING_APPROVAL", label: "Pending" },
-              { id: "APPROVED", label: "Approved" },
-              { id: "REJECTED", label: "Rejected" },
-              { id: "REVISION_REQUIRED", label: "Revision Requested" },
-            ].map((st) => (
-              <button
-                key={st.id}
-                onClick={() => setSelectedStatus(st.id)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
-                  selectedStatus === st.id
-                    ? "bg-indigo-600 text-white"
-                    : "bg-slate-950 text-slate-400 hover:text-white"
-                }`}
-              >
-                {st.label}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Requests Table */}
-        {loading ? (
-          <div className="py-20 flex flex-col items-center justify-center gap-3 text-slate-500">
-            <div className="w-8 h-8 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
-            <p className="text-sm">Loading approval requests...</p>
-          </div>
-        ) : requests.length === 0 ? (
-          <div className="py-16 text-center border border-dashed border-slate-800 rounded-2xl bg-slate-900/30">
-            <CheckSquare className="h-10 w-10 text-slate-600 mx-auto mb-3" />
-            <p className="text-slate-300 font-medium">No approval requests in this queue</p>
-            <p className="text-slate-500 text-xs mt-1">
-              Click &quot;Run Evaluation on Demo Quote&quot; above to generate a real risk-flagged approval.
-            </p>
-          </div>
-        ) : (
-          <div className="rounded-2xl border border-slate-800/80 bg-slate-900/60 overflow-hidden">
-            <table className="w-full text-left text-sm">
-              <thead className="border-b border-slate-800 bg-slate-950/80 text-xs uppercase text-slate-400">
-                <tr>
-                  <th className="px-5 py-3.5">Quotation / ID</th>
-                  <th className="px-5 py-3.5">Assigned To</th>
-                  <th className="px-5 py-3.5">Risk Score</th>
-                  <th className="px-5 py-3.5">Flag Reason</th>
-                  <th className="px-5 py-3.5">Status</th>
-                  <th className="px-5 py-3.5 text-right">Action</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-800/60">
-                {requests.map((req) => {
-                  const score = Number(req.riskScore);
-                  return (
-                    <tr key={req.id} className="hover:bg-slate-800/30 transition-all">
-                      <td className="px-5 py-4">
-                        <span className="font-mono text-xs text-indigo-400 font-semibold block">
-                          {req.quotationId}
-                        </span>
-                        <span className="text-[11px] text-slate-500">
-                          Created {new Date(req.createdAt).toLocaleDateString()}
-                        </span>
-                      </td>
-
-                      <td className="px-5 py-4">
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold bg-slate-800 text-slate-300 border border-slate-700">
-                          <User className="h-3 w-3 text-indigo-400" />
-                          {req.assignedRole}
-                        </span>
-                      </td>
-
-                      <td className="px-5 py-4">
-                        <span
-                          className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-black ${
-                            score > 25
-                              ? "bg-rose-950 text-rose-300 border border-rose-800/60"
-                              : score > 0
-                              ? "bg-amber-950 text-amber-300 border border-amber-800/60"
-                              : "bg-emerald-950 text-emerald-300 border border-emerald-800/60"
-                          }`}
-                        >
-                          <TrendingUp className="h-3 w-3" />
-                          {score.toFixed(1)} pts
-                        </span>
-                      </td>
-
-                      <td className="px-5 py-4 max-w-xs">
-                        <p className="text-xs text-slate-300 truncate" title={req.reason}>
-                          {req.reason || "Discount ceiling exceedance detected"}
-                        </p>
-                      </td>
-
-                      <td className="px-5 py-4">
-                        <span
-                          className={`text-xs font-bold px-2.5 py-1 rounded-full ${
-                            req.status === "APPROVED"
-                              ? "bg-emerald-950 text-emerald-300 border border-emerald-800"
-                              : req.status === "PENDING_APPROVAL"
-                              ? "bg-amber-950 text-amber-300 border border-amber-800"
-                              : req.status === "REJECTED"
-                              ? "bg-rose-950 text-rose-300 border border-rose-800"
-                              : "bg-purple-950 text-purple-300 border border-purple-800"
-                          }`}
-                        >
-                          {req.status}
-                        </span>
-                      </td>
-
-                      <td className="px-5 py-4 text-right">
-                        <button
-                          onClick={() => handleOpenDetail(req.id)}
-                          className="px-3.5 py-1.5 rounded-lg bg-indigo-600/20 hover:bg-indigo-600 text-indigo-300 hover:text-white text-xs font-semibold border border-indigo-500/30 transition-all inline-flex items-center gap-1.5"
-                        >
-                          <Eye className="h-3.5 w-3.5" />
-                          Review & Act
-                        </button>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </main>
-
-      {/* Approval Detail & Action Modal */}
-      {activeRequest && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-sm p-4 overflow-y-auto">
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-3xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden">
-            {/* Modal Header */}
-            <div className="p-6 border-b border-slate-800 bg-slate-950/60 flex items-start justify-between">
+        <div className="flex-1 max-w-7xl w-full mx-auto px-6 py-8">
+          <Card tone="paper" className="mb-8">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 p-6">
               <div>
-                <div className="flex items-center gap-2 mb-1">
-                  <span className="text-xs font-bold uppercase tracking-wider text-indigo-400">
-                    Approval Request Inspector
-                  </span>
-                  <span
-                    className={`text-[10px] font-bold px-2 py-0.5 rounded ${
-                      activeRequest.status === "APPROVED"
-                        ? "bg-emerald-950 text-emerald-300 border border-emerald-800"
-                        : "bg-amber-950 text-amber-300 border border-amber-800"
-                    }`}
-                  >
-                    {activeRequest.status}
-                  </span>
-                </div>
-                <h2 className="text-xl font-black text-white">Quotation: {activeRequest.quotationId}</h2>
-                <p className="text-xs text-slate-400 mt-1">Assigned Role: {activeRequest.assignedRole} | Level: {activeRequest.level}</p>
+                <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-[var(--foreground)]">
+                  Approval Queue & Audit Trail
+                </h1>
+                <p className="text-sm text-[var(--muted-foreground)] mt-1">
+                  Review flagged quotations with line-level risk attribution. Audit trail is strictly append-only.
+                </p>
               </div>
 
-              <button
-                onClick={() => setActiveRequest(null)}
-                className="text-slate-400 hover:text-white p-2"
-              >
-                ✕
-              </button>
+              <div className="flex items-center gap-3">
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={handleEvaluateDemoQuote}
+                  disabled={evaluating}
+                >
+                  <Sparkles className="h-4 w-4 text-[var(--primary)] mr-2" />
+                  {evaluating ? "Evaluating..." : "Run Evaluation on Demo Quote"}
+                </Button>
+              </div>
             </div>
+          </Card>
 
-            {/* Modal Body */}
-            <div className="p-6 space-y-6 overflow-y-auto flex-1">
-              {/* Notifications */}
+          <Card tone="paper" className="mb-6">
+            <div className="p-4 flex flex-wrap items-center justify-between gap-4">
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-semibold uppercase text-[var(--muted-foreground)] mr-1">
+                  Role Queue:
+                </span>
+                {["ALL", "SALES_MANAGER", "FINANCE"].map((role) => (
+                  <Button
+                    key={role}
+                    variant={selectedRole === role ? "primary" : "ghost"}
+                    size="sm"
+                    onClick={() => setSelectedRole(role)}
+                    className="text-xs"
+                  >
+                    {role === "ALL" ? "All Roles" : role === "SALES_MANAGER" ? "Sales Manager" : "Finance"}
+                  </Button>
+                ))}
+              </div>
+
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-semibold uppercase text-[var(--muted-foreground)] mr-1">
+                  Status:
+                </span>
+                {[
+                  { id: "ALL", label: "All" },
+                  { id: "PENDING_APPROVAL", label: "Pending" },
+                  { id: "APPROVED", label: "Approved" },
+                  { id: "REJECTED", label: "Rejected" },
+                  { id: "REVISION_REQUIRED", label: "Revision Requested" },
+                ].map((st) => (
+                  <Button
+                    key={st.id}
+                    variant={selectedStatus === st.id ? "primary" : "ghost"}
+                    size="sm"
+                    onClick={() => setSelectedStatus(st.id)}
+                    className="text-xs"
+                  >
+                    {st.label}
+                  </Button>
+                ))}
+              </div>
+            </div>
+          </Card>
+
+          {loading ? (
+            <Card tone="paper" className="py-20 flex flex-col items-center justify-center gap-3">
+              <div className="w-8 h-8 border-2 border-[var(--primary)] border-t-transparent rounded-full animate-spin"></div>
+              <p className="text-sm text-[var(--muted-foreground)]">Loading approval requests...</p>
+            </Card>
+          ) : requests.length === 0 ? (
+            <Card tone="paper" className="py-16 text-center">
+              <CheckSquare className="h-10 w-10 text-[var(--muted-foreground)] mx-auto mb-3" />
+              <p className="font-medium text-[var(--foreground)]">No approval requests in this queue</p>
+              <p className="text-xs text-[var(--muted-foreground)] mt-1">
+                Click "Run Evaluation on Demo Quote" to generate a real risk-flagged approval.
+              </p>
+            </Card>
+          ) : (
+            <Card tone="paper" className="overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-sm tabular">
+                  <thead className="bg-[var(--background)] text-xs uppercase text-[var(--muted-foreground)]">
+                    <tr>
+                      <th className="px-5 py-3.5">Quotation / ID</th>
+                      <th className="px-5 py-3.5">Assigned To</th>
+                      <th className="px-5 py-3.5">Risk Score</th>
+                      <th className="px-5 py-3.5">Flag Reason</th>
+                      <th className="px-5 py-3.5">Status</th>
+                      <th className="px-5 py-3.5 text-right">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-[var(--paper-border)]">
+                    {requests.map((req) => {
+                      const score = Number(req.riskScore);
+                      return (
+                        <tr key={req.id} className="hover:bg-[var(--paper)] transition-all">
+                          <td className="px-5 py-4">
+                            <span className="font-mono text-xs font-semibold text-[var(--primary)] block">
+                              {req.quotationId}
+                            </span>
+                            <span className="text-[11px] text-[var(--muted-foreground)]">
+                              Created {new Date(req.createdAt).toLocaleDateString()}
+                            </span>
+                          </td>
+
+                          <td className="px-5 py-4">
+                            <Badge tone="neutral">
+                              <User className="h-3 w-3 mr-1.5" /> {req.assignedRole}
+                            </Badge>
+                          </td>
+
+                          <td className="px-5 py-4">
+                            <Badge tone={badgeToneForRisk(score)} dot>
+                              {score.toFixed(1)} pts
+                            </Badge>
+                          </td>
+
+                          <td className="px-5 py-4 max-w-xs">
+                            <p className="text-xs text-[var(--foreground)] truncate" title={req.reason}>
+                              {req.reason || "Discount ceiling exceedance detected"}
+                            </p>
+                          </td>
+
+                          <td className="px-5 py-4">
+                            <Badge tone={badgeToneForQuoteStatus(req.status)}>
+                              {req.status.replace("_", " ")}
+                            </Badge>
+                          </td>
+
+                          <td className="px-5 py-4 text-right">
+                            <Button
+                              size="sm"
+                              onClick={() => handleOpenDetail(req.id)}
+                              className="text-xs"
+                            >
+                              <Eye className="h-3.5 w-3.5 mr-1.5" />
+                              Review & Act
+                            </Button>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </Card>
+          )}
+        </div>
+
+        <Modal
+          open={activeRequest !== null}
+          onClose={() => setActiveRequest(null)}
+          size="lg"
+          title={
+            <div className="flex items-center gap-2">
+              <span className="text-[11px] font-semibold uppercase tracking-wider text-[var(--muted-foreground)]">
+                Approval Request Inspector
+              </span>
+              <Badge tone={badgeToneForQuoteStatus(activeRequest?.status ?? "PENDING_APPROVAL")}>
+                {activeRequest?.status.replace("_", " ")}
+              </Badge>
+            </div>
+          }
+          description={`Quotation: ${activeRequest?.quotationId} · Assigned: ${activeRequest?.assignedRole} · Level: ${activeRequest?.level}`}
+          footer={
+            activeRequest?.status === "PENDING_APPROVAL" ? (
+              <div className="flex items-center justify-end gap-2">
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  loading={submittingAction}
+                  onClick={() => handleAction("REQUEST_REVISION")}
+                  className="text-[var(--primary)]"
+                >
+                  Request revision
+                </Button>
+                <Button variant="destructive" size="sm" loading={submittingAction} onClick={() => handleAction("REJECT")}>
+                  Reject
+                </Button>
+                <Button variant="success" size="sm" loading={submittingAction} onClick={() => handleAction("APPROVE")}>
+                  {activeRequest?.level === "FINANCE" && activeRequest?.assignedRole === "SALES_MANAGER"
+                    ? "Approve & escalate"
+                    : "Approve"}
+                </Button>
+              </div>
+            ) : null
+          }
+        >
+          {activeRequest && (
+            <div className="space-y-6">
               {actionSuccess && (
-                <div className="p-3.5 rounded-xl bg-emerald-950/60 border border-emerald-800 text-emerald-300 text-xs font-medium flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-emerald-400" />
-                  {actionSuccess}
+                <div className="p-3.5 rounded-xl bg-[var(--status-approved-bg)] border border-[var(--status-approved-bd)] text-[var(--status-approved-fg)] text-xs font-medium flex items-center gap-2">
+                  <CheckCircle2 className="h-4 w-4 text-[var(--status-approved-fg)]" /> {actionSuccess}
                 </div>
               )}
               {actionError && (
-                <div className="p-3.5 rounded-xl bg-rose-950/60 border border-rose-800 text-rose-300 text-xs font-medium flex items-center gap-2">
-                  <AlertTriangle className="h-4 w-4 text-rose-400" />
-                  {actionError}
+                <div className="p-3.5 rounded-xl bg-[var(--status-rejected-bg)] border border-[var(--status-rejected-bd)] text-[var(--status-rejected-fg)] text-xs font-medium flex items-center gap-2">
+                  <AlertTriangle className="h-4 w-4 text-[var(--status-rejected-fg)]" /> {actionError}
                 </div>
               )}
 
-              {/* Risk Summary Banner */}
-              <div className="p-4 rounded-xl border border-slate-800 bg-slate-950 flex items-center justify-between">
-                <div>
-                  <span className="text-xs text-slate-400 block font-medium">Computed Blended Risk Score</span>
-                  <span className="text-2xl font-black text-white">{Number(activeRequest.riskScore).toFixed(1)} pts</span>
-                </div>
+              <RiskGauge
+                score={activeRequest.riskScore}
+                breakdown={activeRequest.evaluation?.breakdown}
+              />
 
-                <div className="text-right">
-                  <span className="text-xs text-slate-400 block font-medium">Required Approval Role</span>
-                  <span className="text-sm font-bold text-indigo-400">{activeRequest.assignedRole}</span>
-                </div>
-              </div>
-
-              {/* Line Violation Breakdown (Section 13) */}
-              {activeRequest.evaluation?.breakdown && activeRequest.evaluation.breakdown.length > 0 && (
-                <div>
-                  <h3 className="text-sm font-bold text-white mb-2 flex items-center gap-2">
-                    <ShieldAlert className="h-4 w-4 text-indigo-400" />
-                    Line-by-Line Discount Attribution (Section 13)
-                  </h3>
-
-                  <div className="border border-slate-800 rounded-xl overflow-hidden">
-                    <table className="w-full text-xs text-left">
-                      <thead className="bg-slate-950 text-slate-400 uppercase text-[10px]">
+              {activeRequest.evaluation?.breakdown?.length > 0 && (
+                <Card tone="paper" className="overflow-hidden">
+                  <div className="px-4 py-3 border-b border-[var(--paper-border)] text-xs font-semibold uppercase tracking-wider text-[var(--muted-foreground)] flex items-center gap-2">
+                    <ShieldAlert size={12} /> Line-by-line attribution
+                  </div>
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-xs text-left tabular">
+                      <thead className="bg-[var(--background)] text-[var(--muted-foreground)] uppercase text-[10px]">
                         <tr>
-                          <th className="p-3">Product</th>
-                          <th className="p-3">Category</th>
-                          <th className="p-3">Applied</th>
-                          <th className="p-3">Allowed Ceiling</th>
-                          <th className="p-3">Line Excess</th>
-                          <th className="p-3">Risk Contribution</th>
+                          <th className="px-4 py-2.5">Product</th>
+                          <th className="px-3 py-2.5">Category</th>
+                          <th className="px-3 py-2.5">Applied</th>
+                          <th className="px-3 py-2.5">Ceiling</th>
+                          <th className="px-3 py-2.5">Excess</th>
+                          <th className="px-3 py-2.5">Contribution</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-slate-800/60">
+                      <tbody>
                         {activeRequest.evaluation.breakdown.map((line: any) => (
-                          <tr key={line.lineId} className="hover:bg-slate-800/20">
-                            <td className="p-3 font-medium text-white">{line.productName}</td>
-                            <td className="p-3 text-slate-400">{line.categoryName}</td>
-                            <td className="p-3 font-semibold text-white">{line.appliedDiscount}%</td>
-                            <td className="p-3 text-slate-300 font-medium">{line.allowedDiscount}%</td>
-                            <td className="p-3">
+                          <tr key={line.lineId} className="border-t border-[var(--paper-border)]">
+                            <td className="px-4 py-2.5 font-medium">{line.productName}</td>
+                            <td className="px-3 py-2.5 text-[var(--muted-foreground)]">{line.categoryName}</td>
+                            <td className="px-3 py-2.5 font-semibold">{line.appliedDiscount}%</td>
+                            <td className="px-3 py-2.5">{line.allowedDiscount}%</td>
+                            <td className="px-3 py-2.5">
                               {line.lineExcess > 0 ? (
-                                <span className="text-rose-400 font-bold">+{line.lineExcess}%</span>
+                                <span className="font-semibold text-[var(--status-rejected-fg)]">+{line.lineExcess}%</span>
                               ) : (
-                                <span className="text-emerald-400 font-medium">0%</span>
+                                <span className="text-[var(--status-approved-fg)]">0%</span>
                               )}
                             </td>
-                            <td className="p-3 font-mono font-semibold text-indigo-300">
+                            <td className="px-3 py-2.5 text-[var(--primary-hover)] font-semibold">
                               {line.weightedViolation} pts
                             </td>
                           </tr>
@@ -413,91 +395,57 @@ export default function ApprovalsPage() {
                       </tbody>
                     </table>
                   </div>
-                </div>
+                </Card>
               )}
 
-              {/* Append-Only Audit History Timeline */}
               <div>
-                <h3 className="text-sm font-bold text-white mb-3 flex items-center gap-2">
-                  <History className="h-4 w-4 text-indigo-400" />
-                  Append-Only Approval Audit Trail
+                <h3 className="text-xs font-semibold uppercase tracking-wider text-[var(--muted-foreground)] mb-3 flex items-center gap-2">
+                  <History className="h-3.5 w-3.5 text-[var(--primary-hover)]" /> Append-only audit trail
                 </h3>
-
-                {activeRequest.actions && activeRequest.actions.length > 0 ? (
-                  <div className="relative border-l border-slate-800 ml-3 space-y-4 pl-4 text-xs">
+                {activeRequest.actions?.length > 0 ? (
+                  <ul className="relative border-l border-[var(--paper-border)] ml-3 space-y-4 pl-4 text-xs">
                     {activeRequest.actions.map((act: any) => (
-                      <div key={act.id} className="relative">
-                        <div className="absolute -left-[21px] top-1 h-2.5 w-2.5 rounded-full bg-indigo-500 border border-slate-900"></div>
+                      <li key={act.id} className="relative">
+                        <span className="absolute -left-[21px] top-1 h-2.5 w-2.5 rounded-full bg-[var(--primary)] border border-[var(--background)]" />
                         <div className="flex items-center gap-2">
-                          <span
-                            className={`font-bold px-2 py-0.5 rounded text-[10px] ${
+                          <Badge
+                            tone={
                               act.action === "APPROVE"
-                                ? "bg-emerald-950 text-emerald-300 border border-emerald-800"
+                                ? "approved"
                                 : act.action === "REJECT"
-                                ? "bg-rose-950 text-rose-300 border border-rose-800"
-                                : "bg-purple-950 text-purple-300 border border-purple-800"
-                            }`}
+                                ? "rejected"
+                                : "negotiating"
+                            }
                           >
                             {act.action}
-                          </span>
-                          <span className="text-slate-500">
+                          </Badge>
+                          <span className="text-[var(--muted-foreground)]">
                             {new Date(act.timestamp).toLocaleString()}
                           </span>
                         </div>
-                        {act.reason && <p className="text-slate-300 mt-1">{act.reason}</p>}
-                      </div>
+                        {act.reason && <p className="mt-1 text-[var(--muted-foreground)]">{act.reason}</p>}
+                      </li>
                     ))}
-                  </div>
+                  </ul>
                 ) : (
-                  <p className="text-xs text-slate-500">No actions recorded yet.</p>
+                  <p className="text-xs text-[var(--muted-foreground)]">No actions recorded yet.</p>
                 )}
               </div>
 
-              {/* Approver Action Panel */}
               {activeRequest.status === "PENDING_APPROVAL" && (
-                <div className="pt-4 border-t border-slate-800">
-                  <label className="block text-xs font-semibold text-slate-300 uppercase mb-1">
-                    Approver Reason / Decision Notes
-                  </label>
-                  <textarea
+                <Field label="Decision notes" htmlFor="reason">
+                  <Textarea
+                    id="reason"
                     rows={2}
                     value={actionReason}
                     onChange={(e) => setActionReason(e.target.value)}
-                    placeholder="Enter approval rationale, revision conditions, or rejection reason..."
-                    className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-indigo-500 mb-4"
+                    placeholder="Enter approval rationale, revision conditions, or rejection reason…"
                   />
-
-                  <div className="flex items-center justify-end gap-2.5">
-                    <button
-                      disabled={submittingAction}
-                      onClick={() => handleAction("REQUEST_REVISION")}
-                      className="px-4 py-2 rounded-lg bg-purple-900/50 hover:bg-purple-800 text-purple-200 text-xs font-semibold border border-purple-700/60 transition-all disabled:opacity-50"
-                    >
-                      Request Revision
-                    </button>
-                    <button
-                      disabled={submittingAction}
-                      onClick={() => handleAction("REJECT")}
-                      className="px-4 py-2 rounded-lg bg-rose-900/50 hover:bg-rose-800 text-rose-200 text-xs font-semibold border border-rose-700/60 transition-all disabled:opacity-50"
-                    >
-                      Reject
-                    </button>
-                    <button
-                      disabled={submittingAction}
-                      onClick={() => handleAction("APPROVE")}
-                      className="px-5 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold shadow-md shadow-emerald-600/20 transition-all disabled:opacity-50"
-                    >
-                      {activeRequest.level === "FINANCE" && activeRequest.assignedRole === "SALES_MANAGER"
-                        ? "Approve & Escalate to Finance"
-                        : "Approve Quotation"}
-                    </button>
-                  </div>
-                </div>
+                </Field>
               )}
             </div>
-          </div>
-        </div>
-      )}
-    </div>
+          )}
+        </Modal>
+      </main>
   );
 }

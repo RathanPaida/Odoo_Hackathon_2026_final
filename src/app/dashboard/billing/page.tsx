@@ -1,11 +1,12 @@
 // src/app/dashboard/billing/page.tsx
 // Billing management — subscription plans, invoices, subscriptions.
-// Shows one-time lines vs recurring lines separated.
+// One-time vs recurring lines are visually separated, not just colored.
 "use client";
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { LogoutButton } from "@/components/LogoutButton";
+import { Card, CardHeader, CardTitle, Badge, Button, Modal, badgeToneForQuoteStatus, type BadgeTone } from "@/components/ui";
 
 type Tab = "invoices" | "subscriptions" | "plans";
 
@@ -129,12 +130,14 @@ export default function BillingPage() {
   }, [activeTab]);
 
   return (
-    <main className="min-h-screen px-6 py-10 bg-[var(--paper)]">
-      <div className="mx-auto max-w-6xl">
+    <main className="surface-page min-h-screen">
+      <div className="mx-auto max-w-6xl px-6 py-10">
         <header className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-3xl font-semibold">Billing & Subscriptions</h1>
-            <p className="text-sm text-[var(--muted-foreground)]">
+            <h1 className="text-3xl font-semibold tracking-tight text-[var(--foreground)]">
+              Billing & Subscriptions
+            </h1>
+            <p className="text-sm text-[var(--muted-foreground)] mt-1">
               Manage invoices, subscriptions, and billing configuration
             </p>
           </div>
@@ -150,7 +153,7 @@ export default function BillingPage() {
                 className={`pb-3 text-sm font-medium transition-colors ${
                   activeTab === tab
                     ? "border-b-2 border-[var(--primary)] text-[var(--primary)]"
-                    : "text-[var(--muted-foreground)] hover:text-foreground"
+                    : "text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
                 }`}
               >
                 {tab.charAt(0).toUpperCase() + tab.slice(1)}
@@ -162,7 +165,9 @@ export default function BillingPage() {
         {loading ? (
           <div className="text-center py-12 text-[var(--muted-foreground)]">Loading...</div>
         ) : error ? (
-          <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-red-700">{error}</div>
+          <Card tone="paper" className="p-4 border-[var(--status-rejected-bd)] bg-[var(--status-rejected-bg)]">
+            <p className="text-sm text-[var(--status-rejected-fg)]">{error}</p>
+          </Card>
         ) : (
           <>
             {activeTab === "invoices" && <InvoicesTab invoices={invoices} />}
@@ -186,20 +191,20 @@ export default function BillingPage() {
         <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-4">
           <Link
             href="/dashboard/billing/schedule"
-            className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-6 hover:shadow-md transition-shadow no-underline block"
+            className="surface-card p-6 hover:shadow-md transition-shadow no-underline block"
           >
-            <h3 className="font-medium mb-1">Billing Schedule</h3>
+            <h3 className="font-medium mb-1 text-[var(--foreground)]">Billing Schedule</h3>
             <p className="text-sm text-[var(--muted-foreground)]">View upcoming subscription billing dates</p>
           </Link>
           <Link
             href="/dashboard/reports"
-            className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-6 hover:shadow-md transition-shadow no-underline block"
+            className="surface-card p-6 hover:shadow-md transition-shadow no-underline block"
           >
-            <h3 className="font-medium mb-1">Reports</h3>
+            <h3 className="font-medium mb-1 text-[var(--foreground)]">Reports</h3>
             <p className="text-sm text-[var(--muted-foreground)]">Analytics with Period / Rep / Status filters</p>
           </Link>
-          <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-6">
-            <h3 className="font-medium mb-1">Quick Stats</h3>
+          <div className="surface-card p-6">
+            <h3 className="font-medium mb-1 text-[var(--foreground)]">Quick Stats</h3>
             <p className="text-sm text-[var(--muted-foreground)]">
               {subscriptions.filter((s) => s.status === "ACTIVE").length} active subscriptions
             </p>
@@ -212,19 +217,19 @@ export default function BillingPage() {
 
 function InvoicesTab({ invoices }: { invoices: Invoice[] }) {
   return (
-    <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] overflow-hidden">
+    <Card tone="paper" className="overflow-hidden">
       <table className="w-full">
-        <thead className="bg-[var(--muted)]">
+        <thead className="bg-[var(--background)]">
           <tr>
-            <th className="px-4 py-3 text-left text-sm font-medium">Invoice #</th>
-            <th className="px-4 py-3 text-left text-sm font-medium">Type</th>
-            <th className="px-4 py-3 text-left text-sm font-medium">Amount</th>
-            <th className="px-4 py-3 text-left text-sm font-medium">Status</th>
-            <th className="px-4 py-3 text-left text-sm font-medium">Issued</th>
-            <th className="px-4 py-3 text-left text-sm font-medium">Due</th>
+            <th className="px-4 py-3 text-left text-sm font-medium text-[var(--foreground)]">Invoice #</th>
+            <th className="px-4 py-3 text-left text-sm font-medium text-[var(--foreground)]">Type</th>
+            <th className="px-4 py-3 text-left text-sm font-medium text-[var(--foreground)]">Amount</th>
+            <th className="px-4 py-3 text-left text-sm font-medium text-[var(--foreground)]">Status</th>
+            <th className="px-4 py-3 text-left text-sm font-medium text-[var(--foreground)]">Issued</th>
+            <th className="px-4 py-3 text-left text-sm font-medium text-[var(--foreground)]">Due</th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-[var(--border)]">
+        <tbody className="divide-y divide-[var(--paper-border)]">
           {invoices.length === 0 ? (
             <tr>
               <td colSpan={6} className="px-4 py-8 text-center text-[var(--muted-foreground)]">
@@ -233,41 +238,27 @@ function InvoicesTab({ invoices }: { invoices: Invoice[] }) {
             </tr>
           ) : (
             invoices.map((invoice) => (
-              <tr key={invoice.id} className="hover:bg-[var(--muted)]">
-                <td className="px-4 py-3 text-sm font-mono">{invoice.invoiceNumber}</td>
+              <tr key={invoice.id} className="hover:bg-[var(--paper)]">
+                <td className="px-4 py-3 text-sm font-mono text-[var(--foreground)]">{invoice.invoiceNumber}</td>
                 <td className="px-4 py-3 text-sm">
-                  <span className={`px-2 py-0.5 text-xs rounded ${
-                    invoice.invoiceType === "RECURRING" ? "bg-blue-100 text-blue-700" :
-                    invoice.invoiceType === "PRORATION" ? "bg-purple-100 text-purple-700" :
-                    "bg-gray-100 text-gray-700"
-                  }`}>
+                  <Badge tone={invoice.invoiceType === "RECURRING" ? "info" : "neutral"} dot>
                     {invoice.invoiceType}
-                  </span>
+                  </Badge>
                 </td>
-                <td className="px-4 py-3 text-sm font-medium">${Number(invoice.amount).toLocaleString()}</td>
+                <td className="px-4 py-3 text-sm font-medium tabular text-[var(--foreground)]">${Number(invoice.amount).toLocaleString()}</td>
                 <td className="px-4 py-3 text-sm">
-                  <span
-                    className={`inline-block px-2 py-0.5 text-xs rounded ${
-                      invoice.status === "PAID"
-                        ? "bg-green-100 text-green-700"
-                        : invoice.status === "OVERDUE"
-                        ? "bg-red-100 text-red-700"
-                        : invoice.status === "PARTIALLY_PAID"
-                        ? "bg-yellow-100 text-yellow-700"
-                        : "bg-blue-100 text-blue-700"
-                    }`}
-                  >
-                    {invoice.status}
-                  </span>
+                  <Badge tone={invoiceToneForStatus(invoice.status)}>
+                    {invoice.status.replace("_", " ")}
+                  </Badge>
                 </td>
-                <td className="px-4 py-3 text-sm">{new Date(invoice.issuedAt).toLocaleDateString()}</td>
-                <td className="px-4 py-3 text-sm">{new Date(invoice.dueAt).toLocaleDateString()}</td>
+                <td className="px-4 py-3 text-sm text-[var(--muted-foreground)]">{new Date(invoice.issuedAt).toLocaleDateString()}</td>
+                <td className="px-4 py-3 text-sm text-[var(--muted-foreground)]">{new Date(invoice.dueAt).toLocaleDateString()}</td>
               </tr>
             ))
           )}
         </tbody>
       </table>
-    </div>
+    </Card>
   );
 }
 
@@ -279,73 +270,56 @@ function SubscriptionsTab({
   onSelectSubscription: (sub: Subscription) => void;
 }) {
   return (
-    <div className="space-y-4">
-      <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] overflow-hidden">
-        <table className="w-full">
-          <thead className="bg-[var(--muted)]">
+    <Card tone="paper" className="overflow-hidden">
+      <table className="w-full">
+        <thead className="bg-[var(--background)]">
+          <tr>
+            <th className="px-4 py-3 text-left text-sm font-medium text-[var(--foreground)]">Plan</th>
+            <th className="px-4 py-3 text-left text-sm font-medium text-[var(--foreground)]">Customer</th>
+            <th className="px-4 py-3 text-left text-sm font-medium text-[var(--foreground)]">Quantity</th>
+            <th className="px-4 py-3 text-left text-sm font-medium text-[var(--foreground)]">Status</th>
+            <th className="px-4 py-3 text-left text-sm font-medium text-[var(--foreground)]">Billing Cycle</th>
+            <th className="px-4 py-3 text-left text-sm font-medium text-[var(--foreground)]">Next Billing</th>
+            <th className="px-4 py-3 text-left text-sm font-medium text-[var(--foreground)]">AutoPay</th>
+            <th className="px-4 py-3 text-left text-sm font-medium text-[var(--foreground)]">Actions</th>
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-[var(--paper-border)]">
+          {subscriptions.length === 0 ? (
             <tr>
-              <th className="px-4 py-3 text-left text-sm font-medium">Plan</th>
-              <th className="px-4 py-3 text-left text-sm font-medium">Customer</th>
-              <th className="px-4 py-3 text-left text-sm font-medium">Quantity</th>
-              <th className="px-4 py-3 text-left text-sm font-medium">Status</th>
-              <th className="px-4 py-3 text-left text-sm font-medium">Billing Cycle</th>
-              <th className="px-4 py-3 text-left text-sm font-medium">Next Billing</th>
-              <th className="px-4 py-3 text-left text-sm font-medium">AutoPay</th>
-              <th className="px-4 py-3 text-left text-sm font-medium">Actions</th>
+              <td colSpan={8} className="px-4 py-8 text-center text-[var(--muted-foreground)]">
+                No subscriptions found
+              </td>
             </tr>
-          </thead>
-          <tbody className="divide-y divide-[var(--border)]">
-            {subscriptions.length === 0 ? (
-              <tr>
-                <td colSpan={8} className="px-4 py-8 text-center text-[var(--muted-foreground)]">
-                  No subscriptions found
+          ) : (
+            subscriptions.map((sub) => (
+              <tr key={sub.id} className="hover:bg-[var(--paper)]">
+                <td className="px-4 py-3 text-sm font-medium text-[var(--foreground)]">{sub.plan?.name ?? "N/A"}</td>
+                <td className="px-4 py-3 text-sm text-[var(--muted-foreground)]">{sub.customer?.name ?? "N/A"}</td>
+                <td className="px-4 py-3 text-sm tabular text-[var(--foreground)]">{sub.quantity}</td>
+                <td className="px-4 py-3 text-sm">
+                  <Badge tone={subscriptionToneForStatus(sub.status)}>{sub.status}</Badge>
+                </td>
+                <td className="px-4 py-3 text-sm text-[var(--muted-foreground)]">{sub.plan?.billingCycle ?? "N/A"}</td>
+                <td className="px-4 py-3 text-sm text-[var(--muted-foreground)]">{new Date(sub.nextBillingDate).toLocaleDateString()}</td>
+                <td className="px-4 py-3 text-sm">
+                  {sub.autoPayEnabled ? (
+                    <span className="text-[var(--status-approved-fg)] font-medium">Enabled</span>
+                  ) : (
+                    <span className="text-[var(--muted-foreground)]">Manual</span>
+                  )}
+                </td>
+                <td className="px-4 py-3 text-sm">
+                  <Button variant="ghost" size="sm" onClick={() => onSelectSubscription(sub)}>
+                    View Details
+                  </Button>
                 </td>
               </tr>
-            ) : (
-              subscriptions.map((sub) => (
-                <tr key={sub.id} className="hover:bg-[var(--muted)]">
-                  <td className="px-4 py-3 text-sm font-medium">{sub.plan?.name ?? "N/A"}</td>
-                  <td className="px-4 py-3 text-sm">{sub.customer?.name ?? "N/A"}</td>
-                  <td className="px-4 py-3 text-sm">{sub.quantity}</td>
-                  <td className="px-4 py-3 text-sm">
-                    <span
-                      className={`inline-block px-2 py-0.5 text-xs rounded ${
-                        sub.status === "ACTIVE"
-                          ? "bg-green-100 text-green-700"
-                          : sub.status === "PAST_DUE"
-                          ? "bg-red-100 text-red-700"
-                          : sub.status === "PAUSED"
-                          ? "bg-yellow-100 text-yellow-700"
-                          : "bg-gray-100 text-gray-700"
-                      }`}
-                    >
-                      {sub.status}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3 text-sm">{sub.plan?.billingCycle ?? "N/A"}</td>
-                  <td className="px-4 py-3 text-sm">{new Date(sub.nextBillingDate).toLocaleDateString()}</td>
-                  <td className="px-4 py-3 text-sm">
-                    {sub.autoPayEnabled ? (
-                      <span className="text-green-600 font-medium">Enabled</span>
-                    ) : (
-                      <span className="text-gray-400">Manual</span>
-                    )}
-                  </td>
-                  <td className="px-4 py-3 text-sm">
-                    <button
-                      onClick={() => onSelectSubscription(sub)}
-                      className="text-[var(--primary)] hover:underline text-sm"
-                    >
-                      View Details
-                    </button>
-                  </td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      </div>
-    </div>
+            ))
+          )}
+        </tbody>
+      </table>
+    </Card>
   );
 }
 
@@ -380,176 +354,188 @@ function SubscriptionDetailModal({
   const sub = detail ?? subscription;
 
   const recurringAmount = Number(sub.plan?.price ?? 0) * sub.quantity;
-  const oneTimeSetup = sub.lines?.length ? sub.lines.reduce((sum, l) => sum + Number(l.proratedFirstAmount), 0) - recurringAmount : 0;
+  const oneTimeSubtotal =
+    sub.lines
+      ?.filter((l) => l.quoteLine?.billingType === "ONE_TIME")
+      .reduce((sum, l) => sum + Number(l.proratedFirstAmount), 0) ?? 0;
+  const oneTimeCharges = sub.lines?.filter((l) => l.quoteLine?.billingType === "ONE_TIME") ?? [];
+  const recurringAddons = sub.lines?.filter((l) => l.quoteLine?.billingType === "SUBSCRIPTION") ?? [];
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-[var(--card)] rounded-xl border border-[var(--border)] max-w-2xl w-full max-h-[80vh] overflow-y-auto">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--border)]">
-          <div>
-            <h2 className="text-lg font-semibold">{sub.plan?.name ?? "Subscription Details"}</h2>
-            <p className="text-sm text-[var(--muted-foreground)]">
-              {sub.customer?.name ?? "Customer"} — {sub.plan?.billingCycle}
-            </p>
+    <Modal
+      open={true}
+      onClose={onClose}
+      size="lg"
+      title={`${sub.plan?.name ?? "Subscription details"} · ${sub.plan?.billingCycle ?? ""}`}
+      description={`${sub.customer?.name ?? "Customer"}`}
+    >
+      {loading ? (
+        <div className="py-8 text-center text-sm text-[var(--muted-foreground)]">Loading…</div>
+      ) : (
+        <div className="space-y-6">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <SummaryStat label="Status" value={sub.status} tone={sub.status === "ACTIVE" ? "approved" : sub.status === "PAST_DUE" ? "rejected" : "neutral"} />
+            <SummaryStat label="Quantity" value={String(sub.quantity)} />
+            <SummaryStat label="Next billing" value={new Date(sub.nextBillingDate).toLocaleDateString()} />
+            <SummaryStat label="AutoPay" value={sub.autoPayEnabled ? "Enabled" : "Manual"} tone={sub.autoPayEnabled ? "approved" : "neutral"} />
           </div>
-          <button onClick={onClose} className="text-2xl hover:opacity-70">&times;</button>
-        </div>
 
-        <div className="p-6">
-          {loading ? (
-            <div className="text-center py-8 text-[var(--muted-foreground)]">Loading...</div>
-          ) : (
-            <div className="space-y-6">
-              {/* Status and Billing Info */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div className="rounded-lg border border-[var(--border)] p-3">
-                  <p className="text-xs text-[var(--muted-foreground)]">Status</p>
-                  <p className={`font-medium ${
-                    sub.status === "ACTIVE" ? "text-green-600" :
-                    sub.status === "PAST_DUE" ? "text-red-600" :
-                    sub.status === "PAUSED" ? "text-yellow-600" : "text-gray-600"
-                  }`}>{sub.status}</p>
+          {/* Hybrid billing breakdown — one-time vs recurring visually separated. */}
+          <div className="space-y-4">
+            {/* ONE-TIME block */}
+            <div className="rounded-lg border border-[var(--paper-border)] overflow-hidden bg-[var(--paper-card)]">
+              <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--paper-border)] bg-[var(--background)]">
+                <div className="flex items-center gap-2">
+                  <span className="h-2 w-2 rounded-full bg-[var(--status-info-fg)]" />
+                  <h3 className="text-sm font-semibold tracking-tight text-[var(--foreground)]">One-time charges</h3>
                 </div>
-                <div className="rounded-lg border border-[var(--border)] p-3">
-                  <p className="text-xs text-[var(--muted-foreground)]">Quantity</p>
-                  <p className="font-medium">{sub.quantity}</p>
-                </div>
-                <div className="rounded-lg border border-[var(--border)] p-3">
-                  <p className="text-xs text-[var(--muted-foreground)]">Next Billing</p>
-                  <p className="font-medium">{new Date(sub.nextBillingDate).toLocaleDateString()}</p>
-                </div>
-                <div className="rounded-lg border border-[var(--border)] p-3">
-                  <p className="text-xs text-[var(--muted-foreground)]">AutoPay</p>
-                  <p className={`font-medium ${sub.autoPayEnabled ? "text-green-600" : "text-gray-400"}`}>
-                    {sub.autoPayEnabled ? "Enabled" : "Manual"}
-                  </p>
-                </div>
+                <span className="text-xs text-[var(--muted-foreground)] tabular">
+                  Subtotal ${oneTimeSubtotal.toLocaleString()}
+                </span>
               </div>
-
-              {/* Billing Breakdown — One-Time vs Recurring */}
-              <div className="border border-[var(--border)] rounded-xl overflow-hidden">
-                <div className="bg-[var(--muted)] px-4 py-3 border-b border-[var(--border)]">
-                  <h3 className="font-medium">Billing Breakdown</h3>
+              {oneTimeCharges.length === 0 ? (
+                <div className="px-4 py-4 text-sm text-[var(--muted-foreground)]">
+                  No one-time charges.
                 </div>
-
-                {/* One-Time Charges Section */}
-                <div className="bg-blue-50 border-b border-[var(--border)]">
-                  <div className="flex items-center gap-2 px-4 py-2 border-b border-blue-100">
-                    <span className="w-3 h-3 rounded-full bg-blue-500"></span>
-                    <h4 className="font-medium text-blue-800">One-Time Charges</h4>
-                  </div>
-                  {sub.lines && sub.lines.length > 0 ? (
-                    <div className="divide-y divide-blue-100">
-                      {sub.lines
-                        .filter((l) => l.quoteLine?.billingType === "ONE_TIME")
-                        .map((line) => (
-                          <div key={line.id} className="flex justify-between px-4 py-2 text-sm">
-                            <div>
-                              <p className="font-medium">{line.quoteLine?.product?.name ?? "Setup Fee"}</p>
-                              <p className="text-xs text-blue-600">
-                                {line.quoteLine?.product?.category ?? "One-time charge"}
-                              </p>
-                            </div>
-                            <p className="font-medium text-blue-700">
-                              ${Number(line.proratedFirstAmount).toLocaleString()}
-                            </p>
-                          </div>
-                        ))}
-                      {(!sub.lines || sub.lines.filter((l) => l.quoteLine?.billingType === "ONE_TIME").length === 0) && (
-                        <div className="px-4 py-2 text-sm text-blue-600">No one-time charges</div>
-                      )}
-                    </div>
-                  ) : (
-                    <div className="px-4 py-2 text-sm text-blue-600">No one-time charges</div>
-                  )}
-                  <div className="flex justify-between px-4 py-2 bg-blue-100 font-medium">
-                    <span>Subtotal One-Time</span>
-                    <span>${sub.lines?.length ? sub.lines.filter((l) => l.quoteLine?.billingType === "ONE_TIME").reduce((sum, l) => sum + Number(l.proratedFirstAmount), 0).toLocaleString() : "0"}</span>
-                  </div>
-                </div>
-
-                {/* Recurring Charges Section */}
-                <div className="bg-green-50">
-                  <div className="flex items-center gap-2 px-4 py-2 border-b border-green-100">
-                    <span className="w-3 h-3 rounded-full bg-green-500"></span>
-                    <h4 className="font-medium text-green-800">Recurring Charges ({sub.plan?.billingCycle})</h4>
-                  </div>
-                  <div className="divide-y divide-green-100">
-                    <div className="flex justify-between px-4 py-2 text-sm">
-                      <div>
-                        <p className="font-medium">{sub.plan?.name ?? "Subscription"}</p>
-                        <p className="text-xs text-green-600">
-                          {sub.quantity} x ${Number(sub.plan?.price ?? 0).toLocaleString()} / {sub.plan?.billingCycle?.toLowerCase()}
+              ) : (
+                <ul>
+                  {oneTimeCharges.map((line) => (
+                    <li key={line.id} className="flex items-center justify-between gap-3 px-4 py-3 border-t border-[var(--paper-border)] text-sm">
+                      <div className="min-w-0">
+                        <p className="font-medium truncate text-[var(--foreground)]">
+                          {line.quoteLine?.product?.name ?? "Setup fee"}
+                        </p>
+                        <p className="text-xs text-[var(--muted-foreground)]">
+                          {line.quoteLine?.product?.category ?? "One-time"}
                         </p>
                       </div>
-                      <p className="font-medium text-green-700">
-                        ${recurringAmount.toLocaleString()}
+                      <span className="font-semibold tabular text-[var(--foreground)]">
+                        ${Number(line.proratedFirstAmount).toLocaleString()}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+
+            {/* RECURRING block */}
+            <div className="rounded-lg border border-[var(--paper-border)] overflow-hidden bg-[var(--paper-card)]">
+              <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--paper-border)] bg-[var(--background)]">
+                <div className="flex items-center gap-2">
+                  <span className="h-2 w-2 rounded-full bg-[var(--status-approved-fg)]" />
+                  <h3 className="text-sm font-semibold tracking-tight text-[var(--foreground)]">
+                    Recurring charges <span className="text-[var(--muted-foreground)] font-normal">· {sub.plan?.billingCycle}</span>
+                  </h3>
+                </div>
+                <span className="text-xs text-[var(--muted-foreground)] tabular">
+                  Subtotal ${recurringAmount.toLocaleString()}
+                </span>
+              </div>
+              <ul>
+                <li className="flex items-center justify-between gap-3 px-4 py-3 text-sm">
+                  <div className="min-w-0">
+                    <p className="font-medium text-[var(--foreground)]">{sub.plan?.name ?? "Subscription"}</p>
+                    <p className="text-xs text-[var(--muted-foreground)]">
+                      {sub.quantity} × ${Number(sub.plan?.price ?? 0).toLocaleString()} / {sub.plan?.billingCycle?.toLowerCase()}
+                    </p>
+                  </div>
+                  <span className="font-semibold tabular text-[var(--foreground)]">${recurringAmount.toLocaleString()}</span>
+                </li>
+                {recurringAddons.map((line) => (
+                  <li key={line.id} className="flex items-center justify-between gap-3 px-4 py-3 border-t border-[var(--paper-border)] text-sm">
+                    <div className="min-w-0">
+                      <p className="font-medium truncate text-[var(--foreground)]">
+                        {line.quoteLine?.product?.name ?? "Add-on"}
+                      </p>
+                      <p className="text-xs text-[var(--muted-foreground)]">
+                        {line.quoteLine?.product?.category}
                       </p>
                     </div>
-                    {sub.lines?.filter((l) => l.quoteLine?.billingType === "SUBSCRIPTION").map((line) => (
-                      <div key={line.id} className="flex justify-between px-4 py-2 text-sm">
-                        <div>
-                          <p className="font-medium">{line.quoteLine?.product?.name ?? "Add-on"}</p>
-                          <p className="text-xs text-green-600">{line.quoteLine?.product?.category}</p>
-                        </div>
-                        <p className="font-medium text-green-700">
-                          ${Number(line.monthlyAmount).toLocaleString()}
-                        </p>
-                      </div>
-                    ))}
-                  </div>
-                  <div className="flex justify-between px-4 py-2 bg-green-100 font-medium">
-                    <span>Subtotal Recurring</span>
-                    <span>${recurringAmount.toLocaleString()}</span>
-                  </div>
-                </div>
-
-                {/* Total */}
-                <div className="flex justify-between px-4 py-3 bg-[var(--muted)] font-semibold border-t border-[var(--border)]">
-                  <span>Total</span>
-                  <span>
-                    ${((sub.lines?.length ? sub.lines.reduce((sum, l) => sum + Number(l.proratedFirstAmount), 0) : 0) + recurringAmount).toLocaleString()}
-                  </span>
-                </div>
-              </div>
-
-              {/* Billing Period */}
-              <div className="grid grid-cols-3 gap-4 text-center">
-                <div className="rounded-lg border border-[var(--border)] p-3">
-                  <p className="text-xs text-[var(--muted-foreground)]">Current Period Start</p>
-                  <p className="font-medium">{new Date(sub.currentPeriodStart).toLocaleDateString()}</p>
-                </div>
-                <div className="rounded-lg border border-[var(--border)] p-3">
-                  <p className="text-xs text-[var(--muted-foreground)]">Current Period End</p>
-                  <p className="font-medium">{new Date(sub.currentPeriodEnd).toLocaleDateString()}</p>
-                </div>
-                <div className="rounded-lg border border-[var(--border)] p-3">
-                  <p className="text-xs text-[var(--muted-foreground)]">Start Date</p>
-                  <p className="font-medium">{new Date(sub.startDate).toLocaleDateString()}</p>
-                </div>
-              </div>
+                    <span className="font-semibold tabular text-[var(--foreground)]">
+                      ${Number(line.monthlyAmount).toLocaleString()}
+                    </span>
+                  </li>
+                ))}
+              </ul>
             </div>
-          )}
+
+            {/* Total */}
+            <div className="rounded-lg border border-[var(--paper-border)] bg-[var(--background)] px-4 py-3 flex items-center justify-between font-semibold tabular text-[var(--foreground)]">
+              <span>Total</span>
+              <span>${(oneTimeSubtotal + recurringAmount).toLocaleString()}</span>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-3 gap-3">
+            <SummaryStat label="Period start" value={new Date(sub.currentPeriodStart).toLocaleDateString()} />
+            <SummaryStat label="Period end" value={new Date(sub.currentPeriodEnd).toLocaleDateString()} />
+            <SummaryStat label="Start date" value={new Date(sub.startDate).toLocaleDateString()} />
+          </div>
         </div>
-      </div>
+      )}
+    </Modal>
+  );
+}
+
+function SummaryStat({
+  label,
+  value,
+  tone,
+}: {
+  label: string;
+  value: string;
+  tone?: BadgeTone;
+}) {
+  return (
+    <div className="rounded-lg border border-[var(--paper-border)] bg-[var(--paper-card)] p-3">
+      <p className="text-[11px] font-semibold uppercase tracking-wider text-[var(--muted-foreground)]">
+        {label}
+      </p>
+      {tone ? (
+        <div className="mt-1">
+          <Badge tone={tone}>{value}</Badge>
+        </div>
+      ) : (
+        <p className="mt-1 font-medium tabular text-[var(--foreground)]">{value}</p>
+      )}
     </div>
   );
 }
 
+function invoiceToneForStatus(status: string): BadgeTone {
+  switch (status) {
+    case "PAID": return "approved";
+    case "OVERDUE": return "rejected";
+    case "PARTIALLY_PAID": return "pending";
+    case "DRAFT": return "info";
+    default: return "neutral";
+  }
+}
+
+function subscriptionToneForStatus(status: string): BadgeTone {
+  switch (status) {
+    case "ACTIVE": return "approved";
+    case "PAST_DUE": return "rejected";
+    case "PAUSED": return "pending";
+    case "CANCELLED": return "rejected";
+    default: return "neutral";
+  }
+}
+
 function PlansTab({ plans }: { plans: SubscriptionPlan[] }) {
   return (
-    <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] overflow-hidden">
+    <Card tone="paper" className="overflow-hidden">
       <table className="w-full">
-        <thead className="bg-[var(--muted)]">
+        <thead className="bg-[var(--background)]">
           <tr>
-            <th className="px-4 py-3 text-left text-sm font-medium">Name</th>
-            <th className="px-4 py-3 text-left text-sm font-medium">Billing Cycle</th>
-            <th className="px-4 py-3 text-left text-sm font-medium">Price</th>
-            <th className="px-4 py-3 text-left text-sm font-medium">Proration</th>
-            <th className="px-4 py-3 text-left text-sm font-medium">Status</th>
+            <th className="px-4 py-3 text-left text-sm font-medium text-[var(--foreground)]">Name</th>
+            <th className="px-4 py-3 text-left text-sm font-medium text-[var(--foreground)]">Billing Cycle</th>
+            <th className="px-4 py-3 text-left text-sm font-medium text-[var(--foreground)]">Price</th>
+            <th className="px-4 py-3 text-left text-sm font-medium text-[var(--foreground)]">Proration</th>
+            <th className="px-4 py-3 text-left text-sm font-medium text-[var(--foreground)]">Status</th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-[var(--border)]">
+        <tbody className="divide-y divide-[var(--paper-border)]">
           {plans.length === 0 ? (
             <tr>
               <td colSpan={5} className="px-4 py-8 text-center text-[var(--muted-foreground)]">
@@ -558,25 +544,21 @@ function PlansTab({ plans }: { plans: SubscriptionPlan[] }) {
             </tr>
           ) : (
             plans.map((plan) => (
-              <tr key={plan.id} className="hover:bg-[var(--muted)]">
-                <td className="px-4 py-3 text-sm font-medium">{plan.name}</td>
-                <td className="px-4 py-3 text-sm">{plan.billingCycle}</td>
-                <td className="px-4 py-3 text-sm font-medium">${Number(plan.price).toLocaleString()}</td>
-                <td className="px-4 py-3 text-sm">{plan.prorationEnabled ? "Enabled" : "Disabled"}</td>
+              <tr key={plan.id} className="hover:bg-[var(--paper)]">
+                <td className="px-4 py-3 text-sm font-medium text-[var(--foreground)]">{plan.name}</td>
+                <td className="px-4 py-3 text-sm text-[var(--muted-foreground)]">{plan.billingCycle}</td>
+                <td className="px-4 py-3 text-sm font-medium tabular text-[var(--foreground)]">${Number(plan.price).toLocaleString()}</td>
+                <td className="px-4 py-3 text-sm text-[var(--muted-foreground)]">{plan.prorationEnabled ? "Enabled" : "Disabled"}</td>
                 <td className="px-4 py-3 text-sm">
-                  <span
-                    className={`inline-block px-2 py-0.5 text-xs rounded ${
-                      plan.active ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-700"
-                    }`}
-                  >
+                  <Badge tone={plan.active ? "approved" : "neutral"} dot>
                     {plan.active ? "Active" : "Inactive"}
-                  </span>
+                  </Badge>
                 </td>
               </tr>
             ))
           )}
         </tbody>
       </table>
-    </div>
+    </Card>
   );
 }

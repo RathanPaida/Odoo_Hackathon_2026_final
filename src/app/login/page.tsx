@@ -6,10 +6,10 @@ import { Mail, Lock, Loader2, AlertCircle } from "lucide-react";
 import styles from "./login.module.css";
 
 const STAGES = [
-  { name: "Sourced", note: "Inbound and outbound", state: "done" },
-  { name: "Screened", note: "First call booked", state: "done" },
-  { name: "Diligence", note: "Docs and references", state: "active" },
-  { name: "Committed", note: "Term sheet signed", state: "next" },
+  { name: "Quotation", note: "Build a quote", state: "done" },
+  { name: "Approval", note: "Discount governance", state: "done" },
+  { name: "Fulfillment", note: "Warehouse allocation", state: "active" },
+  { name: "Billing", note: "Invoice & subscription", state: "next" },
 ];
 
 function LoginForm() {
@@ -76,7 +76,7 @@ function LoginForm() {
 
         <div>
           <p className={styles.pitch}>
-            Every deal, from the first email to the signed term sheet.
+            Discount governance, approval routing, and warehouse fulfillment — for every B2B quote.
           </p>
           <ol className={styles.ladder}>
             {STAGES.map((stage) => (

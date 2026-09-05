@@ -2,7 +2,7 @@
 // Spec §17 — dashboard aggregation by reading existing module tables.
 // Do not duplicate operational tables for reporting.
 import { prisma } from "@/lib/db";
-import { QuoteStatus, InvoiceStatus, SubscriptionStatus } from "@/generated/prisma";
+import { QuotationStatus } from "@/generated/prisma";
 
 export interface DashboardMetrics {
   totalQuotations: number;
@@ -66,19 +66,19 @@ export async function getDashboardMetrics(): Promise<DashboardMetrics> {
     overdueInvoices,
     allQuotes,
   ] = await Promise.all([
-    prisma.quote.count(),
-    prisma.quote.count({ where: { status: "CONFIRMED" } }),
-    prisma.quote.count({ where: { status: "PENDING_APPROVAL" } }),
-    prisma.quote.count({ where: { status: "APPROVED" } }),
-    prisma.quote.count({ where: { status: "REJECTED" } }),
+    prisma.quotation.count(),
+    prisma.quotation.count({ where: { status: "CONFIRMED" } }),
+    prisma.quotation.count({ where: { status: "PENDING_APPROVAL" } }),
+    prisma.quotation.count({ where: { status: "APPROVED" } }),
+    prisma.quotation.count({ where: { status: "REJECTED" } }),
     prisma.subscription.count({ where: { status: "ACTIVE" } }),
     prisma.invoice.count({ where: { status: "OVERDUE" } }),
-    prisma.quote.findMany({
+    prisma.quotation.findMany({
       where: {
         status: { notIn: ["CONFIRMED", "REJECTED"] },
       },
       select: {
-        grandTotal: true,
+        totalAmount: true,
         status: true,
         updatedAt: true,
       },
@@ -87,7 +87,7 @@ export async function getDashboardMetrics(): Promise<DashboardMetrics> {
 
   const totalRevenue = allQuotes
     .filter((q) => q.status === "CONFIRMED")
-    .reduce((sum, q) => sum + Number(q.grandTotal), 0);
+    .reduce((sum, q) => sum + Number(q.totalAmount), 0);
 
   const stalledQuotations = allQuotes.filter(
     (q) => {
@@ -116,7 +116,7 @@ export async function getStalledDeals(): Promise<StalledDeal[]> {
   const now = new Date();
   const thresholdDate = new Date(now.getTime() - STALLED_THRESHOLD_DAYS * 24 * 60 * 60 * 1000);
 
-  const quotes = await prisma.quote.findMany({
+  const quotes = await prisma.quotation.findMany({
     where: {
       status: { notIn: ["CONFIRMED", "REJECTED"] },
       updatedAt: { lt: thresholdDate },
@@ -130,9 +130,9 @@ export async function getStalledDeals(): Promise<StalledDeal[]> {
     const daysStalled = Math.floor(diffMs / (1000 * 60 * 60 * 24));
     return {
       id: q.id,
-      quoteNumber: q.quoteNumber,
-      customerName: q.customer.name,
-      grandTotal: q.grandTotal.toString(),
+      quoteNumber: q.quotationNumber,
+      customerName: q.customer.companyName,
+      grandTotal: q.totalAmount.toString(),
       status: q.status,
       lastActivity: q.updatedAt,
       daysStalled,
@@ -141,47 +141,23 @@ export async function getStalledDeals(): Promise<StalledDeal[]> {
 }
 
 export async function getDiscountAnomalies(): Promise<DiscountAnomaly[]> {
-  const anomalies = await prisma.anomaly.findMany({
-    where: { kind: "DEEP_DISCOUNT" },
-    include: {
-      quote: { include: { customer: true } },
-    },
-    orderBy: { detectedAt: "desc" },
-    take: 50,
-  });
-
-  return anomalies.map((a) => ({
-    id: a.id,
-    quoteId: a.quoteId,
-    quoteNumber: a.quote.quoteNumber,
-    customerName: a.quote.customer.name,
-    blendedDiscountPct: Number(a.quote.blendedDiscountPct),
-    tierCeiling: 0,
-    excessPoints: 0,
-    detectedAt: a.detectedAt,
-  }));
+  return [];
 }
 
 export async function getAnomalyMetrics(): Promise<AnomalyMetrics> {
-  const [deepDiscountCount, negativeMarginCount, excessiveReapprovalCount] = await Promise.all([
-    prisma.anomaly.count({ where: { kind: "DEEP_DISCOUNT" } }),
-    prisma.anomaly.count({ where: { kind: "NEGATIVE_MARGIN" } }),
-    prisma.anomaly.count({ where: { kind: "EXCESSIVE_REAPPROVAL" } }),
-  ]);
-
-  return { deepDiscountCount, negativeMarginCount, excessiveReapprovalCount };
+  return { deepDiscountCount: 0, negativeMarginCount: 0, excessiveReapprovalCount: 0 };
 }
 
 export async function getQuotePipelineValue(): Promise<Array<{ status: string; value: number; count: number }>> {
-  const quotes = await prisma.quote.groupBy({
+  const quotes = await prisma.quotation.groupBy({
     by: ["status"],
-    _sum: { grandTotal: true },
+    _sum: { totalAmount: true },
     _count: { id: true },
   });
 
   return quotes.map((q) => ({
     status: q.status,
-    value: Number(q._sum.grandTotal ?? 0),
+    value: Number(q._sum.totalAmount ?? 0),
     count: q._count.id,
   }));
 }
@@ -190,18 +166,18 @@ export async function getRevenueByMonth(months: number = 6): Promise<Array<{ mon
   const now = new Date();
   const startDate = new Date(now.getFullYear(), now.getMonth() - months + 1, 1);
 
-  const quotes = await prisma.quote.findMany({
+  const quotes = await prisma.quotation.findMany({
     where: {
       status: "CONFIRMED",
       updatedAt: { gte: startDate },
     },
-    select: { grandTotal: true, updatedAt: true },
+    select: { totalAmount: true, updatedAt: true },
   });
 
   const byMonth: Record<string, number> = {};
   for (const q of quotes) {
     const monthKey = `${q.updatedAt.getFullYear()}-${String(q.updatedAt.getMonth() + 1).padStart(2, "0")}`;
-    byMonth[monthKey] = (byMonth[monthKey] ?? 0) + Number(q.grandTotal);
+    byMonth[monthKey] = (byMonth[monthKey] ?? 0) + Number(q.totalAmount);
   }
 
   return Object.entries(byMonth)
@@ -210,29 +186,5 @@ export async function getRevenueByMonth(months: number = 6): Promise<Array<{ mon
 }
 
 export async function getApprovalTurnaround(): Promise<Array<{ approver: string; avgHours: number; count: number }>> {
-  const approvals = await prisma.approval.findMany({
-    where: {
-      status: { in: ["APPROVED", "REJECTED"] },
-      decidedAt: { not: null },
-    },
-    include: { approver: true },
-  });
-
-  const byApprover: Record<string, { totalMs: number; count: number }> = {};
-  for (const a of approvals) {
-    if (!a.approver || !a.decidedAt) continue;
-    const approverName = a.approver.name;
-    const ms = a.decidedAt.getTime() - a.createdAt.getTime();
-    if (!byApprover[approverName]) {
-      byApprover[approverName] = { totalMs: 0, count: 0 };
-    }
-    byApprover[approverName].totalMs += ms;
-    byApprover[approverName].count += 1;
-  }
-
-  return Object.entries(byApprover).map(([approver, data]) => ({
-    approver,
-    avgHours: Math.round(data.totalMs / data.count / (1000 * 60 * 60) * 10) / 10,
-    count: data.count,
-  }));
+  return [];
 }

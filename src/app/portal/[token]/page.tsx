@@ -11,54 +11,47 @@ export default async function PortalPage({
   params: Promise<{ token: string }>;
 }) {
   const { token } = await params;
-  
+
   const quoteRef = await validatePortalToken(token);
   if (!quoteRef) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 p-6">
-        <div className="bg-white p-8 rounded-xl shadow-sm border border-red-200 text-center max-w-md">
-          <div className="w-12 h-12 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto mb-4 text-xl">
+      <main className="surface-paper min-h-screen flex items-center justify-center p-6">
+        <div className="surface-paper-card max-w-md w-full p-8 text-center">
+          <div className="w-12 h-12 mx-auto mb-4 rounded-full bg-[var(--status-rejected-bg)] text-[var(--status-rejected-fg)] flex items-center justify-center text-xl">
             !
           </div>
-          <h2 className="text-xl font-semibold mb-2">Invalid or Expired Link</h2>
-          <p className="text-gray-500 text-sm">
-            This quote link has expired or is no longer valid. Please contact your sales representative for a new link.
+          <h2 className="text-xl font-semibold tracking-tight">Invalid or expired link</h2>
+          <p className="text-sm text-[var(--muted-foreground)] mt-2">
+            This quote link has expired or is no longer valid. Please contact your sales representative for a new one.
           </p>
         </div>
-      </div>
+      </main>
     );
   }
 
-  // Fetch full details
   const quote = await prisma.quote.findUnique({
     where: { id: quoteRef.id },
     include: {
       customer: true,
       owner: true,
-      lines: {
-        include: {
-          product: true,
-        }
-      },
-      negotiationComments: {
-        orderBy: { createdAt: "desc" }
-      }
-    }
+      lines: { include: { product: true } },
+      negotiationComments: { orderBy: { createdAt: "desc" } },
+    },
   });
 
   if (!quote) notFound();
 
   return (
-    <main className="min-h-screen bg-gray-50">
-      <div className="bg-indigo-900 text-white p-6 shadow-md">
-        <div className="max-w-5xl mx-auto flex justify-between items-center">
-          <h1 className="text-2xl font-bold tracking-tight">DealFlow360</h1>
-          <div className="text-sm text-indigo-200">
+    <main className="surface-paper min-h-screen">
+      <header className="bg-[var(--primary)] text-white shadow-sm">
+        <div className="max-w-5xl mx-auto px-6 py-5 flex justify-between items-center">
+          <h1 className="text-lg font-semibold tracking-tight">DealFlow360</h1>
+          <span className="text-sm text-indigo-100">
             Prepared for {quote.customer.companyName}
-          </div>
+          </span>
         </div>
-      </div>
-      <div className="max-w-5xl mx-auto py-10 px-6">
+      </header>
+      <div className="max-w-5xl mx-auto px-6 py-10">
         <PortalView quote={quote} token={token} />
       </div>
     </main>
