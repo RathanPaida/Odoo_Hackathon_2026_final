@@ -4,6 +4,7 @@
 
 generator client {
   provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
 }
 
 datasource db {
@@ -18,6 +19,7 @@ enum Role {
   SALES_MANAGER
   FINANCE
   ADMIN
+  CUSTOMER
 }
 
 enum CustomerTier {

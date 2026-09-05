@@ -47,3 +47,6 @@ next-env.d.ts
 
 # scaffold temp folder (merged into root)
 dealflow360-tmp/
+
+# generated prisma client
+/src/generated/

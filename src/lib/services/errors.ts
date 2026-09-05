@@ -1,4 +1,4 @@
-import { Prisma, Role } from "@prisma/client";
+import { Prisma, Role } from "@/generated/prisma";
 
 export class RequiredRoleError extends Error {
   constructor(public requiredRole: Role) {

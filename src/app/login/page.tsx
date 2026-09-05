@@ -41,7 +41,21 @@ function LoginForm() {
         setError(data?.error?.message ?? "Login failed.");
         return;
       }
-      router.push(redirect);
+      
+      const role = data.data?.role as string;
+      if (role === "SALES_REP") {
+        router.push("/dashboard/rep");
+      } else if (role === "SALES_MANAGER") {
+        router.push("/dashboard/manager");
+      } else if (role === "FINANCE") {
+        router.push("/dashboard/finance");
+      } else if (role === "CUSTOMER") {
+        router.push("/dashboard/customer");
+      } else if (role === "ADMIN") {
+        router.push("/dashboard/admin");
+      } else {
+        router.push(redirect);
+      }
       router.refresh();
     } catch {
       setError("Network error. Try again.");

@@ -1,7 +1,7 @@
 // prisma/seed.ts
 // Minimal seed: 4 users, one per role. Password: password123 for all.
 // Full Phase-1 seed (customers, products, warehouses, etc.) lives elsewhere.
-import { PrismaClient, Role } from "@prisma/client";
+import { PrismaClient, Role } from "../src/generated/prisma";
 import { hash } from "@node-rs/argon2";
 
 const prisma = new PrismaClient();
@@ -18,6 +18,7 @@ const USERS: Array<{ email: string; name: string; role: Role; approvalLimitPct: 
   { email: "manager@dealflow.local",  name: "Morgan Manager",  role: Role.SALES_MANAGER, approvalLimitPct: 25 },
   { email: "finance@dealflow.local",  name: "Finley Finance",  role: Role.FINANCE,       approvalLimitPct: 0 },
   { email: "admin@dealflow.local",    name: "Avery Admin",     role: Role.ADMIN,         approvalLimitPct: 100 },
+  { email: "customer@dealflow.local", name: "Casey Customer",  role: Role.CUSTOMER,      approvalLimitPct: 0 },
 ];
 
 async function main() {
@@ -26,13 +27,14 @@ async function main() {
   for (const u of USERS) {
     await prisma.user.upsert({
       where: { email: u.email },
-      update: { name: u.name, role: u.role, approvalLimitPct: u.approvalLimitPct },
+      update: { name: u.name, role: u.role, approvalLimitPct: u.approvalLimitPct, emailVerified: true },
       create: {
         email: u.email,
         name: u.name,
         role: u.role,
         approvalLimitPct: u.approvalLimitPct,
         passwordHash,
+        emailVerified: true,
       },
     });
     console.log(`  ✓ ${u.email.padEnd(28)} ${u.role}`);

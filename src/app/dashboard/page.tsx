@@ -11,6 +11,12 @@ export default async function DashboardPage() {
   const user = await getCurrentUser();
   if (!user) redirect("/login");
 
+  if (user.role === "SALES_REP") redirect("/dashboard/rep");
+  if (user.role === "SALES_MANAGER") redirect("/dashboard/manager");
+  if (user.role === "FINANCE") redirect("/dashboard/finance");
+  if (user.role === "CUSTOMER") redirect("/dashboard/customer");
+  if (user.role === "ADMIN") redirect("/dashboard/admin");
+
   return (
     <main className="min-h-screen px-6 py-10">
       <div className="mx-auto max-w-3xl">

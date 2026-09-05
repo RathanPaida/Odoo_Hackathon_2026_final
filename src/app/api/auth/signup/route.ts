@@ -4,7 +4,7 @@ import { NextRequest } from "next/server";
 import { prisma } from "@/lib/db";
 import { hashPassword } from "@/lib/auth/password";
 import { SignupSchema } from "@/lib/contracts/auth";
-import { Role } from "@prisma/client";
+import { Role } from "@/generated/prisma";
 
 export async function POST(req: NextRequest) {
   let body: unknown;

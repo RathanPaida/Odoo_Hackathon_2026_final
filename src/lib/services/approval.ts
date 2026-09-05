@@ -1,7 +1,7 @@
 // src/lib/services/approval.ts
 // Spec §6.2 — approval workflow. All transitions write an AuditLog row
 // and enqueue a state-changed job (worker runs anomaly detection).
-import { ApprovalStatus, Prisma, Quote, Role, QuoteStatus } from "@prisma/client";
+import { ApprovalStatus, Prisma, Quote, Role, QuoteStatus } from "@/generated/prisma";
 import { prisma } from "@/lib/db";
 import { writeAudit } from "@/lib/audit";
 import { computeQuoteTotals } from "@/lib/services/pricing";

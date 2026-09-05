@@ -2,7 +2,7 @@
 // Role-based access control for DealFlow360.
 // Maps the 4 spec roles (§4.1) to permissions.
 // Fine-grained checks happen in route handlers, not middleware (spec §1.1).
-import { Role } from "@prisma/client";
+import { Role } from "@/generated/prisma";
 
 export { Role };
 
@@ -59,6 +59,9 @@ const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
     PERMISSIONS.CONFIRM_QUOTE,
     PERMISSIONS.VIEW_INVOICES,
     PERMISSIONS.VIEW_DASHBOARD,
+  ],
+  CUSTOMER: [
+    PERMISSIONS.VIEW_OWN_QUOTE,
   ],
   ADMIN: Object.values(PERMISSIONS) as Permission[],
 };

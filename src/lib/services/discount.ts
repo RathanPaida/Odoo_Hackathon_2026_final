@@ -1,15 +1,16 @@
 // src/lib/services/discount.ts
 // Spec §6.2 — discount governance and approval routing decisions.
 // Pure decision logic; side effects (DB writes, audit) live in approval.ts.
-import { Prisma, DiscountRule, CustomerTier, Role } from "@prisma/client";
+import { Prisma, DiscountRule, CustomerTier, Role } from "@/generated/prisma";
 
 // Role hierarchy used to pick the "strictest" required role.
 // Higher rank = stricter approval.
 export const ROLE_RANK: Record<Role, number> = {
-  SALES_REP: 0,
-  SALES_MANAGER: 1,
-  FINANCE: 2,
-  ADMIN: 3,
+  CUSTOMER: 0,
+  SALES_REP: 1,
+  SALES_MANAGER: 2,
+  FINANCE: 3,
+  ADMIN: 4,
 };
 
 /** Available role choices for a "requiredRole" — cannot be SALES_REP. */

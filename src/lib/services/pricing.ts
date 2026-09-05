@@ -1,7 +1,7 @@
 // src/lib/services/pricing.ts
 // Spec §6.1 — all pricing math lives here.
 // Money is always Prisma.Decimal. Never use JS number for money.
-import { Prisma } from "@prisma/client";
+import { Prisma } from "@/generated/prisma";
 import { prisma } from "@/lib/db";
 
 export type DecimalInput = string | number | Prisma.Decimal;
