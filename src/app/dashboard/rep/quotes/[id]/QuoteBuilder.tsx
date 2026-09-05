@@ -1,22 +1,12 @@
-// src/app/dashboard/rep/quotes/[id]/QuoteBuilder.tsx  - 
+// src/app/dashboard/rep/quotes/[id]/QuoteBuilder.tsx
 "use client";
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import {
-  Button,
-  Card,
-  CardHeader,
-  CardTitle,
-  Field,
-  Input,
-  Select,
-  Textarea,
-  Badge,
-  RiskGauge,
-  useToast,
-} from "@/components/ui";
-import { Sparkles } from "lucide-react";
+import { Sparkles, Trash2, ChevronDown } from "lucide-react";
+import s from "./quote-detail.module.css";
+// Kept RiskGauge if it exists, otherwise can remove it. Assuming we'll use a placeholder or keep it if it's fine.
+import { RiskGauge, useToast } from "@/components/ui";
 
 export default function QuoteBuilder({ initialQuote, products }: { initialQuote: any; products: any[] }) {
   const router = useRouter();
@@ -146,97 +136,109 @@ export default function QuoteBuilder({ initialQuote, products }: { initialQuote:
   const isRecurring = selectedProduct?.billingType === "RECURRING";
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-      {/* Main */}
-      <div className="lg:col-span-2 space-y-6">
+    <div className={`${s.grid} ${s.animateFadeIn}`}>
+      {/* Main Column */}
+      <div className={s.mainCol}>
         {isEditable && (
-          <Card>
-            <CardHeader>
-              <CardTitle>Add a product</CardTitle>
-            </CardHeader>
-            <form onSubmit={handleAddLine} className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Field label="Product" htmlFor="product" className="md:col-span-2">
-                <Select
-                  id="product"
-                  value={selectedProductId}
-                  onChange={(e) => setSelectedProductId(e.target.value)}
-                  required
-                >
-                  <option value="">Select a product…</option>
-                  {products.map((p) => (
-                    <option key={p.id} value={p.id}>
-                      {p.name} ({p.sku}) — ₹{Number(p.listPrice).toLocaleString()}
-                    </option>
-                  ))}
-                </Select>
-              </Field>
+          <div className={s.card}>
+            <div className={s.cardHeader}>
+              <h2 className={s.cardTitle}>Add a Product</h2>
+            </div>
+            <form onSubmit={handleAddLine} className={s.formGrid}>
+              <div className={`${s.formGroup} ${s.colSpan2}`}>
+                <label className={s.formLabel} htmlFor="product">Product</label>
+                <div className={s.selectWrapper}>
+                  <select
+                    id="product"
+                    className={s.formSelect}
+                    value={selectedProductId}
+                    onChange={(e) => setSelectedProductId(e.target.value)}
+                    required
+                  >
+                    <option value="">Select a product…</option>
+                    {products.map((p) => (
+                      <option key={p.id} value={p.id}>
+                        {p.name} ({p.sku}) — ₹{Number(p.listPrice).toLocaleString()}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
 
-              <Field label="Quantity" htmlFor="qty">
-                <Input
+              <div className={s.formGroup}>
+                <label className={s.formLabel} htmlFor="qty">Quantity</label>
+                <input
                   id="qty"
                   type="number"
                   min={1}
+                  className={s.formInput}
                   value={qty}
                   onChange={(e) => setQty(parseInt(e.target.value))}
                   required
                 />
-              </Field>
+              </div>
 
-              <Field label="Discount %" htmlFor="disc">
-                <Input
+              <div className={s.formGroup}>
+                <label className={s.formLabel} htmlFor="disc">Discount %</label>
+                <input
                   id="disc"
                   type="number"
                   min={0}
                   max={100}
                   step="0.01"
+                  className={s.formInput}
                   value={discountPct}
                   onChange={(e) => setDiscountPct(parseFloat(e.target.value))}
                 />
-              </Field>
+              </div>
 
               {isRecurring && (
-                <Field label="Subscription months" htmlFor="months" className="md:col-span-2">
-                  <Input
+                <div className={`${s.formGroup} ${s.colSpan2}`}>
+                  <label className={s.formLabel} htmlFor="months">Subscription Months</label>
+                  <input
                     id="months"
                     type="number"
                     min={1}
                     placeholder="e.g. 12"
+                    className={s.formInput}
                     value={subscriptionMonths}
                     onChange={(e) => setSubscriptionMonths(e.target.value)}
                     required
                   />
-                </Field>
+                </div>
               )}
 
-              <div className="md:col-span-2 flex justify-end">
-                <Button type="submit" loading={loading} disabled={!selectedProductId}>
-                  Add line
-                </Button>
+              <div className={`${s.formActions} ${s.colSpan2}`}>
+                <button type="submit" className={s.primaryBtn} disabled={loading || !selectedProductId}>
+                  {loading ? <span className={s.spinner}>↻</span> : "Add Line"}
+                </button>
               </div>
             </form>
-          </Card>
+          </div>
         )}
 
-        <Card padded={false}>
-          <div className="px-5 sm:px-6 py-4 border-b border-[var(--border)] flex items-center justify-between">
-            <h3 className="text-base font-semibold tracking-tight">Line items</h3>
-            <span className="text-xs text-[var(--muted-foreground)] tabular">{quote.lines.length}</span>
+        <div className={s.card} style={{ padding: 0, overflow: 'hidden' }}>
+          <div className={s.cardHeader} style={{ padding: '1.25rem 1.5rem', marginBottom: 0 }}>
+            <h2 className={s.cardTitle}>Line Items</h2>
+            <span className={s.statusBadge} style={{ fontSize: '0.75rem', padding: '0.25rem 0.75rem' }}>
+              {quote.lines.length} Items
+            </span>
           </div>
           {quote.lines.length === 0 ? (
-            <div className="px-6 py-10 text-center text-sm text-[var(--muted-foreground)]">
-              No lines yet — add a product to start.
+            <div className={s.emptyState}>
+              No lines yet — add a product to start building the quote.
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-sm tabular">
-                <thead className="text-[11px] uppercase tracking-wider text-[var(--muted-foreground)]">
-                  <tr className="border-b border-[var(--border)]">
-                    <th className="px-5 py-3 font-semibold">Product</th>
-                    <th className="px-3 py-3 font-semibold text-right">Qty</th>
-                    <th className="px-3 py-3 font-semibold text-right">Unit</th>
-                    <th className="px-3 py-3 font-semibold text-right">Disc %</th>
-                    <th className="px-3 py-3 font-semibold text-right">Total</th>
-                    {isEditable && <th className="px-3 py-3 font-semibold text-right">{" "}</th>}
+            <div className={s.tableWrapper}>
+              <table className={s.table}>
+                <thead>
+                  <tr>
+                    <th>Product</th>
+                    <th style={{ textAlign: "right" }}>Qty</th>
+                    <th style={{ textAlign: "right" }}>Unit Price</th>
+                    <th style={{ textAlign: "right" }}>Disc %</th>
+                    <th style={{ textAlign: "right" }}>Total</th>
+                    {isEditable && <th style={{ textAlign: "right" }}></th>}
                   </tr>
                 </thead>
                 <tbody>
@@ -245,41 +247,41 @@ export default function QuoteBuilder({ initialQuote, products }: { initialQuote:
                       line.maxCategoryDiscount !== undefined &&
                       Number(line.discountPct) > Number(line.maxCategoryDiscount);
                     return (
-                      <tr key={line.id} className="border-b border-[var(--border)] last:border-0">
-                        <td className="px-5 py-3.5">
-                          <p className="font-medium">{line.product.name}</p>
-                          <p className="text-xs text-[var(--muted-foreground)]">
+                      <tr key={line.id}>
+                        <td>
+                          <div className={s.productName}>{line.product.name}</div>
+                          <div className={s.productMeta}>
                             {line.product.sku} · {line.billingType}
-                          </p>
+                          </div>
                         </td>
-                        <td className="px-3 py-3.5 text-right">{line.qty}</td>
-                        <td className="px-3 py-3.5 text-right">
+                        <td style={{ textAlign: "right", fontWeight: 500 }}>{line.qty}</td>
+                        <td style={{ textAlign: "right", color: "#94a3b8" }}>
                           ₹{Number(line.unitPrice).toLocaleString()}
                         </td>
-                        <td className="px-3 py-3.5 text-right">
-                          <span className={isOverCeiling ? "text-rose-400 font-semibold" : ""}>
+                        <td style={{ textAlign: "right" }}>
+                          <span style={{ color: isOverCeiling ? "#fca5a5" : "#c4b5fd", fontWeight: 600 }}>
                             {Number(line.discountPct)}%
                           </span>
                           {isOverCeiling && line.maxCategoryDiscount !== undefined && (
-                            <p className="text-[10px] text-rose-400/80">
-                              over {line.maxCategoryDiscount}% cap
-                            </p>
+                            <div style={{ fontSize: "0.6875rem", color: "#f87171" }}>
+                              Over {line.maxCategoryDiscount}% cap
+                            </div>
                           )}
                         </td>
-                        <td className="px-3 py-3.5 text-right font-semibold">
+                        <td style={{ textAlign: "right", fontWeight: 700, color: "#f1f5f9" }}>
                           ₹{Number(line.lineTotal).toLocaleString()}
                         </td>
                         {isEditable && (
-                          <td className="px-3 py-3.5 text-right">
-                            <Button
-                              variant="ghost"
-                              size="sm"
+                          <td style={{ textAlign: "right" }}>
+                            <button
+                              type="button"
+                              className={s.dangerBtn}
                               onClick={() => handleRemoveLine(line.id)}
                               disabled={loading}
-                              className="text-rose-400 hover:text-rose-300"
+                              title="Remove"
                             >
-                              Remove
-                            </Button>
+                              <Trash2 size={14} />
+                            </button>
                           </td>
                         )}
                       </tr>
@@ -289,62 +291,70 @@ export default function QuoteBuilder({ initialQuote, products }: { initialQuote:
               </table>
             </div>
           )}
-        </Card>
+        </div>
       </div>
 
-      {/* Sidebar */}
-      <div className="space-y-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Quote summary</CardTitle>
-            <Badge tone={quote.status === "APPROVED" ? "approved" : quote.status === "REJECTED" ? "rejected" : quote.status === "PENDING_APPROVAL" ? "pending" : "info"}>
-              {quote.status.replace("_", " ")}
-            </Badge>
-          </CardHeader>
-
-          <div className="space-y-2.5 text-sm tabular">
-            <Row label="Subtotal" value={`₹${Number(quote.subtotal).toLocaleString()}`} />
-            <Row label="Discount" value={`-₹${Number(quote.discountTotal).toLocaleString()}`} tone="negative" />
-            <Row label="Tax" value={`₹${Number(quote.taxTotal).toLocaleString()}`} />
-            <div className="flex justify-between pt-3 mt-3 border-t border-[var(--border)] font-semibold text-base">
-              <span>Grand total</span>
-              <span>₹{Number(quote.grandTotal).toLocaleString()}</span>
-            </div>
+      {/* Side Column */}
+      <div className={s.sideCol}>
+        <div className={s.card}>
+          <div className={s.cardHeader}>
+            <h2 className={s.cardTitle}>Quote Summary</h2>
           </div>
 
-          <div className="mt-6 pt-5 border-t border-[var(--border)]">
-            <p className="text-[11px] font-semibold uppercase tracking-wider text-[var(--muted-foreground)] mb-3">
-              Deal metrics
-            </p>
-            <div className="space-y-2 text-sm tabular">
-              <Row label="Total cost" value={`₹${Number(quote.totalCost).toLocaleString()}`} muted />
-              <Row
-                label="Margin"
-                value={`${Number(quote.marginPct).toFixed(2)}%`}
-                tone={Number(quote.marginPct) < 10 ? "negative" : "positive"}
-              />
-              <Row label="Blended disc." value={`${Number(quote.blendedDiscountPct).toFixed(2)}%`} />
+          <div className={s.summaryRow}>
+            <span className={s.summaryLabel}>Subtotal</span>
+            <span className={s.summaryValue}>₹{Number(quote.subtotal).toLocaleString()}</span>
+          </div>
+          <div className={s.summaryRow}>
+            <span className={s.summaryLabel}>Discount</span>
+            <span className={s.summaryValueNegative}>-₹{Number(quote.discountTotal).toLocaleString()}</span>
+          </div>
+          <div className={s.summaryRow}>
+            <span className={s.summaryLabel}>Tax</span>
+            <span className={s.summaryValue}>₹{Number(quote.taxTotal).toLocaleString()}</span>
+          </div>
+          <div className={s.summaryDivider}></div>
+          <div className={s.summaryGrandTotal}>
+            <span>Grand Total</span>
+            <span style={{ color: "#a78bfa" }}>₹{Number(quote.grandTotal).toLocaleString()}</span>
+          </div>
+
+          <div style={{ marginTop: "1.5rem" }}>
+            <div className={s.metricsHeader}>Deal Metrics</div>
+            <div className={s.summaryRow}>
+              <span className={s.summaryLabelMuted}>Total Cost</span>
+              <span className={s.summaryValue}>₹{Number(quote.totalCost).toLocaleString()}</span>
+            </div>
+            <div className={s.summaryRow}>
+              <span className={s.summaryLabelMuted}>Margin</span>
+              <span className={Number(quote.marginPct) < 10 ? s.summaryValueNegative : s.summaryValuePositive}>
+                {Number(quote.marginPct).toFixed(2)}%
+              </span>
+            </div>
+            <div className={s.summaryRow}>
+              <span className={s.summaryLabelMuted}>Blended Disc.</span>
+              <span className={s.summaryValue}>{Number(quote.blendedDiscountPct).toFixed(2)}%</span>
             </div>
           </div>
 
           {isEditable && (
-            <div className="mt-6 pt-5 border-t border-[var(--border)]">
-              <Button
-                className="w-full"
+            <div style={{ marginTop: "1.5rem" }}>
+              <button
+                type="button"
+                className={`${s.primaryBtn} ${s.primaryBtnFull}`}
                 onClick={handleSubmitQuote}
-                loading={loading}
-                disabled={quote.lines.length === 0}
+                disabled={loading || quote.lines.length === 0}
               >
-                Submit for approval
-              </Button>
+                {loading ? <span className={s.spinner}>↻</span> : "Submit for Approval"}
+              </button>
             </div>
           )}
 
           {quote.status === "APPROVED" && (
-            <div className="mt-4">
-              <Button
-                variant="success"
-                className="w-full"
+            <div style={{ marginTop: "1.5rem" }}>
+              <button
+                type="button"
+                className={s.successBtn}
                 onClick={async () => {
                   const ok = await toast.confirm({
                     title: "Convert this quote to an order?",
@@ -365,18 +375,18 @@ export default function QuoteBuilder({ initialQuote, products }: { initialQuote:
                     setLoading(false);
                   }
                 }}
-                loading={loading}
+                disabled={loading}
               >
-                Confirm &amp; create order
-              </Button>
+                {loading ? <span className={s.spinner}>↻</span> : "Confirm & Create Order"}
+              </button>
             </div>
           )}
 
           {(quote.status === "APPROVED" || quote.status === "NEGOTIATING") && (
-            <div className="mt-4">
-              <Button
-                variant="secondary"
-                className="w-full"
+            <div style={{ marginTop: "1rem" }}>
+              <button
+                type="button"
+                className={s.secondaryBtn}
                 onClick={async () => {
                   setLoading(true);
                   try {
@@ -391,75 +401,50 @@ export default function QuoteBuilder({ initialQuote, products }: { initialQuote:
                     setLoading(false);
                   }
                 }}
-                loading={loading}
+                disabled={loading}
               >
-                Copy portal link
-              </Button>
+                Copy Portal Link
+              </button>
             </div>
           )}
-        </Card>
+        </div>
 
         {/* Recommendations */}
         {isEditable && recommendations.length > 0 && (
-          <Card>
-            <CardHeader>
-              <CardTitle>
-                <span className="inline-flex items-center gap-1.5">
-                  <Sparkles size={14} className="text-[var(--primary-hover)]" /> Recommendations
-                </span>
-              </CardTitle>
-            </CardHeader>
-            <ul className="space-y-3">
+          <div className={s.card}>
+            <div className={s.cardHeader}>
+              <h2 className={s.cardTitle}>
+                <Sparkles size={18} style={{ color: "#a78bfa" }} /> Recommendations
+              </h2>
+            </div>
+            <ul className={s.recList}>
               {recommendations.map((rec) => (
-                <li key={rec.productId} className="rounded-lg border border-[var(--border)] bg-[var(--background)] p-3">
-                  <div className="flex items-start justify-between gap-2 mb-1">
-                    <span className="text-sm font-medium">{rec.productName}</span>
-                    <span className="text-sm text-[var(--primary-hover)] font-semibold tabular">
-                      ₹{Number(rec.listPrice).toLocaleString()}
-                    </span>
+                <li key={rec.productId} className={s.recItem}>
+                  <div className={s.recHeader}>
+                    <span className={s.recName}>{rec.productName}</span>
+                    <span className={s.recPrice}>₹{Number(rec.listPrice).toLocaleString()}</span>
                   </div>
-                  <p className="text-xs text-[var(--muted-foreground)] mb-3">{rec.reason}</p>
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    className="w-full"
+                  <p className={s.recReason}>{rec.reason}</p>
+                  <button
+                    type="button"
+                    className={s.secondaryBtn}
                     onClick={() => handleAddLine(undefined, { productId: rec.productId, qty: 1, discountPct: 0 })}
-                    loading={loading}
+                    disabled={loading}
                   >
-                    Add to quote
-                  </Button>
+                    Add to Quote
+                  </button>
                 </li>
               ))}
             </ul>
-          </Card>
+          </div>
         )}
 
-        {/* Risk preview, if backend provides one on quote load */}
         {quote.riskBreakdown && (
-          <RiskGauge score={quote.riskScore} breakdown={quote.riskBreakdown} />
+          <div className={s.card} style={{ padding: "1.25rem" }}>
+            <RiskGauge score={quote.riskScore} breakdown={quote.riskBreakdown} />
+          </div>
         )}
       </div>
-    </div>
-  );
-}
-
-function Row({
-  label,
-  value,
-  tone,
-  muted,
-}: {
-  label: string;
-  value: string;
-  tone?: "positive" | "negative";
-  muted?: boolean;
-}) {
-  const toneClass =
-    tone === "negative" ? "text-rose-400" : tone === "positive" ? "text-emerald-400" : "";
-  return (
-    <div className="flex justify-between">
-      <span className={muted ? "text-[var(--muted-foreground)]" : ""}>{label}</span>
-      <span className={`font-medium ${toneClass}`}>{value}</span>
     </div>
   );
 }
