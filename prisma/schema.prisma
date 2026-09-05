@@ -110,7 +110,9 @@ model Customer {
   email  String       @unique
   tier   CustomerTier
 
-  quotes Quote[]
+  quotes         Quote[]
+  subscriptions  Subscription[]
+  invoices       Invoice[]
 }
 
 model Product {
@@ -263,16 +265,95 @@ model Invoice {
   id            String    @id @default(cuid())
   quoteId       String    @unique
   invoiceNumber String    @unique
+  customerId    String
   amount        Decimal   @db.Decimal(12, 2)
+  subtotal      Decimal   @db.Decimal(12, 2) @default(0)
+  taxAmount     Decimal   @db.Decimal(12, 2) @default(0)
+  paidAmount    Decimal   @db.Decimal(12, 2) @default(0)
+  invoiceType   BillingType @default(ONE_TIME)
+  status        InvoiceStatus @default(ISSUED)
   issuedAt      DateTime  @default(now())
   dueAt         DateTime
 
   quote         Quote     @relation(fields: [quoteId], references: [id])
+  customer      Customer  @relation(fields: [customerId], references: [id])
+  lines         InvoiceLine[]
+  payments      Payment[]
   subscriptions SubscriptionLine[]
+
+  @@index([customerId])
+  @@index([status])
+}
+
+enum InvoiceStatus {
+  DRAFT
+  ISSUED
+  PAID
+  PARTIALLY_PAID
+  OVERDUE
+  CANCELLED
+}
+
+model InvoiceLine {
+  id          String   @id @default(cuid())
+  invoiceId   String
+  description String
+  productId   String
+  quantity    Int
+  unitPrice   Decimal  @db.Decimal(12, 2)
+  taxAmount   Decimal  @db.Decimal(12, 2) @default(0)
+  totalAmount Decimal  @db.Decimal(12, 2)
+
+  invoice     Invoice  @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+}
+
+model Payment {
+  id                  String        @id @default(cuid())
+  invoiceId           String
+  customerId          String
+  amount              Decimal       @db.Decimal(12, 2)
+  paymentMethod       String
+  status              PaymentStatus @default(PENDING)
+  transactionReference String?
+  paidAt              DateTime?
+
+  invoice             Invoice       @relation(fields: [invoiceId], references: [id])
+
+  @@index([invoiceId])
+  @@index([customerId])
+}
+
+enum PaymentStatus {
+  PENDING
+  SUCCESS
+  FAILED
+  REFUNDED
+}
+
+model SubscriptionPlan {
+  id                 String   @id @default(cuid())
+  name               String
+  billingCycle       BillingCycle
+  price              Decimal  @db.Decimal(12, 2)
+  prorationEnabled   Boolean  @default(true)
+  cancellationPolicy  String?
+  refundPolicy       String?
+  active             Boolean  @default(true)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  subscriptions      Subscription[]
+}
+
+enum BillingCycle {
+  MONTHLY
+  QUARTERLY
+  YEARLY
 }
 
 model SubscriptionLine {
   id                   String    @id @default(cuid())
+  subscriptionId       String
   quoteLineId          String    @unique
   invoiceId            String?
   monthlyAmount        Decimal   @db.Decimal(12, 2)
@@ -280,8 +361,41 @@ model SubscriptionLine {
   months               Int
   proratedFirstAmount  Decimal   @db.Decimal(12, 2)
 
-  quoteLine            QuoteLine @relation(fields: [quoteLineId], references: [id], onDelete: Cascade)
-  invoice              Invoice?  @relation(fields: [invoiceId], references: [id])
+  subscription        Subscription @relation(fields: [subscriptionId], references: [id])
+  quoteLine            QuoteLine   @relation(fields: [quoteLineId], references: [id], onDelete: Cascade)
+  invoice              Invoice?     @relation(fields: [invoiceId], references: [id])
+}
+
+model Subscription {
+  id                 String             @id @default(cuid())
+  customerId         String
+  orderId            String
+  productId          String
+  planId             String
+  quantity           Int                @default(1)
+  status             SubscriptionStatus @default(ACTIVE)
+  startDate          DateTime
+  currentPeriodStart DateTime
+  currentPeriodEnd   DateTime
+  nextBillingDate    DateTime
+  autoPayEnabled     Boolean            @default(false)
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+
+  customer           Customer           @relation(fields: [customerId], references: [id])
+  plan               SubscriptionPlan   @relation(fields: [planId], references: [id])
+  lines              SubscriptionLine[]
+
+  @@index([customerId])
+  @@index([status])
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  PAST_DUE
+  PAUSED
+  CANCELLED
+  EXPIRED
 }
 
 model UpsellRule {
