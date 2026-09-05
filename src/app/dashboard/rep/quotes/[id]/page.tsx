@@ -4,6 +4,8 @@ import { prisma } from "@/lib/db";
 import Link from "next/link";
 import { RoleSidebar } from "@/components/navbar/RoleSidebar";
 import QuoteBuilder from "./QuoteBuilder";
+import s from "./quote-detail.module.css";
+import { ArrowLeft } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
@@ -51,23 +53,31 @@ export default async function QuoteDetailPage({
   const serializedQuote = JSON.parse(JSON.stringify(quote));
   const serializedProducts = JSON.parse(JSON.stringify(products));
 
+  const getStatusClass = (status: string) => {
+    if (status === "APPROVED") return s.statusApproved;
+    if (status === "REJECTED") return s.statusRejected;
+    if (status === "PENDING_APPROVAL") return s.statusPending;
+    return "";
+  };
+
   return (
-    <RoleSidebar role={user.role as any}>
-      <main className="min-h-screen px-6 py-10 bg-[var(--paper)]">
-        <div className="mx-auto max-w-6xl">
-          <header className="mb-8">
-            <Link href="/dashboard/rep/quotes" className="text-sm text-[var(--muted-foreground)] hover:text-[var(--ink)]">
-              ← Back to Quotes
+    <RoleSidebar role={user.role} userName={user.name} userEmail={user.email}>
+      <main className={s.page}>
+        <div className={s.container}>
+          <header className={`${s.header} ${s.animateFadeIn}`}>
+            <Link href="/dashboard/rep/quotes" className={s.backLink}>
+              <ArrowLeft size={16} />
+              Back to Quotes
             </Link>
-            <div className="flex items-center justify-between mt-2">
+            <div className={s.headerTop}>
               <div>
-                <h1 className="text-3xl font-semibold">Quote {quote.quoteNumber}</h1>
-                <p className="text-sm text-[var(--muted-foreground)] mt-1">
+                <h1 className={s.title}>Quote {quote.quoteNumber}</h1>
+                <p className={s.subtitle}>
                   For {quote.customer.companyName} ({quote.customer.tier})
                 </p>
               </div>
-              <div className="text-right">
-                <span className="inline-flex items-center rounded-full bg-[var(--muted)] px-3 py-1 text-sm font-medium text-[var(--ink)]">
+              <div>
+                <span className={`${s.statusBadge} ${getStatusClass(quote.status)}`}>
                   {quote.status.replace("_", " ")}
                 </span>
               </div>
