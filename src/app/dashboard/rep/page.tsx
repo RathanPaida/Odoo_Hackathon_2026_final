@@ -19,12 +19,27 @@ export default async function RepDashboardPage() {
           <LogoutButton />
         </header>
 
-        <section className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-6">
-          <h2 className="text-lg font-medium mb-4">Your Quotes</h2>
-          <p className="text-sm text-[var(--muted-foreground)]">
-            Quote workspace, upsells, and negotiations will appear here.
-          </p>
-        </section>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <a
+            href="/dashboard/rep/quotes"
+            className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-6 hover:shadow-md transition-shadow no-underline"
+          >
+            <h2 className="text-lg font-medium mb-2">📄 Quotations</h2>
+            <p className="text-sm text-[var(--muted-foreground)]">
+              Manage your active quotes, add lines, and track approvals.
+            </p>
+          </a>
+
+          <a
+            href="/dashboard/rep/customers"
+            className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-6 hover:shadow-md transition-shadow no-underline"
+          >
+            <h2 className="text-lg font-medium mb-2">🏢 Customers</h2>
+            <p className="text-sm text-[var(--muted-foreground)]">
+              View customer directory, create new customers, and update tiers.
+            </p>
+          </a>
+        </div>
       </div>
     </main>
   );
