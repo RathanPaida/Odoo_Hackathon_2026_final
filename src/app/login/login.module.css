@@ -1,0 +1,389 @@
+/* DealFlow360 — sign in
+   Move the @import to app/layout.tsx (or use next/font) if you prefer. */
+@import url("https://fonts.googleapis.com/css2?family=Archivo:wght@600;700&family=Inter:wght@400;500;600&display=swap");
+
+.page {
+  --ink: #0e1319;
+  --ink-2: #161d26;
+  --slate: #59646f;
+  --paper: #e9ecef;
+  --card: #ffffff;
+  --line: #d3d9df;
+  --accent: #1f3bd8;
+  --signal: #0b7a5e;
+  --danger: #b3261e;
+
+  display: grid;
+  grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+  min-height: 100dvh;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ---------- Left: the pipeline panel ---------- */
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 3rem;
+  padding: 3rem 3.5rem;
+  background: var(--ink);
+  color: #fff;
+  /* a single hairline of light along the seam, instead of a blurred orb */
+  box-shadow: inset -1px 0 0 rgba(255, 255, 255, 0.08);
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.mark {
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 5px;
+  background: var(--accent);
+  font-family: Archivo, Inter, sans-serif;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.wordmark {
+  font-family: Archivo, Inter, sans-serif;
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.pitch {
+  max-width: 26ch;
+  margin: 0 0 2.5rem;
+  font-size: 1.375rem;
+  line-height: 1.35;
+  letter-spacing: -0.015em;
+  color: #eef1f4;
+}
+
+/* The ladder: the one place this page spends its boldness. */
+.ladder {
+  position: relative;
+  margin: 0;
+  padding: 0 0 0 1.75rem;
+  list-style: none;
+}
+
+.ladder::before {
+  content: "";
+  position: absolute;
+  top: 0.55rem;
+  bottom: 0.55rem;
+  left: 4px;
+  width: 1px;
+  background: linear-gradient(
+    to bottom,
+    var(--accent) 0%,
+    var(--accent) 62%,
+    rgba(255, 255, 255, 0.16) 62%
+  );
+  transform-origin: top;
+  animation: draw 900ms cubic-bezier(0.22, 0.7, 0.3, 1) both;
+}
+
+@keyframes draw {
+  from {
+    transform: scaleY(0);
+  }
+  to {
+    transform: scaleY(1);
+  }
+}
+
+.stage {
+  position: relative;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.625rem 0;
+  font-size: 0.9375rem;
+  color: rgba(255, 255, 255, 0.55);
+}
+
+.stage::before {
+  content: "";
+  position: absolute;
+  top: 1.0625rem;
+  left: -1.75rem;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--ink);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.28);
+}
+
+.stage[data-state="active"] {
+  color: #fff;
+  font-weight: 500;
+}
+
+.stage[data-state="active"]::before,
+.stage[data-state="done"]::before {
+  background: var(--accent);
+  box-shadow: none;
+}
+
+.stage[data-state="done"] {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.stageNote {
+  font-size: 0.8125rem;
+  font-variant-numeric: tabular-nums;
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.panelFoot {
+  font-size: 0.8125rem;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.45);
+}
+
+/* ---------- Right: the form ---------- */
+
+.formSide {
+  display: grid;
+  place-items: center;
+  padding: 3rem 1.5rem;
+}
+
+.formInner {
+  width: 100%;
+  max-width: 23rem;
+}
+
+.title {
+  margin: 0 0 0.5rem;
+  font-family: Archivo, Inter, sans-serif;
+  font-size: 1.75rem;
+  font-weight: 600;
+  letter-spacing: -0.025em;
+}
+
+.sub {
+  margin: 0 0 2rem;
+  font-size: 0.9375rem;
+  color: var(--slate);
+}
+
+.form {
+  display: grid;
+  gap: 1.125rem;
+}
+
+.field {
+  display: grid;
+  gap: 0.4375rem;
+}
+
+.label {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: #2c343d;
+}
+
+.inputWrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.icon {
+  position: absolute;
+  left: 0.8125rem;
+  display: grid;
+  place-items: center;
+  color: #97a1ab;
+  pointer-events: none;
+  transition: color 140ms ease;
+}
+
+.input {
+  width: 100%;
+  padding: 0.75rem 0.875rem 0.75rem 2.5rem;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  background: var(--card);
+  color: var(--ink);
+  font: inherit;
+  font-size: 0.9375rem;
+  transition: border-color 140ms ease, box-shadow 140ms ease;
+}
+
+.input::placeholder {
+  color: #a7b0b9;
+}
+
+.input:hover {
+  border-color: #bcc4cc;
+}
+
+.input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(31, 59, 216, 0.14);
+}
+
+.inputWrap:focus-within .icon {
+  color: var(--accent);
+}
+
+.forgot {
+  justify-self: end;
+  font-size: 0.8125rem;
+  color: var(--slate);
+  text-decoration: none;
+}
+
+.forgot:hover {
+  color: var(--accent);
+  text-decoration: underline;
+}
+
+.error {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  padding: 0.6875rem 0.8125rem;
+  border-left: 2px solid var(--danger);
+  border-radius: 0 5px 5px 0;
+  background: #fdf2f1;
+  color: #8c1d18;
+  font-size: 0.875rem;
+  line-height: 1.45;
+}
+
+.error svg {
+  flex: none;
+  margin-top: 1px;
+  color: var(--danger);
+}
+
+.submit {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 100%;
+  margin-top: 0.375rem;
+  padding: 0.8125rem 1rem;
+  border: 0;
+  border-radius: 7px;
+  background: var(--ink);
+  color: #fff;
+  font: inherit;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 140ms ease;
+}
+
+.submit:hover:not(:disabled) {
+  background: var(--ink-2);
+}
+
+.submit:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.alt {
+  margin: 1.75rem 0 0;
+  font-size: 0.875rem;
+  color: var(--slate);
+}
+
+.link {
+  color: var(--accent);
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.link:hover {
+  text-decoration: underline;
+}
+
+/* ---------- Shared states ---------- */
+
+.spinner {
+  animation: spin 800ms linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.loading {
+  display: grid;
+  place-items: center;
+  gap: 0.875rem;
+  min-height: 100dvh;
+  background: var(--paper, #e9ecef);
+  color: #59646f;
+  font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+  font-size: 0.875rem;
+}
+
+:where(.page, .loading) :focus-visible {
+  outline: 2px solid var(--accent, #1f3bd8);
+  outline-offset: 2px;
+}
+
+/* ---------- Responsive ---------- */
+
+@media (max-width: 900px) {
+  .page {
+    grid-template-columns: 1fr;
+  }
+
+  .panel {
+    gap: 1.5rem;
+    padding: 1.75rem 1.5rem;
+    box-shadow: none;
+  }
+
+  .pitch,
+  .ladder,
+  .panelFoot {
+    display: none;
+  }
+
+  .formSide {
+    align-items: start;
+    padding-top: 3.5rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ladder::before {
+    animation: none;
+  }
+
+  .spinner {
+    animation-duration: 2s;
+  }
+
+  .input,
+  .icon,
+  .submit {
+    transition: none;
+  }
+}

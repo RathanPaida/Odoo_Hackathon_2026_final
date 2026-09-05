@@ -2,6 +2,15 @@
 
 import { useState, FormEvent, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { Mail, Lock, Loader2, AlertCircle } from "lucide-react";
+import styles from "./login.module.css";
+
+const STAGES = [
+  { name: "Sourced", note: "Inbound and outbound", state: "done" },
+  { name: "Screened", note: "First call booked", state: "done" },
+  { name: "Diligence", note: "Docs and references", state: "active" },
+  { name: "Committed", note: "Term sheet signed", state: "next" },
+];
 
 function LoginForm() {
   const router = useRouter();
@@ -42,72 +51,130 @@ function LoginForm() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4">
-      <div className="w-full max-w-md rounded-xl border border-[var(--border)] bg-[var(--card)] p-8 shadow-xl">
-        <h1 className="text-2xl font-semibold mb-1">DealFlow360</h1>
-        <p className="text-sm text-[var(--muted-foreground)] mb-6">Sign in to continue</p>
+    <div className={styles.page}>
+      <aside className={styles.panel}>
+        <div className={styles.brand}>
+          <span className={styles.mark} aria-hidden="true">
+            DF
+          </span>
+          <span className={styles.wordmark}>DealFlow360</span>
+        </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label htmlFor="email" className="block text-sm font-medium mb-1.5">
-              Email
-            </label>
-            <input
-              id="email"
-              type="email"
-              required
-              autoComplete="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full rounded-md border border-[var(--border)] bg-[var(--input)] px-3 py-2 text-sm outline-none focus:border-[var(--ring)]"
-              placeholder="rep@dealflow.local"
-            />
-          </div>
+        <div>
+          <p className={styles.pitch}>
+            Every deal, from the first email to the signed term sheet.
+          </p>
+          <ol className={styles.ladder}>
+            {STAGES.map((stage) => (
+              <li
+                key={stage.name}
+                className={styles.stage}
+                data-state={stage.state}
+              >
+                <span>{stage.name}</span>
+                <span className={styles.stageNote}>{stage.note}</span>
+              </li>
+            ))}
+          </ol>
+        </div>
 
-          <div>
-            <label htmlFor="password" className="block text-sm font-medium mb-1.5">
-              Password
-            </label>
-            <input
-              id="password"
-              type="password"
-              required
-              autoComplete="current-password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full rounded-md border border-[var(--border)] bg-[var(--input)] px-3 py-2 text-sm outline-none focus:border-[var(--ring)]"
-            />
-          </div>
-
-          {error && (
-            <div className="rounded-md border border-[var(--destructive)] bg-[var(--destructive)]/10 px-3 py-2 text-sm text-[var(--destructive)]">
-              {error}
-            </div>
-          )}
-
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full rounded-md bg-[var(--primary)] py-2 text-sm font-medium text-[var(--primary-foreground)] hover:opacity-90 disabled:opacity-50"
-          >
-            {loading ? "Signing in…" : "Sign in"}
-          </button>
-        </form>
-
-        <p className="mt-6 text-center text-sm text-[var(--muted-foreground)]">
-          New here?{" "}
-          <a href="/signup" className="text-[var(--primary)] hover:underline">
-            Create an account
-          </a>
+        <p className={styles.panelFoot}>
+          Trouble signing in? Ask your workspace admin to check your seat.
         </p>
-      </div>
+      </aside>
+
+      <main className={styles.formSide}>
+        <div className={styles.formInner}>
+          <h1 className={styles.title}>Sign in</h1>
+          <p className={styles.sub}>Use the email your workspace invited.</p>
+
+          <form onSubmit={handleSubmit} className={styles.form} noValidate>
+            <div className={styles.field}>
+              <label htmlFor="email" className={styles.label}>
+                Email
+              </label>
+              <div className={styles.inputWrap}>
+                <span className={styles.icon} aria-hidden="true">
+                  <Mail size={17} strokeWidth={1.75} />
+                </span>
+                <input
+                  id="email"
+                  type="email"
+                  required
+                  autoComplete="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className={styles.input}
+                  placeholder="you@firm.com"
+                />
+              </div>
+            </div>
+
+            <div className={styles.field}>
+              <label htmlFor="password" className={styles.label}>
+                Password
+              </label>
+              <div className={styles.inputWrap}>
+                <span className={styles.icon} aria-hidden="true">
+                  <Lock size={17} strokeWidth={1.75} />
+                </span>
+                <input
+                  id="password"
+                  type="password"
+                  required
+                  autoComplete="current-password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className={styles.input}
+                  placeholder="••••••••"
+                />
+              </div>
+              <a href="/reset-password" className={styles.forgot}>
+                Reset your password
+              </a>
+            </div>
+
+            {error && (
+              <p className={styles.error} role="alert">
+                <AlertCircle size={16} strokeWidth={2} />
+                {error}
+              </p>
+            )}
+
+            <button type="submit" disabled={loading} className={styles.submit}>
+              {loading ? (
+                <>
+                  <Loader2 size={16} className={styles.spinner} />
+                  Signing in
+                </>
+              ) : (
+                "Sign in"
+              )}
+            </button>
+          </form>
+
+          <p className={styles.alt}>
+            New to DealFlow360?{" "}
+            <a href="/signup" className={styles.link}>
+              Create an account
+            </a>
+          </p>
+        </div>
+      </main>
     </div>
   );
 }
 
 export default function LoginPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Loading...</div>}>
+    <Suspense
+      fallback={
+        <div className={styles.loading}>
+          <Loader2 size={20} className={styles.spinner} />
+          <p>Loading DealFlow360</p>
+        </div>
+      }
+    >
       <LoginForm />
     </Suspense>
   );

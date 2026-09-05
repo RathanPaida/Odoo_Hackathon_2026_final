@@ -2,6 +2,15 @@
 
 import { useState, FormEvent } from "react";
 import { useRouter } from "next/navigation";
+import { Mail, Lock, User, Loader2, AlertCircle, CheckCircle2 } from "lucide-react";
+import styles from "./signup.module.css";
+
+const FEATURES = [
+  { bold: "Pipeline tracking", text: "from first contact to close" },
+  { bold: "Smart approvals", text: "with discount governance" },
+  { bold: "Warehouse allocation", text: "across multiple locations" },
+  { bold: "Customer portal", text: "for transparent negotiations" },
+];
 
 export default function SignupPage() {
   const router = useRouter();
@@ -28,7 +37,7 @@ export default function SignupPage() {
         setError(data?.error?.message ?? "Signup failed.");
         return;
       }
-      
+
       if (data.requiresVerification) {
         router.push(`/verify?email=${encodeURIComponent(form.email)}`);
         return;
@@ -53,69 +62,133 @@ export default function SignupPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4">
-      <div className="w-full max-w-md rounded-xl border border-[var(--border)] bg-[var(--card)] p-8 shadow-xl">
-        <h1 className="text-2xl font-semibold mb-1">Create account</h1>
-        <p className="text-sm text-[var(--muted-foreground)] mb-6">Join DealFlow360</p>
+    <div className={styles.page}>
+      <aside className={styles.panel}>
+        <div className={styles.brand}>
+          <span className={styles.mark} aria-hidden="true">
+            DF
+          </span>
+          <span className={styles.wordmark}>DealFlow360</span>
+        </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label htmlFor="name" className="block text-sm font-medium mb-1.5">Name</label>
-            <input
-              id="name"
-              required
-              value={form.name}
-              onChange={(e) => update("name", e.target.value)}
-              className="w-full rounded-md border border-[var(--border)] bg-[var(--input)] px-3 py-2 text-sm outline-none focus:border-[var(--ring)]"
-            />
-          </div>
-          <div>
-            <label htmlFor="email" className="block text-sm font-medium mb-1.5">Email</label>
-            <input
-              id="email"
-              type="email"
-              required
-              autoComplete="email"
-              value={form.email}
-              onChange={(e) => update("email", e.target.value)}
-              className="w-full rounded-md border border-[var(--border)] bg-[var(--input)] px-3 py-2 text-sm outline-none focus:border-[var(--ring)]"
-            />
-          </div>
-          <div>
-            <label htmlFor="password" className="block text-sm font-medium mb-1.5">Password</label>
-            <input
-              id="password"
-              type="password"
-              required
-              minLength={8}
-              autoComplete="new-password"
-              value={form.password}
-              onChange={(e) => update("password", e.target.value)}
-              className="w-full rounded-md border border-[var(--border)] bg-[var(--input)] px-3 py-2 text-sm outline-none focus:border-[var(--ring)]"
-            />
-            <p className="mt-1 text-xs text-[var(--muted-foreground)]">At least 8 characters.</p>
-          </div>
+        <div>
+          <p className={styles.pitch}>
+            Your entire deal pipeline, managed end to end.
+          </p>
+          <ul className={styles.checklist}>
+            {FEATURES.map((f) => (
+              <li key={f.bold} className={styles.checkItem}>
+                <CheckCircle2 size={18} strokeWidth={1.75} className={styles.checkIcon} />
+                <span>
+                  <strong>{f.bold}</strong> — {f.text}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
 
-          {error && (
-            <div className="rounded-md border border-[var(--destructive)] bg-[var(--destructive)]/10 px-3 py-2 text-sm text-[var(--destructive)]">
-              {error}
-            </div>
-          )}
-
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full rounded-md bg-[var(--primary)] py-2 text-sm font-medium text-[var(--primary-foreground)] hover:opacity-90 disabled:opacity-50"
-          >
-            {loading ? "Creating…" : "Create account"}
-          </button>
-        </form>
-
-        <p className="mt-6 text-center text-sm text-[var(--muted-foreground)]">
-          Have an account?{" "}
-          <a href="/login" className="text-[var(--primary)] hover:underline">Sign in</a>
+        <p className={styles.panelFoot}>
+          By creating an account you agree to our Terms of Service.
         </p>
-      </div>
+      </aside>
+
+      <main className={styles.formSide}>
+        <div className={styles.formInner}>
+          <h1 className={styles.title}>Create an account</h1>
+          <p className={styles.sub}>Get started with DealFlow360 in seconds.</p>
+
+          <form onSubmit={handleSubmit} className={styles.form} noValidate>
+            <div className={styles.field}>
+              <label htmlFor="name" className={styles.label}>
+                Full name
+              </label>
+              <div className={styles.inputWrap}>
+                <span className={styles.icon} aria-hidden="true">
+                  <User size={17} strokeWidth={1.75} />
+                </span>
+                <input
+                  id="name"
+                  type="text"
+                  required
+                  value={form.name}
+                  onChange={(e) => update("name", e.target.value)}
+                  className={styles.input}
+                  placeholder="Jane Doe"
+                />
+              </div>
+            </div>
+
+            <div className={styles.field}>
+              <label htmlFor="email" className={styles.label}>
+                Work email
+              </label>
+              <div className={styles.inputWrap}>
+                <span className={styles.icon} aria-hidden="true">
+                  <Mail size={17} strokeWidth={1.75} />
+                </span>
+                <input
+                  id="email"
+                  type="email"
+                  required
+                  autoComplete="email"
+                  value={form.email}
+                  onChange={(e) => update("email", e.target.value)}
+                  className={styles.input}
+                  placeholder="you@firm.com"
+                />
+              </div>
+            </div>
+
+            <div className={styles.field}>
+              <label htmlFor="password" className={styles.label}>
+                Password
+              </label>
+              <div className={styles.inputWrap}>
+                <span className={styles.icon} aria-hidden="true">
+                  <Lock size={17} strokeWidth={1.75} />
+                </span>
+                <input
+                  id="password"
+                  type="password"
+                  required
+                  minLength={8}
+                  autoComplete="new-password"
+                  value={form.password}
+                  onChange={(e) => update("password", e.target.value)}
+                  className={styles.input}
+                  placeholder="••••••••"
+                />
+              </div>
+              <span className={styles.hint}>At least 8 characters</span>
+            </div>
+
+            {error && (
+              <p className={styles.error} role="alert">
+                <AlertCircle size={16} strokeWidth={2} />
+                {error}
+              </p>
+            )}
+
+            <button type="submit" disabled={loading} className={styles.submit}>
+              {loading ? (
+                <>
+                  <Loader2 size={16} className={styles.spinner} />
+                  Creating account
+                </>
+              ) : (
+                "Create account"
+              )}
+            </button>
+          </form>
+
+          <p className={styles.alt}>
+            Already have an account?{" "}
+            <a href="/login" className={styles.link}>
+              Sign in
+            </a>
+          </p>
+        </div>
+      </main>
     </div>
   );
 }

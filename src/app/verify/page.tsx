@@ -1,8 +1,15 @@
 "use client";
 
-import { useState, FormEvent } from "react";
+import { useState, FormEvent, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Suspense } from "react";
+import { ShieldCheck, Loader2, AlertCircle } from "lucide-react";
+import styles from "./verify.module.css";
+
+const STEPS = [
+  { num: "1", label: "Create your account", state: "done" },
+  { num: "2", label: "Verify your email", state: "active" },
+  { num: "3", label: "Start building deals", state: "next" },
+];
 
 function VerifyForm() {
   const router = useRouter();
@@ -38,50 +45,122 @@ function VerifyForm() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4">
-      <div className="w-full max-w-md rounded-xl border border-[var(--border)] bg-[var(--card)] p-8 shadow-xl">
-        <h1 className="text-2xl font-semibold mb-1">Verify Email</h1>
-        <p className="text-sm text-[var(--muted-foreground)] mb-6">
-          Enter the 6-digit code sent to {email}
+    <div className={styles.page}>
+      <aside className={styles.panel}>
+        <div className={styles.brand}>
+          <span className={styles.mark} aria-hidden="true">
+            DF
+          </span>
+          <span className={styles.wordmark}>DealFlow360</span>
+        </div>
+
+        <div>
+          <p className={styles.pitch}>
+            One last step before you're in.
+          </p>
+          <ol className={styles.steps}>
+            {STEPS.map((step) => (
+              <li
+                key={step.num}
+                className={styles.step}
+                data-state={step.state}
+              >
+                <span className={styles.stepNum}>{step.num}</span>
+                <span>{step.label}</span>
+              </li>
+            ))}
+          </ol>
+        </div>
+
+        <p className={styles.panelFoot}>
+          Didn't get the email? Check your spam folder or contact support.
         </p>
+      </aside>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label htmlFor="code" className="block text-sm font-medium mb-1.5">Verification Code</label>
-            <input
-              id="code"
-              type="text"
-              required
-              maxLength={6}
-              value={code}
-              onChange={(e) => setCode(e.target.value)}
-              className="w-full rounded-md border border-[var(--border)] bg-[var(--input)] px-3 py-2 text-sm outline-none focus:border-[var(--ring)] tracking-widest text-center"
-              placeholder="123456"
-            />
+      <main className={styles.formSide}>
+        <div className={styles.formInner}>
+          <div className={styles.iconLarge} aria-hidden="true">
+            <ShieldCheck size={24} strokeWidth={1.75} />
           </div>
+          <h1 className={styles.title}>Verify your email</h1>
+          <p className={styles.sub}>
+            We sent a 6-digit code to{" "}
+            <span className={styles.emailHighlight}>{email}</span>.
+            Enter it below to continue.
+          </p>
 
-          {error && (
-            <div className="rounded-md border border-[var(--destructive)] bg-[var(--destructive)]/10 px-3 py-2 text-sm text-[var(--destructive)]">
-              {error}
+          <form onSubmit={handleSubmit} className={styles.form} noValidate>
+            <div className={styles.field}>
+              <label htmlFor="code" className={styles.label}>
+                Verification code
+              </label>
+              <input
+                id="code"
+                type="text"
+                required
+                maxLength={6}
+                inputMode="numeric"
+                autoComplete="one-time-code"
+                value={code}
+                onChange={(e) => setCode(e.target.value.replace(/[^0-9]/g, ""))}
+                className={styles.codeInput}
+                placeholder="------"
+              />
             </div>
-          )}
 
-          <button
-            type="submit"
-            disabled={loading || !email}
-            className="w-full rounded-md bg-[var(--primary)] py-2 text-sm font-medium text-[var(--primary-foreground)] hover:opacity-90 disabled:opacity-50"
-          >
-            {loading ? "Verifying..." : "Verify"}
-          </button>
-        </form>
-      </div>
+            {error && (
+              <p className={styles.error} role="alert">
+                <AlertCircle size={16} strokeWidth={2} />
+                {error}
+              </p>
+            )}
+
+            <button
+              type="submit"
+              disabled={loading || !email || code.length !== 6}
+              className={styles.submit}
+            >
+              {loading ? (
+                <>
+                  <Loader2 size={16} className={styles.spinner} />
+                  Verifying
+                </>
+              ) : (
+                "Verify and continue"
+              )}
+            </button>
+          </form>
+
+          <p className={styles.alt}>
+            Wrong email?{" "}
+            <a href="/signup" className={styles.link}>
+              Sign up again
+            </a>
+            {" · "}
+            <button
+              type="button"
+              onClick={() => router.push("/login")}
+              className={styles.link}
+            >
+              Back to sign in
+            </button>
+          </p>
+        </div>
+      </main>
     </div>
   );
 }
 
 export default function VerifyPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Loading...</div>}>
+    <Suspense
+      fallback={
+        <div className={styles.loading}>
+          <Loader2 size={20} className={styles.spinner} />
+          <p>Loading verification</p>
+        </div>
+      }
+    >
       <VerifyForm />
     </Suspense>
   );
