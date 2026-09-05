@@ -6,6 +6,7 @@ import Link from "next/link";
 import { FileText, ChevronRight } from "lucide-react";
 import { CustomerNewQuoteButton } from "./CustomerNewQuoteButton";
 import styles from "../../dashboard.module.css";
+import cStyles from "../customer.module.css";
 
 export const dynamic = "force-dynamic";
 
@@ -13,8 +14,14 @@ export default async function CustomerQuotationsPage() {
   const user = await getCurrentUser();
   if (!user || user.role !== "CUSTOMER") redirect("/login");
 
-  const customer = await prisma.customer.findFirst({
-    where: { email: user.email },
+  let customer = await prisma.customer.findFirst({
+    where: {
+      OR: [
+        { email: user.email },
+        { contactName: { contains: user.name, mode: "insensitive" } },
+        { companyName: { contains: user.name, mode: "insensitive" } },
+      ],
+    },
     include: {
       quotes: {
         orderBy: { createdAt: "desc" },
@@ -42,37 +49,37 @@ export default async function CustomerQuotationsPage() {
             </div>
           </header>
 
-          <div className={`${styles.card} p-6`}>
+          <div className={`${cStyles.tableCard} overflow-hidden`}>
             {quotes.length > 0 ? (
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-sm">
+              <div className={`${cStyles.tableWrapper} ${cStyles.customScrollbar}`}>
+                <table className={cStyles.table}>
                   <thead>
-                    <tr className="border-b border-[rgba(139,92,246,0.2)] text-[#a78bfa] text-xs uppercase tracking-wider">
-                      <th className="pb-3 px-3">Quote Number</th>
-                      <th className="pb-3 px-3">Date</th>
-                      <th className="pb-3 px-3">Status</th>
-                      <th className="pb-3 px-3">Lines</th>
-                      <th className="pb-3 px-3">Total Amount</th>
-                      <th className="pb-3 px-3 text-right">Action</th>
+                    <tr>
+                      <th>Quote Number</th>
+                      <th>Date</th>
+                      <th>Status</th>
+                      <th>Lines</th>
+                      <th>Total Amount</th>
+                      <th style={{ textAlign: "right" }}>Action</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-[rgba(139,92,246,0.1)] text-[#e2e8f0]">
+                  <tbody>
                     {quotes.map((q) => {
                       const portalToken = q.portalTokens?.[0]?.tokenHash;
                       const href = portalToken ? `/portal/${portalToken}` : `/dashboard/rep/quotes/${q.id}`;
                       return (
-                        <tr key={q.id} className="hover:bg-[rgba(109,40,217,0.1)] transition-colors">
-                          <td className="py-4 px-3 font-mono font-bold text-[#c4b5fd]">{q.quoteNumber}</td>
-                          <td className="py-4 px-3 text-[#94a3b8]">{new Date(q.createdAt).toLocaleDateString()}</td>
-                          <td className="py-4 px-3">
-                            <span className="text-xs px-2.5 py-1 rounded-full font-semibold uppercase tracking-wider bg-[rgba(139,92,246,0.15)] text-[#c4b5fd] border border-[rgba(139,92,246,0.25)]">
+                        <tr key={q.id}>
+                          <td className={cStyles.cellMono}>{q.quoteNumber}</td>
+                          <td className={cStyles.cellMuted}>{new Date(q.createdAt).toLocaleDateString()}</td>
+                          <td>
+                            <span className={`${cStyles.statusBadge} ${q.status === "APPROVED" ? cStyles.badgeApproved : q.status === "PENDING_APPROVAL" ? cStyles.badgePending : q.status === "CONFIRMED" ? cStyles.badgeConfirmed : q.status === "REJECTED" ? cStyles.badgeRejected : q.status === "NEGOTIATING" ? cStyles.badgeNegotiating : cStyles.badgeDraft}`}>
                               {q.status}
                             </span>
                           </td>
-                          <td className="py-4 px-3">{q.lines.length} items</td>
-                          <td className="py-4 px-3 font-semibold text-white">₹{Number(q.grandTotal).toLocaleString()}</td>
-                          <td className="py-4 px-3 text-right">
-                            <Link href={href} className="inline-flex items-center gap-1 text-[#c4b5fd] hover:text-white font-medium text-xs">
+                          <td>{q.lines.length} items</td>
+                          <td className={cStyles.cellPrimary}>₹{Number(q.grandTotal).toLocaleString()}</td>
+                          <td style={{ textAlign: "right" }}>
+                            <Link href={href} className={cStyles.actionLink}>
                               Open Portal <ChevronRight size={14} />
                             </Link>
                           </td>

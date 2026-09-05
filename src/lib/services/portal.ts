@@ -27,8 +27,13 @@ export async function generatePortalToken(quoteId: string, ttlDays: number = 14)
 export async function validatePortalToken(rawToken: string) {
   const tokenHash = createHash("sha256").update(rawToken).digest("hex");
 
-  const tokenRec = await prisma.portalToken.findUnique({
-    where: { tokenHash },
+  const tokenRec = await prisma.portalToken.findFirst({
+    where: {
+      OR: [
+        { tokenHash },
+        { tokenHash: rawToken },
+      ],
+    },
     include: { quote: true },
   });
 

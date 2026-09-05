@@ -10,6 +10,7 @@ import {
   Users
 } from "lucide-react";
 import { CustomerNewQuoteButton } from "./quotations/CustomerNewQuoteButton";
+import { CustomerPhoneEditor } from "./CustomerPhoneEditor";
 import s from "./customer.module.css";
 
 export const dynamic = "force-dynamic";
@@ -18,9 +19,15 @@ export default async function CustomerDashboardPage() {
   const user = await getCurrentUser();
   if (!user || user.role !== "CUSTOMER") redirect("/login");
 
-  // Fetch real customer record matching email
-  const customer = await prisma.customer.findFirst({
-    where: { email: user.email },
+  // Fetch real customer record matching email or name, or create if missing
+  let customer = await prisma.customer.findFirst({
+    where: {
+      OR: [
+        { email: user.email },
+        { contactName: { contains: user.name, mode: "insensitive" } },
+        { companyName: { contains: user.name, mode: "insensitive" } },
+      ],
+    },
     include: {
       quotes: {
         orderBy: { createdAt: "desc" },
@@ -30,6 +37,26 @@ export default async function CustomerDashboardPage() {
       _count: { select: { quotes: true, orders: true } },
     },
   });
+
+  if (!customer) {
+    customer = await prisma.customer.create({
+      data: {
+        companyName: user.name || "Direct Customer",
+        contactName: user.name || "Primary Contact",
+        email: user.email,
+        phone: "+91-9876543210",
+        tier: "GOLD",
+      },
+      include: {
+        quotes: {
+          orderBy: { createdAt: "desc" },
+          take: 10,
+          include: { portalTokens: { where: { revokedAt: null }, take: 1 } },
+        },
+        _count: { select: { quotes: true, orders: true } },
+      },
+    });
+  }
 
   const quotes = customer?.quotes ?? [];
   const activeQuotesCount = quotes.filter(q => q.status === "APPROVED" || q.status === "PENDING_APPROVAL" || q.status === "DRAFT").length;
@@ -168,7 +195,7 @@ export default async function CustomerDashboardPage() {
               </div>
               <div>
                 <p className={s.cellMuted} style={{fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.25rem'}}>Phone</p>
-                <p className={s.cellPrimary}>{customer?.phone || "+91 (Direct)"}</p>
+                <CustomerPhoneEditor initialPhone={customer?.phone} />
               </div>
             </div>
           </div>

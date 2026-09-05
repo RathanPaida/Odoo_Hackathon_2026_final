@@ -412,3 +412,35 @@
 .animateFadeIn {
   animation: fadeIn 0.4s ease-out;
 }
+
+/* Custom scrollbar for customer tables & modals */
+.tableWrapper::-webkit-scrollbar,
+.customScrollbar::-webkit-scrollbar {
+  height: 6px;
+  width: 6px;
+}
+
+.tableWrapper::-webkit-scrollbar-track,
+.customScrollbar::-webkit-scrollbar-track {
+  background: rgba(15, 15, 35, 0.6);
+  border-radius: 9999px;
+}
+
+.tableWrapper::-webkit-scrollbar-thumb,
+.customScrollbar::-webkit-scrollbar-thumb {
+  background: rgba(139, 92, 246, 0.35);
+  border-radius: 9999px;
+  border: 1px solid rgba(139, 92, 246, 0.2);
+}
+
+.tableWrapper::-webkit-scrollbar-thumb:hover,
+.customScrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(139, 92, 246, 0.6);
+}
+
+/* Firefox scrollbar support */
+.tableWrapper,
+.customScrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(139, 92, 246, 0.4) rgba(15, 15, 35, 0.6);
+}

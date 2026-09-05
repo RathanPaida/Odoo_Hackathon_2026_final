@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Plus, ShoppingCart, Trash2 } from "lucide-react";
 import { Modal, Button, useToast } from "@/components/ui";
+import s from "../customer.module.css";
 
 interface Product {
   id: string;
@@ -149,10 +150,7 @@ export function CustomerNewQuoteButton({ className }: { className?: string }) {
     <>
       <button
         onClick={() => setOpen(true)}
-        className={
-          className ||
-          "inline-flex items-center gap-2 px-4 py-2.5 rounded-xl font-semibold text-sm text-white bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 shadow-lg shadow-violet-700/30 transition-all transform hover:-translate-y-0.5 active:translate-y-0"
-        }
+        className={className || s.primaryBtn}
       >
         <Plus size={16} strokeWidth={2.5} />
         <span>New Quote</span>
@@ -191,7 +189,7 @@ export function CustomerNewQuoteButton({ className }: { className?: string }) {
                 </select>
               </div>
 
-              <div className="border border-[var(--border)] rounded-xl overflow-hidden bg-[rgba(15,15,35,0.4)] max-h-[340px] overflow-y-auto">
+              <div className={`border border-[var(--border)] rounded-xl overflow-hidden bg-[rgba(15,15,35,0.4)] max-h-[340px] overflow-y-auto ${s.customScrollbar}`}>
                 {fetchingProducts ? (
                   <div className="py-12 text-center text-sm text-[var(--muted-foreground)]">
                     Loading product catalog...
@@ -259,7 +257,7 @@ export function CustomerNewQuoteButton({ className }: { className?: string }) {
                 )}
               </div>
 
-              <div className="border border-[var(--border)] rounded-xl overflow-hidden bg-[rgba(15,15,35,0.4)] flex-1 min-h-[160px] max-h-[220px] overflow-y-auto">
+              <div className={`border border-[var(--border)] rounded-xl overflow-hidden bg-[rgba(15,15,35,0.4)] flex-1 min-h-[160px] max-h-[220px] overflow-y-auto ${s.customScrollbar}`}>
                 {items.length === 0 ? (
                   <div className="py-10 px-4 text-center text-xs text-[var(--muted-foreground)]">
                     No items selected yet. Click &quot;Add&quot; on any product from the catalog to build your quote.
