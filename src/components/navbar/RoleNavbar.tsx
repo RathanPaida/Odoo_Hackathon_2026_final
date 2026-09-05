@@ -49,15 +49,15 @@ const adminNav: NavItem[] = [
 const repNav: NavItem[] = [
   { href: "/dashboard/rep", label: "Overview", icon: LayoutDashboard },
   { href: "/dashboard/rep/quotes", label: "Quotations", icon: FileText },
-  { href: "/dashboard/rep/customer", label: "Customers", icon: Users },
+  { href: "/dashboard/rep/customers", label: "Customers", icon: Users },
   { href: "/catalog", label: "Catalog", icon: Package },
-  { href: "/dashboard/rep/customer/new", label: "New Customer", icon: UserCog },
+  { href: "/dashboard/rep/customers/new", label: "New Customer", icon: UserCog },
 ];
 
 const managerNav: NavItem[] = [
   { href: "/dashboard/manager", label: "Overview", icon: LayoutDashboard },
   { href: "/dashboard/rep/quotes", label: "Quotations", icon: FileText },
-  { href: "/dashboard/rep/customer", label: "Customers", icon: Users },
+  { href: "/dashboard/rep/customers", label: "Customers", icon: Users },
   { href: "/approvals", label: "Approval Queue", icon: CheckSquare },
   { href: "/governance", label: "Governance", icon: ShieldCheck },
   { href: "/dashboard/reports", label: "Reports", icon: BarChart3 },

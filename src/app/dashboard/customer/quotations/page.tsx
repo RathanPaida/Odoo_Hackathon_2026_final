@@ -1,42 +1,76 @@
-import { redirect } from "next/navigation";
-import { getCurrentUser } from "@/lib/auth/session";
-import { prisma } from "@/lib/db";
-import { RoleSidebar } from "@/components/navbar/RoleSidebar";
-import Link from "next/link";
+"use client";
+
+import { useEffect, useState } from "react";
 import { FileText, ChevronRight } from "lucide-react";
+import { RoleSidebar } from "@/components/navbar/RoleSidebar";
 import { CustomerNewQuoteButton } from "./CustomerNewQuoteButton";
 import styles from "../../dashboard.module.css";
 import cStyles from "../customer.module.css";
+import { useToast } from "@/components/ui";
 
-export const dynamic = "force-dynamic";
+interface QuoteRow {
+  id: string;
+  quoteNumber: string;
+  createdAt: string;
+  status: string;
+  grandTotal: number;
+  lines: { id: string }[];
+}
 
-export default async function CustomerQuotationsPage() {
-  const user = await getCurrentUser();
-  if (!user || user.role !== "CUSTOMER") redirect("/login");
+function getStatusBadgeClass(status: string): string {
+  return status === "APPROVED" ? cStyles.badgeApproved
+    : status === "PENDING_APPROVAL" ? cStyles.badgePending
+    : status === "CONFIRMED" ? cStyles.badgeConfirmed
+    : status === "REJECTED" ? cStyles.badgeRejected
+    : status === "NEGOTIATING" ? cStyles.badgeNegotiating
+    : cStyles.badgeDraft;
+}
 
-  let customer = await prisma.customer.findFirst({
-    where: {
-      OR: [
-        { email: user.email },
-        { contactName: { contains: user.name, mode: "insensitive" } },
-        { companyName: { contains: user.name, mode: "insensitive" } },
-      ],
-    },
-    include: {
-      quotes: {
-        orderBy: { createdAt: "desc" },
-        include: {
-          lines: { include: { product: true } },
-          portalTokens: { where: { revokedAt: null }, take: 1 },
-        },
-      },
-    },
-  });
+export default function CustomerQuotationsPage() {
+  const toast = useToast();
+  const [quotes, setQuotes] = useState<QuoteRow[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [loadingPortal, setLoadingPortal] = useState<string | null>(null);
 
-  const quotes = customer?.quotes ?? [];
+  useEffect(() => {
+    async function loadQuotes() {
+      try {
+        const res = await fetch("/api/quotes?status=ALL");
+        if (res.ok) {
+          const data = await res.json();
+          setQuotes(Array.isArray(data.data) ? data.data : []);
+        }
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadQuotes();
+  }, []);
+
+  async function openPortal(quoteId: string) {
+    setLoadingPortal(quoteId);
+    try {
+      const res = await fetch("/api/customer/portal", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ quoteId }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error?.message || "Failed to generate portal link");
+      }
+      window.open(data.data.portalUrl, "_blank");
+    } catch (err: any) {
+      toast.error("Error", err.message);
+    } finally {
+      setLoadingPortal(null);
+    }
+  }
 
   return (
-    <RoleSidebar role="CUSTOMER" userName={user.name} userEmail={user.email}>
+    <RoleSidebar>
       <main className={styles.page}>
         <div className={styles.container}>
           <header className={styles.header}>
@@ -50,7 +84,11 @@ export default async function CustomerQuotationsPage() {
           </header>
 
           <div className={`${cStyles.tableCard} overflow-hidden`}>
-            {quotes.length > 0 ? (
+            {loading ? (
+              <div className="text-center py-12 text-[#94a3b8]">
+                <p>Loading your quotations...</p>
+              </div>
+            ) : quotes.length > 0 ? (
               <div className={`${cStyles.tableWrapper} ${cStyles.customScrollbar}`}>
                 <table className={cStyles.table}>
                   <thead>
@@ -64,28 +102,29 @@ export default async function CustomerQuotationsPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {quotes.map((q) => {
-                      const portalToken = q.portalTokens?.[0]?.tokenHash;
-                      const href = portalToken ? `/portal/${portalToken}` : `/dashboard/rep/quotes/${q.id}`;
-                      return (
-                        <tr key={q.id}>
-                          <td className={cStyles.cellMono}>{q.quoteNumber}</td>
-                          <td className={cStyles.cellMuted}>{new Date(q.createdAt).toLocaleDateString()}</td>
-                          <td>
-                            <span className={`${cStyles.statusBadge} ${q.status === "APPROVED" ? cStyles.badgeApproved : q.status === "PENDING_APPROVAL" ? cStyles.badgePending : q.status === "CONFIRMED" ? cStyles.badgeConfirmed : q.status === "REJECTED" ? cStyles.badgeRejected : q.status === "NEGOTIATING" ? cStyles.badgeNegotiating : cStyles.badgeDraft}`}>
-                              {q.status}
-                            </span>
-                          </td>
-                          <td>{q.lines.length} items</td>
-                          <td className={cStyles.cellPrimary}>₹{Number(q.grandTotal).toLocaleString()}</td>
-                          <td style={{ textAlign: "right" }}>
-                            <Link href={href} className={cStyles.actionLink}>
-                              Open Portal <ChevronRight size={14} />
-                            </Link>
-                          </td>
-                        </tr>
-                      );
-                    })}
+                    {quotes.map((q) => (
+                      <tr key={q.id}>
+                        <td className={cStyles.cellMono}>{q.quoteNumber}</td>
+                        <td className={cStyles.cellMuted}>{new Date(q.createdAt).toLocaleDateString()}</td>
+                        <td>
+                          <span className={`${cStyles.statusBadge} ${getStatusBadgeClass(q.status)}`}>
+                            {q.status}
+                          </span>
+                        </td>
+                        <td>{q.lines.length} items</td>
+                        <td className={cStyles.cellPrimary}>₹{Number(q.grandTotal).toLocaleString()}</td>
+                        <td style={{ textAlign: "right" }}>
+                          <button
+                            className={cStyles.actionLink}
+                            onClick={() => openPortal(q.id)}
+                            disabled={loadingPortal === q.id}
+                          >
+                            {loadingPortal === q.id ? "Loading..." : "Open Portal "}
+                            <ChevronRight size={14} />
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
                   </tbody>
                 </table>
               </div>

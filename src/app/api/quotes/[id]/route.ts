@@ -4,6 +4,7 @@ export const runtime = "nodejs";
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { requireRole } from "@/lib/auth/rbac";
+import { serializeForApi } from "@/lib/api-response";
 
 export async function GET(
   req: NextRequest,
@@ -65,5 +66,5 @@ export async function GET(
     );
   }
 
-  return NextResponse.json({ success: true, data: quote });
+  return NextResponse.json({ success: true, data: serializeForApi(quote) });
 }

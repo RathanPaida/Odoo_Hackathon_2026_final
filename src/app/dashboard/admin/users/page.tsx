@@ -93,13 +93,14 @@ export default function AdminUsersPage() {
         return;
       }
       const data = await res.json();
-      setUsers(data.users ?? []);
+      setUsers(data.data?.users ?? data.users ?? []);
 
       // Identify current admin from session (look for the cookie-based user)
       const meRes = await fetch("/api/auth/me");
       if (meRes.ok) {
         const meData = await meRes.json();
-        setCurrentUserId(meData.user?.id ?? null);
+        const userData = meData.success ? meData.data : meData.user;
+        setCurrentUserId(userData?.id ?? null);
       }
     } catch {
       setToast({ message: "Failed to load users.", type: "error" });

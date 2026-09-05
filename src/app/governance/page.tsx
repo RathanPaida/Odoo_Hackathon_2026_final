@@ -13,6 +13,7 @@ import {
   ArrowRight,
   Sparkles
 } from "lucide-react";
+import { RoleSidebar } from "@/components/navbar/RoleSidebar";
 import s from "./governance.module.css";
 
 export default function GovernancePage() {
@@ -183,8 +184,9 @@ export default function GovernancePage() {
   }
 
   return (
-    <main className={s.page}>
-      <div className={s.container}>
+    <RoleSidebar>
+      <main className={s.page}>
+        <div className={s.container}>
         <div className={s.header}>
           <div className={s.headerContent}>
             <div className={s.headerIcon}>
@@ -509,6 +511,7 @@ export default function GovernancePage() {
         </div>
       </div>
     </main>
+    </RoleSidebar>
   );
 }
 

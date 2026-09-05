@@ -11,6 +11,7 @@ import {
   Clock,
   Sparkles,
 } from "lucide-react";
+import { RoleSidebar } from "@/components/navbar/RoleSidebar";
 import s from "./fulfillment.module.css";
 
 export default function FulfillmentPage() {
@@ -140,8 +141,9 @@ export default function FulfillmentPage() {
   };
 
   return (
-    <main className={s.page}>
-      <div className={s.container}>
+    <RoleSidebar>
+      <main className={s.page}>
+        <div className={s.container}>
         <div className={s.header}>
           <div className={s.headerContent}>
             <div className={s.headerIcon}>
@@ -369,6 +371,7 @@ export default function FulfillmentPage() {
         </div>
       )}
     </main>
+    </RoleSidebar>
   );
 }
 

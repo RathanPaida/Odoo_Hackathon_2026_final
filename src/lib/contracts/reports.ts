@@ -17,10 +17,11 @@ export interface ReportRow {
   quoteNumber: string;
   customerName: string;
   repName: string;
+  repId: string | null;
   status: string;
-  subtotal: string;
-  discountPct: string;
-  marginPct: string;
+  subtotal: number;
+  discountPct: number;
+  marginPct: number;
   createdAt: string;
   confirmedAt: string | null;
 }

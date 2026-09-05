@@ -1,0 +1,257 @@
+/* portal.module.css */
+
+.layout {
+  display: flex;
+  min-height: 100vh;
+  background: #0f0f23;
+}
+
+/* Sidebar */
+.sidebar {
+  width: 16rem;
+  flex-shrink: 0;
+  background: linear-gradient(180deg, #1e1b4b 0%, #0f0f23 100%);
+  border-right: 1px solid rgba(139, 92, 246, 0.15);
+  display: flex;
+  flex-direction: column;
+  padding: 1.5rem 0;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0 1.25rem 1.5rem;
+  border-bottom: 1px solid rgba(139, 92, 246, 0.1);
+  margin-bottom: 1.5rem;
+}
+
+.brandMark {
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 0.5rem;
+  background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.75rem;
+  color: #fff;
+  flex-shrink: 0;
+}
+
+.brandName {
+  font-weight: 700;
+  font-size: 0.9375rem;
+  color: #f1f5f9;
+  letter-spacing: -0.025em;
+}
+
+.brandSub {
+  font-size: 0.6875rem;
+  color: #64748b;
+  margin-top: 0.125rem;
+}
+
+.customerCard {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0 1.25rem 1.25rem;
+  border-bottom: 1px solid rgba(139, 92, 246, 0.1);
+  margin-bottom: 1.25rem;
+}
+
+.avatar {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 50%;
+  background: rgba(139, 92, 246, 0.2);
+  border: 1px solid rgba(139, 92, 246, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: #c4b5fd;
+  flex-shrink: 0;
+}
+
+.customerName {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #f1f5f9;
+}
+
+.customerContact {
+  font-size: 0.75rem;
+  color: #94a3b8;
+  margin-top: 0.125rem;
+}
+
+.tierBadge {
+  display: inline-block;
+  margin-top: 0.375rem;
+  padding: 0.125rem 0.5rem;
+  background: rgba(139, 92, 246, 0.15);
+  border: 1px solid rgba(139, 92, 246, 0.25);
+  border-radius: 9999px;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: #c4b5fd;
+  letter-spacing: 0.025em;
+  text-transform: uppercase;
+}
+
+.nav {
+  flex: 1;
+  padding: 0 0.75rem;
+}
+
+.navSection {
+  margin-bottom: 1.5rem;
+}
+
+.navLabel {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  color: #475569;
+  letter-spacing: 0.075em;
+  text-transform: uppercase;
+  padding: 0 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.navItem {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  color: #64748b;
+  text-decoration: none;
+  transition: all 0.15s;
+  margin-bottom: 0.125rem;
+}
+
+.navItem:hover {
+  background: rgba(139, 92, 246, 0.1);
+  color: #94a3b8;
+}
+
+.navDot {
+  width: 0.375rem;
+  height: 0.375rem;
+  border-radius: 50%;
+  background: currentColor;
+  flex-shrink: 0;
+}
+
+.navItemActive {
+  background: rgba(139, 92, 246, 0.15);
+  color: #c4b5fd;
+  font-weight: 600;
+}
+
+.navItemActive:hover {
+  background: rgba(139, 92, 246, 0.2);
+  color: #c4b5fd;
+}
+
+.contactBox {
+  margin-top: auto;
+  padding: 1rem 1.25rem;
+  border-top: 1px solid rgba(139, 92, 246, 0.1);
+}
+
+.contactLabel {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  color: #475569;
+  letter-spacing: 0.075em;
+  text-transform: uppercase;
+  margin-bottom: 0.25rem;
+}
+
+.contactText {
+  font-size: 0.8125rem;
+  color: #64748b;
+  margin-bottom: 0.625rem;
+}
+
+.contactBtn {
+  display: block;
+  padding: 0.5rem 0.875rem;
+  background: rgba(109, 40, 217, 0.2);
+  border: 1px solid rgba(139, 92, 246, 0.3);
+  border-radius: 0.5rem;
+  color: #c4b5fd;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  text-decoration: none;
+  text-align: center;
+  transition: all 0.15s;
+}
+
+.contactBtn:hover {
+  background: rgba(109, 40, 217, 0.3);
+  color: #ddd6fe;
+}
+
+/* Main content area */
+.main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid rgba(139, 92, 246, 0.1);
+  background: rgba(15, 15, 35, 0.8);
+  backdrop-filter: blur(8px);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.topbarLeft {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.topbarStatus {
+  font-size: 0.875rem;
+  color: #94a3b8;
+}
+
+.topbarStatus strong {
+  color: #c4b5fd;
+}
+
+.topbarRight {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.topbarDate {
+  font-size: 0.8125rem;
+  color: #64748b;
+}
+
+.content {
+  padding: 2rem 1.5rem;
+  max-width: 70rem;
+  width: 100%;
+}

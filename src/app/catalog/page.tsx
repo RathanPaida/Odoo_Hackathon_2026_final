@@ -13,6 +13,8 @@ import {
 } from "lucide-react";
 import styles from "./catalog.module.css";
 
+import { RoleSidebar } from "@/components/navbar/RoleSidebar";
+
 interface Category {
   id: string;
   name: string;
@@ -30,9 +32,12 @@ interface Product {
   categoryId?: string;
   billingType?: string;
   productType?: string;
-  basePrice: string | number;
-  costPrice: string | number;
-  minimumMargin: number;
+  basePrice?: string | number;
+  costPrice?: string | number;
+  listPrice?: string | number;
+  unitCost?: string | number;
+  taxRate?: string | number;
+  minimumMargin?: string | number;
 }
 
 interface Toast {
@@ -166,123 +171,129 @@ export default function CatalogPage() {
   }
 
   return (
-    <main className={styles.page}>
-      <div className={styles.container}>
-        <header className={styles.header}>
-          <div className={styles.headerContent}>
-            <div className={styles.headerIcon}>
-              <Package size={16} />
-              <span>Catalog Management</span>
+    <RoleSidebar>
+      <main className={styles.page}>
+        <div className={styles.container}>
+          <header className={styles.header}>
+            <div className={styles.headerContent}>
+              <div className={styles.headerIcon}>
+                <Package size={16} />
+                <span>Catalog Management</span>
+              </div>
+              <h1 className={styles.title}>Product Catalog & Categories</h1>
+              <p className={styles.subtitle}>
+                Manage base price lists, cost basis, category hierarchies, and target margins consumed by Quotations.
+              </p>
             </div>
-            <h1 className={styles.title}>Product Catalog & Categories</h1>
-            <p className={styles.subtitle}>
-              Manage base price lists, cost basis, category hierarchies, and target margins consumed by Quotations.
-            </p>
-          </div>
-          <div className={styles.headerActions}>
-            <button className={styles.secondaryBtn} onClick={() => setShowCategoryModal(true)}>
-              <FolderPlus size={16} />
-              Add Category
-            </button>
-            <button className={styles.primaryBtn} onClick={() => setShowProductModal(true)}>
-              <Plus size={16} />
-              Create Product
-            </button>
-          </div>
-        </header>
-
-        <section className={`${styles.card} ${styles.animateFadeIn}`} style={{ marginBottom: "1.5rem", padding: "1rem 1.25rem" }}>
-          <div className={styles.filterTabs}>
-            <button
-              onClick={() => setSelectedCategory("ALL")}
-              className={`${styles.filterTab} ${selectedCategory === "ALL" ? styles.filterTabActive : ""}`}
-            >
-              All ({products.length})
-            </button>
-            {categories.map((cat) => (
-              <button
-                key={cat.id}
-                onClick={() => setSelectedCategory(cat.id)}
-                className={`${styles.filterTab} ${selectedCategory === cat.id ? styles.filterTabActive : ""}`}
-              >
-                {cat.name} ({cat._count?.products ?? 0})
+            <div className={styles.headerActions}>
+              <button className={styles.secondaryBtn} onClick={() => setShowCategoryModal(true)}>
+                <FolderPlus size={16} />
+                Add Category
               </button>
-            ))}
-          </div>
-        </section>
+              <button className={styles.primaryBtn} onClick={() => setShowProductModal(true)}>
+                <Plus size={16} />
+                Create Product
+              </button>
+            </div>
+          </header>
 
-        {loading ? (
-          <section className={styles.loadingState}>
-            <div className={styles.spinner}></div>
-            <p style={{ color: "#94a3b8" }}>Loading catalog items...</p>
-          </section>
-        ) : filteredProducts.length === 0 ? (
-          <section className={`${styles.card} ${styles.animateFadeIn}`}>
-            <div className={styles.emptyState}>
-              <Package className={styles.emptyIcon} />
-              <p className={styles.emptyText}>No products found in this category</p>
-              <p className={styles.emptySubtext}>Create your first product or select another category.</p>
+          <section className={`${styles.card} ${styles.animateFadeIn}`} style={{ marginBottom: "1.5rem", padding: "1rem 1.25rem" }}>
+            <div className={styles.filterTabs}>
+              <button
+                className={`${styles.filterTab} ${selectedCategory === "ALL" ? styles.filterTabActive : ""}`}
+                onClick={() => setSelectedCategory("ALL")}
+              >
+                All Products ({products.length})
+              </button>
+              {categories.map((c) => (
+                <button
+                  key={c.id || c.name}
+                  className={`${styles.filterTab} ${selectedCategory === c.name || selectedCategory === c.id ? styles.filterTabActive : ""}`}
+                  onClick={() => setSelectedCategory(c.name)}
+                >
+                  {c.name} ({products.filter((p) => p.category === c.name || p.categoryId === c.id).length})
+                </button>
+              ))}
             </div>
           </section>
-        ) : (
-          <div className={`${styles.productGrid} ${styles.animateFadeIn}`}>
-            {filteredProducts.map((product) => {
-              const base = Number(product.basePrice);
-              const cost = Number(product.costPrice);
-              const margin = base > 0 ? (((base - cost) / base) * 100).toFixed(1) : "0";
-              const minMargin = Number(product.minimumMargin);
-              const marginClass = Number(margin) >= minMargin ? styles.marginGood : Number(margin) >= minMargin - 5 ? styles.marginWarning : styles.marginBad;
 
-              return (
-                <div key={product.id} className={styles.productCard}>
-                  <div className={styles.productHeader}>
-                    <span className={`${styles.statusBadge} ${styles.badgePrimary}`}>
-                      <Tag size={10} style={{ marginRight: "0.25rem" }} />
-                      {typeof product.category === "string" ? product.category : product.category?.name || "General"}
-                    </span>
-                    <span className={`${styles.statusBadge} ${product.billingType === "RECURRING" || product.productType === "SUBSCRIPTION" ? styles.badgeNegotiating : styles.badgeInfo}`}>
-                      {product.billingType || product.productType || "ONE_TIME"}
-                    </span>
-                  </div>
+          {loading ? (
+            <div className={styles.loadingContainer}>
+              <div className={styles.spinner}></div>
+              <p style={{ color: "#94a3b8" }}>Loading catalog items...</p>
+            </div>
+          ) : filteredProducts.length === 0 ? (
+            <section className={`${styles.card} ${styles.animateFadeIn}`}>
+              <div className={styles.emptyState}>
+                <Package className={styles.emptyIcon} />
+                <p className={styles.emptyText}>No products found in this category</p>
+                <p className={styles.emptySubtext}>Create your first product or select another category.</p>
+              </div>
+            </section>
+          ) : (
+            <div className={`${styles.productGrid} ${styles.animateFadeIn}`}>
+              {filteredProducts.map((product) => {
+                const rawListPrice = product.listPrice;
+                const rawUnitCost = product.unitCost;
+                const listPriceNum = typeof rawListPrice === "number" ? rawListPrice : typeof rawListPrice === "string" ? parseFloat(rawListPrice) : typeof rawListPrice === "object" && rawListPrice !== null ? Number((rawListPrice as any).value ?? (rawListPrice as any).toString?.() ?? 0) : 0;
+                const unitCostNum = typeof rawUnitCost === "number" ? rawUnitCost : typeof rawUnitCost === "string" ? parseFloat(rawUnitCost) : typeof rawUnitCost === "object" && rawUnitCost !== null ? Number((rawUnitCost as any).value ?? (rawUnitCost as any).toString?.() ?? 0) : 0;
+                const base = isNaN(listPriceNum) ? 0 : listPriceNum;
+                const cost = isNaN(unitCostNum) ? 0 : unitCostNum;
+                const margin = base > 0 ? (((base - cost) / base) * 100).toFixed(1) : "0.0";
+                const rawMinMargin = product.minimumMargin;
+                const minMargin = typeof rawMinMargin === "number" ? rawMinMargin : typeof rawMinMargin === "string" ? parseFloat(rawMinMargin) : 10;
+                const marginClass = Number(margin) >= minMargin ? styles.marginGood : Number(margin) >= minMargin - 5 ? styles.marginWarning : styles.marginBad;
 
-                  <h3 className={styles.productName}>{product.name}</h3>
-                  {product.description && (
-                    <p className={styles.productDescription}>{product.description}</p>
-                  )}
+                return (
+                  <div key={product.id} className={styles.productCard}>
+                    <div className={styles.productHeader}>
+                      <span className={`${styles.statusBadge} ${styles.badgePrimary}`}>
+                        <Tag size={10} style={{ marginRight: "0.25rem" }} />
+                        {typeof product.category === "string" ? product.category : product.category?.name || "General"}
+                      </span>
+                      <span className={`${styles.statusBadge} ${product.billingType === "RECURRING" || product.productType === "SUBSCRIPTION" ? styles.badgeNegotiating : styles.badgeInfo}`}>
+                        {product.billingType || product.productType || "ONE_TIME"}
+                      </span>
+                    </div>
 
-                  <div className={styles.productDivider}></div>
+                    <h3 className={styles.productName}>{product.name}</h3>
+                    {product.description && (
+                      <p className={styles.productDescription}>{product.description}</p>
+                    )}
 
-                  <div className={styles.productPricing}>
-                    <div className={styles.priceItem}>
-                      <div className={styles.priceLabel}>Base Price</div>
-                      <div className={styles.priceValue}>
-                        ${Number(product.basePrice).toLocaleString("en-US", { minimumFractionDigits: 2 })}
+                    <div className={styles.productDivider}></div>
+
+                    <div className={styles.productPricing}>
+                      <div className={styles.priceItem}>
+                        <div className={styles.priceLabel}>Base Price</div>
+                        <div className={styles.priceValue}>
+                          ${base.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        </div>
+                      </div>
+                      <div className={styles.priceItem}>
+                        <div className={styles.priceLabel}>Cost Price</div>
+                        <div className={styles.priceValue}>
+                          ${cost.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        </div>
                       </div>
                     </div>
-                    <div className={styles.priceItem}>
-                      <div className={styles.priceLabel}>Cost Price</div>
-                      <div className={styles.priceValue}>
-                        ${Number(product.costPrice).toLocaleString("en-US", { minimumFractionDigits: 2 })}
+
+                    <div className={styles.marginIndicator}>
+                      <div className={styles.marginLabel}>
+                        <TrendingUp size={14} style={{ color: Number(margin) >= minMargin ? "#34d399" : "#f87171" }} />
+                        <span>Base Margin:</span>
+                      </div>
+                      <div style={{ textAlign: "right" }}>
+                        <span className={`${styles.marginValue} ${marginClass}`}>{margin}%</span>
+                        <div className={styles.marginMin}>Min: {minMargin}%</div>
                       </div>
                     </div>
                   </div>
-
-                  <div className={styles.marginIndicator}>
-                    <div className={styles.marginLabel}>
-                      <TrendingUp size={14} style={{ color: Number(margin) >= minMargin ? "#34d399" : "#f87171" }} />
-                      <span>Base Margin:</span>
-                    </div>
-                    <div style={{ textAlign: "right" }}>
-                      <span className={`${styles.marginValue} ${marginClass}`}>{margin}%</span>
-                      <div className={styles.marginMin}>Min: {minMargin}%</div>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
-      </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
 
       {showProductModal && (
         <div className={styles.modal} onClick={() => setShowProductModal(false)}>
@@ -501,5 +512,6 @@ export default function CatalogPage() {
         </div>
       )}
     </main>
+    </RoleSidebar>
   );
 }

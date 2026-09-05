@@ -28,8 +28,9 @@ export default function SettingsPage() {
         const res = await fetch("/api/auth/me");
         if (res.ok) {
           const data = await res.json();
-          if (data.user) {
-            setProfile(data.user);
+          const userData = data.success ? data.data : data.user;
+          if (userData?.id) {
+            setProfile(userData);
           }
         }
       } catch (err) {

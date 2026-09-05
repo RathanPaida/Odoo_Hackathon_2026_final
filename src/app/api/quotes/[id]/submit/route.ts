@@ -6,6 +6,7 @@ import { prisma } from "@/lib/db";
 import { requireRole } from "@/lib/auth/rbac";
 import { transitionQuotation } from "@/lib/services/quotation";
 import { getApprovalClient } from "@/lib/services/approval-client";
+import { serializeForApi } from "@/lib/api-response";
 
 export async function POST(
   req: NextRequest,
@@ -62,8 +63,8 @@ export async function POST(
   return NextResponse.json({
     success: true,
     data: {
-      quote: updatedQuote,
-      evaluation,
+      quote: serializeForApi(updatedQuote),
+      evaluation: serializeForApi(evaluation),
     },
   });
 }

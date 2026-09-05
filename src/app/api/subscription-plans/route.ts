@@ -6,6 +6,7 @@ import { requireRole } from "@/lib/auth/rbac";
 import { prisma } from "@/lib/db";
 import { writeAudit } from "@/lib/audit";
 import { dec } from "@/lib/services/billing";
+import { serializeForApi } from "@/lib/api-response";
 
 const SubscriptionPlanSchema = z.object({
   name: z.string().min(1),
@@ -29,7 +30,7 @@ export async function GET() {
       orderBy: { createdAt: "desc" },
     });
 
-    return NextResponse.json({ success: true, data: plans });
+    return NextResponse.json({ success: true, data: serializeForApi(plans) });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Unknown error";
     return NextResponse.json(
@@ -67,7 +68,7 @@ export async function POST(request: NextRequest) {
       after: { name: plan.name, billingCycle: plan.billingCycle, price: data.price },
     });
 
-    return NextResponse.json({ success: true, data: plan }, { status: 201 });
+    return NextResponse.json({ success: true, data: serializeForApi(plan) }, { status: 201 });
   } catch (err) {
     if (err instanceof z.ZodError) {
       return NextResponse.json(

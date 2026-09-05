@@ -40,9 +40,10 @@ export default function ProfilePage() {
         const res = await fetch("/api/auth/me");
         if (res.ok) {
           const data = await res.json();
-          if (data.user) {
-            setProfile(data.user);
-            setName(data.user.name || "");
+          const userData = data.success ? data.data : data.user;
+          if (userData?.id) {
+            setProfile(userData);
+            setName(userData.name || "");
           }
         }
       } catch (err) {
@@ -80,7 +81,8 @@ export default function ProfilePage() {
       const data = await res.json();
       if (res.ok) {
         setMessage({ text: "Profile updated successfully!", type: "success" });
-        setProfile(data.user);
+        const userData = data.success ? data.data : data.user;
+        setProfile(userData);
         setCurrentPassword("");
         setNewPassword("");
         setConfirmPassword("");

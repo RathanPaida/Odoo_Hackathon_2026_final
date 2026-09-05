@@ -5,6 +5,18 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { RoleSidebar } from "@/components/navbar/RoleSidebar";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer,
+  CartesianGrid,
+  Cell,
+  PieChart,
+  Pie,
+} from "recharts";
 import styles from "../dashboard.module.css";
 
 interface Invoice {
@@ -32,7 +44,20 @@ interface DashboardData {
   };
   recentInvoices: Invoice[];
   dueSubscriptions: Subscription[];
+  revenueByMonth: { month: string; revenue: number }[];
+  invoicesByStatus: { status: string; count: number }[];
 }
+
+const STATUS_COLORS: Record<string, string> = {
+  PAID: "#34d399",
+  ISSUED: "#60a5fa",
+  OVERDUE: "#f87171",
+  PARTIALLY_PAID: "#fbbf24",
+  DRAFT: "#94a3b8",
+  CANCELLED: "#64748b",
+};
+
+const CHART_COLORS = ["#8b5cf6", "#06b6d4", "#f59e0b", "#ef4444", "#10b981", "#3b82f6"];
 
 export default function FinanceDashboardPage() {
   const router = useRouter();
@@ -45,7 +70,7 @@ export default function FinanceDashboardPage() {
       try {
         const [metricsRes, invoicesRes] = await Promise.all([
           fetch("/api/dashboard/metrics"),
-          fetch("/api/invoices?limit=10"),
+          fetch("/api/invoices?limit=50"),
         ]);
 
         if (!metricsRes.ok || !invoicesRes.ok) {
@@ -55,6 +80,10 @@ export default function FinanceDashboardPage() {
         const metricsData = await metricsRes.json();
         const invoicesData = await invoicesRes.json();
 
+        const invoices: Invoice[] = invoicesData.data?.invoices ?? [];
+        const revenueByMonth = computeRevenueByMonth(invoices);
+        const invoicesByStatus = computeInvoicesByStatus(invoices);
+
         setData({
           metrics: {
             totalRevenue: metricsData.data?.metrics?.totalRevenue ?? 0,
@@ -62,8 +91,10 @@ export default function FinanceDashboardPage() {
             activeSubscriptions: metricsData.data?.metrics?.activeSubscriptions ?? 0,
             pendingApprovals: metricsData.data?.metrics?.pendingApprovals ?? 0,
           },
-          recentInvoices: invoicesData.data?.invoices ?? [],
+          recentInvoices: invoices.slice(0, 10),
           dueSubscriptions: [],
+          revenueByMonth,
+          invoicesByStatus,
         });
       } catch (err) {
         setError(err instanceof Error ? err.message : "Unknown error");
@@ -74,6 +105,28 @@ export default function FinanceDashboardPage() {
 
     fetchData();
   }, []);
+
+  function computeRevenueByMonth(invoices: Invoice[]) {
+    const byMonth: Record<string, number> = {};
+    for (const inv of invoices) {
+      if (inv.status !== "PAID") continue;
+      const date = new Date(inv.dueAt);
+      const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
+      byMonth[key] = (byMonth[key] ?? 0) + Number(inv.amount);
+    }
+    return Object.entries(byMonth)
+      .map(([month, revenue]) => ({ month, revenue }))
+      .sort((a, b) => a.month.localeCompare(b.month))
+      .slice(-6);
+  }
+
+  function computeInvoicesByStatus(invoices: Invoice[]) {
+    const byStatus: Record<string, number> = {};
+    for (const inv of invoices) {
+      byStatus[inv.status] = (byStatus[inv.status] ?? 0) + 1;
+    }
+    return Object.entries(byStatus).map(([status, count]) => ({ status, count }));
+  }
 
   if (loading) {
     return (
@@ -91,6 +144,8 @@ export default function FinanceDashboardPage() {
       </RoleSidebar>
     );
   }
+
+  const totalInvoices = data?.invoicesByStatus.reduce((acc, s) => acc + s.count, 0) ?? 0;
 
   return (
     <RoleSidebar role="FINANCE">
@@ -124,6 +179,95 @@ export default function FinanceDashboardPage() {
             value={String(data?.metrics.pendingApprovals ?? 0)}
             highlight={data?.metrics.pendingApprovals ? "yellow" : "green"}
           />
+        </div>
+
+        <div className={`${styles.cardGrid} ${styles.cardGrid2}`}>
+          <section className={`${styles.card} ${styles.animateFadeIn}`}>
+            <h2 className={styles.cardTitle}>Revenue Trend</h2>
+            <p className={styles.subtitle} style={{ marginBottom: "1rem" }}>
+              Paid invoice revenue by month
+            </p>
+            {data?.revenueByMonth && data.revenueByMonth.length > 0 ? (
+              <div style={{ width: "100%", height: 220 }}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={data.revenueByMonth} margin={{ top: 5, right: 10, left: -20, bottom: 20 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(139,92,246,0.1)" />
+                    <XAxis
+                      dataKey="month"
+                      stroke="#94a3b8"
+                      tick={{ fill: "#94a3b8", fontSize: 11 }}
+                      tickFormatter={(v: string) => v.slice(5)}
+                    />
+                    <YAxis
+                      stroke="#94a3b8"
+                      tick={{ fill: "#94a3b8", fontSize: 11 }}
+                      tickFormatter={(v: number) => `$${(v / 1000).toFixed(0)}k`}
+                    />
+                    <Tooltip
+                      contentStyle={{
+                        backgroundColor: "#1e1b4b",
+                        borderColor: "rgba(139,92,246,0.4)",
+                        borderRadius: "0.75rem",
+                        color: "#fff",
+                        fontSize: "0.8125rem",
+                      }}
+                      formatter={(val: any) => [`$${Number(val).toLocaleString()}`, "Revenue"]}
+                    />
+                    <Bar dataKey="revenue" radius={[4, 4, 0, 0]}>
+                      {data.revenueByMonth.map((_, i) => (
+                        <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            ) : (
+              <p className={styles.emptyStateText}>No revenue data available</p>
+            )}
+          </section>
+
+          <section className={`${styles.card} ${styles.animateFadeIn}`}>
+            <h2 className={styles.cardTitle}>Invoice Status Distribution</h2>
+            <p className={styles.subtitle} style={{ marginBottom: "1rem" }}>
+              Breakdown of all invoices by current status
+            </p>
+            {data?.invoicesByStatus && data.invoicesByStatus.length > 0 ? (
+              <div style={{ width: "100%", height: 220 }}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={data.invoicesByStatus}
+                      dataKey="count"
+                      nameKey="status"
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={55}
+                      outerRadius={85}
+                      paddingAngle={3}
+                      labelLine={{ stroke: "#a78bfa", strokeWidth: 1 }}
+                      label={true}
+                    >
+                      {data.invoicesByStatus.map((entry, i) => (
+                        <Cell key={entry.status} fill={STATUS_COLORS[entry.status] || CHART_COLORS[i % CHART_COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip
+                      contentStyle={{
+                        backgroundColor: "#1e1b4b",
+                        borderColor: "rgba(139,92,246,0.4)",
+                        borderRadius: "0.75rem",
+                        color: "#fff",
+                        fontSize: "0.8125rem",
+                      }}
+                      formatter={(val: any, name: any) => [`${val} Invoices`, name]}
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+            ) : (
+              <p className={styles.emptyStateText}>No invoice data available</p>
+            )}
+          </section>
         </div>
 
         <div className={`${styles.cardGrid} ${styles.cardGrid2}`}>
@@ -173,24 +317,52 @@ export default function FinanceDashboardPage() {
           </section>
 
           <section className={`${styles.card} ${styles.animateFadeIn}`}>
-            <div className="flex items-center justify-between mb-4">
-              <h2 className={styles.cardTitle}>Quick Actions</h2>
-            </div>
-            <div className="space-y-3">
-              <button
-                onClick={() => router.push("/dashboard/billing")}
-                className={styles.navLink}
-              >
-                <h3 className={styles.navTitle}>Manage Subscription Plans</h3>
-                <p className={styles.navDescription}>Configure billing cycles and pricing</p>
-              </button>
-              <button
-                onClick={() => router.push("/dashboard/billing")}
-                className={styles.navLink}
-              >
-                <h3 className={styles.navTitle}>View All Invoices</h3>
-                <p className={styles.navDescription}>Track payments and outstanding balances</p>
-              </button>
+            <h2 className={styles.cardTitle}>Key Metrics</h2>
+            <p className={styles.subtitle} style={{ marginBottom: "1.5rem" }}>
+              Financial health indicators
+            </p>
+            <div className="space-y-4">
+              <div className="flex items-center justify-between py-3 border-b border-[rgba(139,92,246,0.1)]">
+                <div>
+                  <p className="text-sm text-[#94a3b8]">Collection Rate</p>
+                  <p className="text-lg font-semibold text-[#f1f5f9]">
+                    {totalInvoices > 0
+                      ? `${Math.round((data?.invoicesByStatus.find(s => s.status === "PAID")?.count ?? 0) / totalInvoices * 100)}%`
+                      : "N/A"}
+                  </p>
+                </div>
+                <span className={`${styles.statusBadge} ${styles.statusBadgeApproved}`}>
+                  Paid
+                </span>
+              </div>
+              <div className="flex items-center justify-between py-3 border-b border-[rgba(139,92,246,0.1)]">
+                <div>
+                  <p className="text-sm text-[#94a3b8]">Outstanding Rate</p>
+                  <p className="text-lg font-semibold text-[#f1f5f9]">
+                    {totalInvoices > 0
+                      ? `${Math.round(
+                          ((data?.invoicesByStatus.find(
+                            (item) => item.status === "OVERDUE"
+                          )?.count ?? 0) /
+                            totalInvoices) *
+                            100
+                        )}%`
+                      : "N/A"}
+                  </p>
+                </div>
+                <span className={`${styles.statusBadge} ${styles.statusBadgeRejected}`}>
+                  Overdue
+                </span>
+              </div>
+              <div className="flex items-center justify-between py-3">
+                <div>
+                  <p className="text-sm text-[#94a3b8]">Total Invoices</p>
+                  <p className="text-lg font-semibold text-[#f1f5f9]">{totalInvoices}</p>
+                </div>
+                <span className={`${styles.statusBadge}`}>
+                  All Time
+                </span>
+              </div>
             </div>
           </section>
         </div>

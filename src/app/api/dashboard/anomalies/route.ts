@@ -3,6 +3,7 @@
 import { NextResponse } from "next/server";
 import { getStalledDeals, getDiscountAnomalies, getAnomalyMetrics } from "@/lib/services/dashboard";
 import { requireRole } from "@/lib/auth/rbac";
+import { serializeForApi } from "@/lib/api-response";
 
 export const runtime = "nodejs";
 
@@ -19,7 +20,7 @@ export async function GET() {
 
     return NextResponse.json({
       success: true,
-      data: { stalledDeals, discountAnomalies, anomalyMetrics },
+      data: serializeForApi({ stalledDeals, discountAnomalies, anomalyMetrics }),
     });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Unknown error";

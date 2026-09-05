@@ -7,6 +7,7 @@ import { Prisma } from "@/generated/prisma";
 import { transitionQuotation } from "@/lib/services/quotation";
 import { getApprovalClient } from "@/lib/services/approval-client";
 import { computeQuoteTotals } from "@/lib/services/pricing";
+import { serializeForApi } from "@/lib/api-response";
 
 /**
  * POST /api/portal/:token/negotiate
@@ -228,8 +229,8 @@ export async function POST(
   return NextResponse.json({
     success: true,
     data: {
-      comment,
-      quote: updatedQuote,
+      comment: serializeForApi(comment),
+      quote: serializeForApi(updatedQuote),
     },
   });
 }

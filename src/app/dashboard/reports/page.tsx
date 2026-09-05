@@ -10,13 +10,15 @@ type ReportType = "quotes" | "revenue" | "products" | "approvals";
 type Period = "this_month" | "last_month" | "last_quarter" | "this_year" | "all";
 
 interface QuoteRow {
+  quoteId: string;
   quoteNumber: string;
   customerName: string;
   repName: string;
+  repId: string | null;
   status: string;
-  subtotal: string;
-  discountPct: string;
-  marginPct: string;
+  subtotal: number;
+  discountPct: number;
+  marginPct: number;
   createdAt: string;
   confirmedAt: string | null;
 }
@@ -67,7 +69,7 @@ export default function ReportsPage() {
         const res = await fetch("/api/admin/users");
         if (res.ok) {
           const result = await res.json();
-          setUsers(result.data ?? []);
+          setUsers(result.data?.users ?? []);
         }
       } catch {
         // ignore
@@ -239,10 +241,10 @@ function QuotesTable({ data }: { data: QuoteRow[] }) {
                   {row.status}
                 </span>
               </td>
-              <td className={styles.cellPrimary}>${Number(row.subtotal).toLocaleString()}</td>
-              <td>{row.discountPct}%</td>
-              <td className={Number(row.marginPct) >= 10 ? styles.textGood : styles.textBad}>
-                {row.marginPct}%
+              <td className={styles.cellPrimary}>${((row.subtotal ?? 0)).toLocaleString()}</td>
+              <td>{((row.discountPct ?? 0)).toFixed(1)}%</td>
+              <td className={Number(row.marginPct ?? 0) >= 10 ? styles.textGood : styles.textBad}>
+                {((row.marginPct ?? 0)).toFixed(1)}%
               </td>
               <td className={styles.cellMuted}>{new Date(row.createdAt).toLocaleDateString()}</td>
             </tr>
@@ -271,9 +273,9 @@ function RevenueTable({ data }: { data: RevenueRow[] }) {
           {data.map((row, i) => (
             <tr key={i}>
               <td className={styles.cellPrimary}>{row.month}</td>
-              <td className={styles.textGood}>${row.revenue.toLocaleString()}</td>
-              <td>{row.orderCount}</td>
-              <td>${row.avgDealSize.toLocaleString()}</td>
+              <td className={styles.textGood}>${((row.revenue ?? 0)).toLocaleString()}</td>
+              <td>{row.orderCount ?? 0}</td>
+              <td>${((row.avgDealSize ?? 0)).toLocaleString()}</td>
             </tr>
           ))}
         </tbody>
@@ -302,9 +304,9 @@ function ProductsTable({ data }: { data: ProductRow[] }) {
             <tr key={i}>
               <td className={styles.cellPrimary}>{row.productName}</td>
               <td className={styles.cellMuted}>{row.category}</td>
-              <td>{row.unitsSold}</td>
-              <td className={styles.textGood}>${row.revenue.toLocaleString()}</td>
-              <td>{row.avgDiscount}%</td>
+              <td>{row.unitsSold ?? 0}</td>
+              <td className={styles.textGood}>${((row.revenue ?? 0)).toLocaleString()}</td>
+              <td>{row.avgDiscount ?? 0}%</td>
             </tr>
           ))}
         </tbody>
@@ -334,11 +336,11 @@ function ApprovalsTable({ data }: { data: ApprovalRow[] }) {
           {data.map((row, i) => (
             <tr key={i}>
               <td className={styles.cellPrimary}>{row.repName}</td>
-              <td>{row.submitted}</td>
-              <td className={styles.textGood}>{row.approved}</td>
-              <td className={styles.textBad}>{row.rejected}</td>
-              <td className={styles.textWarning}>{row.pending}</td>
-              <td className={styles.cellPrimary}>{row.approvalRate}%</td>
+              <td>{row.submitted ?? 0}</td>
+              <td className={styles.textGood}>{row.approved ?? 0}</td>
+              <td className={styles.textBad}>{row.rejected ?? 0}</td>
+              <td className={styles.textWarning}>{row.pending ?? 0}</td>
+              <td className={styles.cellPrimary}>{((row.approvalRate ?? 0)).toFixed(1)}%</td>
               <td className={styles.cellMuted}>{row.avgTurnaroundHours ?? "N/A"}</td>
             </tr>
           ))}

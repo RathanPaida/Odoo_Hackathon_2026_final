@@ -30,7 +30,7 @@ import s from "./RoleSidebar.module.css";
 
 export type Role = "ADMIN" | "SALES_REP" | "SALES_MANAGER" | "FINANCE" | "CUSTOMER";
 
-interface NavItem {
+export interface NavItem {
   href: string;
   label: string;
   icon: React.ComponentType<{ size?: number; className?: string }>;
@@ -50,7 +50,7 @@ const repNav: NavItem[] = [
   { href: "/dashboard/rep/quotes", label: "Quotations", icon: FileText },
   { href: "/dashboard/rep/customers", label: "Customers", icon: Users },
   { href: "/catalog", label: "Catalog", icon: Package },
-  { href: "/dashboard/rep/customer/new", label: "New Customer", icon: UserCog },
+  { href: "/dashboard/rep/customers/new", label: "New Customer", icon: UserCog },
 ];
 
 const managerNav: NavItem[] = [
@@ -80,7 +80,7 @@ const customerNav: NavItem[] = [
   { href: "/dashboard/customer/support", label: "Support", icon: ShieldCheck },
 ];
 
-const NAV_BY_ROLE: Record<Role, NavItem[]> = {
+export const NAV_BY_ROLE: Record<Role, NavItem[]> = {
   ADMIN: adminNav,
   SALES_REP: repNav,
   SALES_MANAGER: managerNav,
@@ -88,7 +88,7 @@ const NAV_BY_ROLE: Record<Role, NavItem[]> = {
   CUSTOMER: customerNav,
 };
 
-const ROLE_LABEL: Record<Role, string> = {
+export const ROLE_LABEL: Record<Role, string> = {
   ADMIN: "Administrator",
   SALES_REP: "Sales Rep",
   SALES_MANAGER: "Sales Manager",
@@ -122,11 +122,12 @@ export function RoleSidebar({
         const res = await fetch("/api/auth/me");
         if (res.ok) {
           const data = await res.json();
-          if (data.user) {
+          const userData = data.success ? data.data : data.user;
+          if (userData?.id) {
             setCurrentUser({
-              name: data.user.name,
-              email: data.user.email,
-              role: data.user.role as Role,
+              name: userData.name,
+              email: userData.email,
+              role: userData.role as Role,
             });
           }
         }

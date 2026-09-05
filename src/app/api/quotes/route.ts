@@ -7,19 +7,30 @@ import { prisma } from "@/lib/db";
 import { requireRole } from "@/lib/auth/rbac";
 import { CreateQuoteSchema } from "@/lib/contracts/quote";
 import { writeAudit } from "@/lib/audit";
+import { apiSuccess, serializeForApi } from "@/lib/api-response";
 
 export async function GET(req: NextRequest) {
-  const { user, response } = await requireRole("SALES_REP", "SALES_MANAGER", "ADMIN");
+  const { user, response } = await requireRole("SALES_REP", "SALES_MANAGER", "ADMIN", "CUSTOMER");
   if (response) return response;
 
   const url = new URL(req.url);
   const status = url.searchParams.get("status");
 
-  const where: any = {};
+  const where: Record<string, unknown> = {};
   if (user!.role === "SALES_REP") {
     where.ownerId = user!.id;
   }
-  if (status) {
+  if (user!.role === "CUSTOMER") {
+    const customer = await prisma.customer.findFirst({
+      where: { email: user!.email },
+    });
+    if (customer) {
+      where.customerId = customer.id;
+    } else {
+      where.id = "none";
+    }
+  }
+  if (status && status !== "ALL") {
     where.status = status;
   }
 
@@ -28,13 +39,16 @@ export async function GET(req: NextRequest) {
     include: {
       customer: { select: { companyName: true, tier: true } },
       owner: { select: { name: true } },
-      _count: { select: { lines: true } },
+      lines: { select: { id: true } },
     },
     orderBy: { updatedAt: "desc" },
     take: 50,
   });
 
-  return NextResponse.json({ success: true, data: quotes });
+  return NextResponse.json({
+    success: true,
+    data: serializeForApi(quotes),
+  });
 }
 
 export async function POST(req: NextRequest) {
@@ -59,7 +73,6 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  // Generate simple quote number Q-YYYYMMDD-XXXX
   const dateStr = new Date().toISOString().slice(0, 10).replace(/-/g, "");
   const randomStr = Math.floor(1000 + Math.random() * 9000).toString();
   const quoteNumber = `Q-${dateStr}-${randomStr}`;
@@ -80,5 +93,8 @@ export async function POST(req: NextRequest) {
     actorId: user!.id,
   });
 
-  return NextResponse.json({ success: true, data: quote }, { status: 201 });
+  return NextResponse.json({
+    success: true,
+    data: serializeForApi(quote),
+  }, { status: 201 });
 }

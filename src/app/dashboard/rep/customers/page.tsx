@@ -147,7 +147,9 @@ export default async function RepCustomersPage({
                       </td>
                       <td>
                         <span className={styles.cellPrimary}>
-                          {c._count.quotes}
+                          <Link href={`/dashboard/rep/customers/${c.id}`} style={{ color: "#c4b5fd", textDecoration: "underline" }}>
+                            {c._count.quotes}
+                          </Link>
                         </span>
                       </td>
                       <td>
@@ -168,6 +170,12 @@ export default async function RepCustomersPage({
                       </td>
                       <td>
                         <div style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
+                          <Link
+                            href={`/dashboard/rep/customers/${c.id}`}
+                            className={styles.actionLink}
+                          >
+                            View
+                          </Link>
                           <Link
                             href={`/dashboard/rep/customers/${c.id}`}
                             className={styles.actionLink}

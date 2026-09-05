@@ -3,6 +3,7 @@
 import { NextResponse } from "next/server";
 import { getDashboardMetrics, getQuotePipelineValue, getRevenueByMonth } from "@/lib/services/dashboard";
 import { requireRole } from "@/lib/auth/rbac";
+import { apiSuccess, serializeForApi } from "@/lib/api-response";
 
 export const runtime = "nodejs";
 
@@ -19,7 +20,11 @@ export async function GET() {
 
     return NextResponse.json({
       success: true,
-      data: { metrics, pipeline, revenueByMonth },
+      data: {
+        metrics: serializeForApi(metrics),
+        pipeline: serializeForApi(pipeline),
+        revenueByMonth: serializeForApi(revenueByMonth),
+      },
     });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Unknown error";

@@ -3,6 +3,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireRole } from "@/lib/auth/rbac";
 import { getInvoiceById, cancelInvoice } from "@/lib/services/billing";
+import { serializeForApi } from "@/lib/api-response";
 
 export const runtime = "nodejs";
 
@@ -23,7 +24,7 @@ export async function GET(
         { status: 404 }
       );
     }
-    return NextResponse.json({ success: true, data: invoice });
+    return NextResponse.json({ success: true, data: serializeForApi(invoice) });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Unknown error";
     return NextResponse.json(
@@ -46,7 +47,7 @@ export async function DELETE(
 
   try {
     const invoice = await cancelInvoice(id, reason);
-    return NextResponse.json({ success: true, data: invoice });
+    return NextResponse.json({ success: true, data: serializeForApi(invoice) });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Unknown error";
     return NextResponse.json(

@@ -5,6 +5,7 @@ import { prisma } from "@/lib/db";
 import { hashPassword } from "@/lib/auth/password";
 import { SignupSchema } from "@/lib/contracts/auth";
 import { Role } from "@/generated/prisma";
+import { serializeForApi } from "@/lib/api-response";
 
 export async function POST(req: NextRequest) {
   let body: unknown;
@@ -72,7 +73,7 @@ export async function POST(req: NextRequest) {
   }
 
   return Response.json(
-    { ok: true, message: "Account created. Verification required.", requiresVerification: true, data: user },
+    { ok: true, message: "Account created. Verification required.", requiresVerification: true, data: serializeForApi(user) },
     { status: 201 }
   );
 }

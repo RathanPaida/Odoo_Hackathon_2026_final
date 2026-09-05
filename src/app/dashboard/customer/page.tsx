@@ -1,88 +1,123 @@
-import { redirect } from "next/navigation";
-import { getCurrentUser } from "@/lib/auth/session";
-import { prisma } from "@/lib/db";
-import { RoleSidebar } from "@/components/navbar/RoleSidebar";
+"use client";
+
+import { useEffect, useState } from "react";
 import Link from "next/link";
-import { 
-  User, 
-  FileText, 
+import {
+  User,
+  FileText,
   ChevronRight,
-  Users
+  Users,
 } from "lucide-react";
+import { RoleSidebar } from "@/components/navbar/RoleSidebar";
 import { CustomerNewQuoteButton } from "./quotations/CustomerNewQuoteButton";
 import { CustomerPhoneEditor } from "./CustomerPhoneEditor";
 import s from "./customer.module.css";
 
-export const dynamic = "force-dynamic";
+interface CustomerProfile {
+  id: string;
+  companyName: string;
+  contactName: string;
+  email: string;
+  phone: string | null;
+  tier: "BRONZE" | "SILVER" | "GOLD" | "PLATINUM";
+}
 
-export default async function CustomerDashboardPage() {
-  const user = await getCurrentUser();
-  if (!user || user.role !== "CUSTOMER") redirect("/login");
+interface QuoteRow {
+  id: string;
+  quoteNumber: string;
+  createdAt: string;
+  status: string;
+  grandTotal: number;
+}
 
-  // Fetch real customer record matching email or name, or create if missing
-  let customer = await prisma.customer.findFirst({
-    where: {
-      OR: [
-        { email: user.email },
-        { contactName: { contains: user.name, mode: "insensitive" } },
-        { companyName: { contains: user.name, mode: "insensitive" } },
-      ],
-    },
-    include: {
-      quotes: {
-        orderBy: { createdAt: "desc" },
-        take: 10,
-        include: { portalTokens: { where: { revokedAt: null }, take: 1 } },
-      },
-      _count: { select: { quotes: true, orders: true } },
-    },
-  });
+interface MeUser {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+}
 
-  if (!customer) {
-    customer = await prisma.customer.create({
-      data: {
-        companyName: user.name || "Direct Customer",
-        contactName: user.name || "Primary Contact",
-        email: user.email,
-        phone: "+91-9876543210",
-        tier: "GOLD",
-      },
-      include: {
-        quotes: {
-          orderBy: { createdAt: "desc" },
-          take: 10,
-          include: { portalTokens: { where: { revokedAt: null }, take: 1 } },
-        },
-        _count: { select: { quotes: true, orders: true } },
-      },
-    });
+function getStatusBadge(status: string) {
+  switch (status) {
+    case "APPROVED":
+      return <span className={`${s.statusBadge} ${s.badgeApproved}`}>Approved</span>;
+    case "PENDING_APPROVAL":
+      return <span className={`${s.statusBadge} ${s.badgePending}`}>Pending Approval</span>;
+    case "CONFIRMED":
+      return <span className={`${s.statusBadge} ${s.badgeConfirmed}`}>Confirmed</span>;
+    case "REJECTED":
+      return <span className={`${s.statusBadge} ${s.badgeRejected}`}>Rejected</span>;
+    case "NEGOTIATING":
+      return <span className={`${s.statusBadge} ${s.badgeNegotiating}`}>Negotiating</span>;
+    default:
+      return <span className={`${s.statusBadge} ${s.badgeDraft}`}>{status}</span>;
+  }
+}
+
+export default function CustomerDashboardPage() {
+  const [me, setMe] = useState<MeUser | null>(null);
+  const [profile, setProfile] = useState<CustomerProfile | null>(null);
+  const [quotes, setQuotes] = useState<QuoteRow[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function load() {
+      try {
+        const [meRes, profileRes, quotesRes] = await Promise.all([
+          fetch("/api/auth/me"),
+          fetch("/api/customer/profile"),
+          fetch("/api/quotes?status=ALL"),
+        ]);
+
+        if (meRes.ok) {
+          const data = await meRes.json();
+          const userData = data.success ? data.data : data.user;
+          if (userData?.id) setMe(userData);
+        }
+
+        if (profileRes.ok) {
+          const data = await profileRes.json();
+          if (data.data?.customer) setProfile(data.data.customer);
+        }
+
+        if (quotesRes.ok) {
+          const data = await quotesRes.json();
+          if (Array.isArray(data.data)) setQuotes(data.data);
+        }
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    load();
+  }, []);
+
+  const userName = me?.name ?? "Customer";
+  const userEmail = me?.email ?? "";
+  const activeQuotesCount = quotes.filter((q) => q.status === "APPROVED" || q.status === "PENDING_APPROVAL" || q.status === "DRAFT").length;
+  const pendingCount = quotes.filter((q) => q.status === "PENDING_APPROVAL").length;
+  const confirmedCount = quotes.filter((q) => q.status === "CONFIRMED").length;
+  const totalValue = quotes.reduce((acc, q) => acc + Number(q.grandTotal || 0), 0);
+
+  async function openPortal(quoteId: string) {
+    try {
+      const res = await fetch("/api/customer/portal", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ quoteId }),
+      });
+      const data = await res.json();
+      if (res.ok && data.data?.portalUrl) {
+        window.open(data.data.portalUrl, "_blank");
+      }
+    } catch (err) {
+      console.error(err);
+    }
   }
 
-  const quotes = customer?.quotes ?? [];
-  const activeQuotesCount = quotes.filter(q => q.status === "APPROVED" || q.status === "PENDING_APPROVAL" || q.status === "DRAFT").length;
-  const pendingCount = quotes.filter(q => q.status === "PENDING_APPROVAL").length;
-  const confirmedCount = customer?._count.orders ?? quotes.filter(q => q.status === "CONFIRMED").length;
-  const totalValue = quotes.reduce((acc, q) => acc + Number(q.grandTotal), 0);
-
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case "APPROVED":
-        return <span className={`${s.statusBadge} ${s.badgeApproved}`}>Approved</span>;
-      case "PENDING_APPROVAL":
-        return <span className={`${s.statusBadge} ${s.badgePending}`}>Pending Approval</span>;
-      case "CONFIRMED":
-        return <span className={`${s.statusBadge} ${s.badgeConfirmed}`}>Confirmed</span>;
-      case "REJECTED":
-        return <span className={`${s.statusBadge} ${s.badgeRejected}`}>Rejected</span>;
-      case "NEGOTIATING":
-        return <span className={`${s.statusBadge} ${s.badgeNegotiating}`}>Negotiating</span>;
-      default:
-        return <span className={`${s.statusBadge} ${s.badgeDraft}`}>{status}</span>;
-    }
-  };
-
   return (
-    <RoleSidebar role="CUSTOMER" userName={user.name} userEmail={user.email}>
+    <RoleSidebar role="CUSTOMER" userName={userName} userEmail={userEmail}>
       <main className={s.page}>
         <div className={s.container}>
           <div className={s.header}>
@@ -91,7 +126,7 @@ export default async function CustomerDashboardPage() {
                 <User size={14} />
                 Customer Portal
               </div>
-              <h1 className={s.title}>Welcome back, {user.name}</h1>
+              <h1 className={s.title}>Welcome back, {userName}</h1>
               <p className={s.subtitle}>
                 Manage your quotations, track approvals, and review your account details.
               </p>
@@ -108,7 +143,7 @@ export default async function CustomerDashboardPage() {
             </div>
             <div className={s.statCard}>
               <div className={s.statLabel}>Pending Approval</div>
-              <div className={`${s.statValue}`} style={{color: '#fbbf24'}}>{pendingCount}</div>
+              <div className={`${s.statValue}`} style={{ color: "#fbbf24" }}>{pendingCount}</div>
             </div>
             <div className={s.statCard}>
               <div className={s.statLabel}>Confirmed Orders</div>
@@ -120,12 +155,12 @@ export default async function CustomerDashboardPage() {
             </div>
           </div>
 
-          <div className={`${s.card} ${s.animateFadeIn}`} style={{animationDelay: '0.1s'}}>
+          <div className={`${s.card} ${s.animateFadeIn}`} style={{ animationDelay: "0.1s" }}>
             <div className={s.sectionTitle}>
               <span className={s.sectionIcon}><FileText size={18} /></span>
               Your Quotations
             </div>
-            <p className={s.subtitle} style={{marginBottom: '1.5rem'}}>
+            <p className={s.subtitle} style={{ marginBottom: "1.5rem" }}>
               View quotations, review line discounts, and accept terms.
             </p>
 
@@ -142,24 +177,25 @@ export default async function CustomerDashboardPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {quotes.length > 0 ? (
-                      quotes.map((q) => {
-                        const portalToken = q.portalTokens?.[0]?.tokenHash;
-                        const href = portalToken ? `/portal/${portalToken}` : `/dashboard/rep/quotes/${q.id}`;
-                        return (
-                          <tr key={q.id}>
-                            <td className={s.cellMono}>{q.quoteNumber}</td>
-                            <td className={s.cellMuted}>{new Date(q.createdAt).toLocaleDateString()}</td>
-                            <td>{getStatusBadge(q.status)}</td>
-                            <td className={s.cellPrimary}>₹{Number(q.grandTotal).toLocaleString()}</td>
-                            <td>
-                              <Link href={href} className={s.actionLink}>
-                                View <ChevronRight size={14} />
-                              </Link>
-                            </td>
-                          </tr>
-                        );
-                      })
+                    {loading ? (
+                      <tr><td colSpan={5} className="text-center py-6 text-[#94a3b8]">Loading...</td></tr>
+                    ) : quotes.length > 0 ? (
+                      quotes.map((q) => (
+                        <tr key={q.id}>
+                          <td className={s.cellMono}>{q.quoteNumber}</td>
+                          <td className={s.cellMuted}>{new Date(q.createdAt).toLocaleDateString()}</td>
+                          <td>{getStatusBadge(q.status)}</td>
+                          <td className={s.cellPrimary}>₹{Number(q.grandTotal).toLocaleString()}</td>
+                          <td>
+                            <button
+                              onClick={() => openPortal(q.id)}
+                              className={s.actionLink}
+                            >
+                              View <ChevronRight size={14} />
+                            </button>
+                          </td>
+                        </tr>
+                      ))
                     ) : (
                       <tr>
                         <td colSpan={5} className="text-center py-6 text-[#94a3b8]">
@@ -173,29 +209,29 @@ export default async function CustomerDashboardPage() {
             </div>
           </div>
 
-          <div className={`${s.card} ${s.animateFadeIn}`} style={{marginTop: '2rem', animationDelay: '0.2s'}}>
+          <div className={`${s.card} ${s.animateFadeIn}`} style={{ marginTop: "2rem", animationDelay: "0.2s" }}>
             <div className={s.sectionTitle}>
               <span className={s.sectionIcon}><Users size={18} /></span>
               Account Information
             </div>
-            <div style={{display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.5rem', marginTop: '1rem'}}>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "1.5rem", marginTop: "1rem" }}>
               <div>
-                <p className={s.cellMuted} style={{fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.25rem'}}>Customer Name</p>
-                <p className={s.cellPrimary}>{customer?.companyName || user.name}</p>
+                <p className={s.cellMuted} style={{ fontSize: "0.75rem", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "0.25rem" }}>Customer Name</p>
+                <p className={s.cellPrimary}>{profile?.companyName || userName}</p>
               </div>
               <div>
-                <p className={s.cellMuted} style={{fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.25rem'}}>Email</p>
-                <p className={s.cellPrimary}>{user.email}</p>
+                <p className={s.cellMuted} style={{ fontSize: "0.75rem", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "0.25rem" }}>Email</p>
+                <p className={s.cellPrimary}>{userEmail}</p>
               </div>
               <div>
-                <p className={s.cellMuted} style={{fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.25rem'}}>Customer Tier</p>
-                <span className={`${s.tierBadge} ${customer?.tier === "PLATINUM" ? s.tierPlatinum : customer?.tier === "GOLD" ? s.tierGold : customer?.tier === "SILVER" ? s.tierSilver : s.tierBronze}`}>
-                  {customer?.tier || "GOLD"}
+                <p className={s.cellMuted} style={{ fontSize: "0.75rem", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "0.25rem" }}>Customer Tier</p>
+                <span className={`${s.tierBadge} ${profile?.tier === "PLATINUM" ? s.tierPlatinum : profile?.tier === "GOLD" ? s.tierGold : profile?.tier === "SILVER" ? s.tierSilver : s.tierBronze}`}>
+                  {profile?.tier || "GOLD"}
                 </span>
               </div>
               <div>
-                <p className={s.cellMuted} style={{fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.25rem'}}>Phone</p>
-                <CustomerPhoneEditor initialPhone={customer?.phone} />
+                <p className={s.cellMuted} style={{ fontSize: "0.75rem", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "0.25rem" }}>Phone</p>
+                <CustomerPhoneEditor initialPhone={profile?.phone} />
               </div>
             </div>
           </div>

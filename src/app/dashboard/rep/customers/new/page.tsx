@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth/session";
 import Link from "next/link";
+import { RoleSidebar } from "@/components/navbar/RoleSidebar";
 import CustomerForm from "../CustomerForm";
 import styles from "../../../dashboard.module.css";
 
@@ -13,25 +14,27 @@ export default async function NewCustomerPage() {
   }
 
   return (
-    <main className={styles.page}>
-      <div className={styles.container} style={{ maxWidth: "56rem" }}>
-        <header className={styles.header}>
-          <div className={styles.headerLeft}>
-            <Link href="/dashboard/rep/customers" className={styles.backLink}>
-              ← Back to Customers
-            </Link>
-            <h1 className={styles.title}>New Customer</h1>
-            <p className={styles.subtitle}>
-              Create a new customer profile and assign their tier.
-            </p>
-          </div>
-        </header>
+    <RoleSidebar role={user.role} userName={user.name} userEmail={user.email}>
+      <main className={styles.page}>
+        <div className={styles.container} style={{ maxWidth: "56rem" }}>
+          <header className={styles.header}>
+            <div className={styles.headerLeft}>
+              <Link href="/dashboard/rep/customers" className={styles.backLink}>
+                ← Back to Customers
+              </Link>
+              <h1 className={styles.title}>New Customer</h1>
+              <p className={styles.subtitle}>
+                Create a new customer profile and assign their tier.
+              </p>
+            </div>
+          </header>
 
-        <section className={`${styles.card} ${styles.animateFadeIn}`}>
-          <CustomerForm />
-        </section>
-      </div>
-    </main>
+          <section className={`${styles.card} ${styles.animateFadeIn}`}>
+            <CustomerForm />
+          </section>
+        </div>
+      </main>
+    </RoleSidebar>
   );
 }
 

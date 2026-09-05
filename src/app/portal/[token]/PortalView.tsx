@@ -2,16 +2,33 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Card, CardHeader, CardTitle, Field, Textarea, Badge, Button, useToast } from "@/components/ui";
-import { badgeToneForQuoteStatus } from "@/components/ui";
+import { useToast } from "@/components/ui";
+import s from "./portal-view.module.css";
+
+const STATUS_COLORS: Record<string, string> = {
+  DRAFT: "#94a3b8",
+  PENDING_APPROVAL: "#fbbf24",
+  APPROVED: "#34d399",
+  REJECTED: "#f87171",
+  NEGOTIATING: "#60a5fa",
+  CONFIRMED: "#a78bfa",
+  CANCELLED: "#64748b",
+};
 
 export default function PortalView({ quote, token }: { quote: any; token: string }) {
   const router = useRouter();
+  const toast = useToast();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [counterOfferText, setCounterOfferText] = useState("");
   const [isCountering, setIsCountering] = useState(false);
-  const toast = useToast();
+
+  const isApproved = quote.status === "APPROVED";
+  const isNegotiating = quote.status === "NEGOTIATING";
+  const isConfirmed = quote.status === "CONFIRMED";
+  const isPending = quote.status === "PENDING_APPROVAL";
+  const isDraft = quote.status === "DRAFT";
+  const isRejected = quote.status === "REJECTED";
 
   const handleConfirm = async () => {
     const ok = await toast.confirm({
@@ -58,186 +75,253 @@ export default function PortalView({ quote, token }: { quote: any; token: string
     }
   };
 
-  const isApproved = quote.status === "APPROVED";
-  const isNegotiating = quote.status === "NEGOTIATING";
-  const isConfirmed = quote.status === "CONFIRMED";
-
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-      <div className="lg:col-span-2 space-y-6">
-        <Card tone="paper">
-          <div className="flex justify-between items-start mb-6 pb-6 border-b border-[var(--paper-border)]">
+    <div className={s.layout}>
+      {/* Left column */}
+      <div className={s.leftCol}>
+        {/* Quote Header Card */}
+        <div className={`${s.card} ${s.animateFadeIn}`}>
+          <div className={s.cardHeader}>
             <div>
-              <h2 className="text-xl font-semibold tracking-tight text-gray-900">
-                Quote {quote.quoteNumber}
-              </h2>
-              <p className="text-sm text-gray-500 mt-1">
-                {new Date(quote.updatedAt).toLocaleDateString()}
+              <h2 className={s.cardTitle}>Quote {quote.quoteNumber}</h2>
+              <p className={s.cardMeta}>
+                {quote.customer.companyName} &middot; {new Date(quote.updatedAt).toLocaleDateString()}
               </p>
             </div>
-            <Badge tone={badgeToneForQuoteStatus(quote.status)}>
+            <span
+              className={s.statusBadge}
+              style={{ color: STATUS_COLORS[quote.status] || "#94a3b8", borderColor: STATUS_COLORS[quote.status] || "#94a3b8", backgroundColor: `${STATUS_COLORS[quote.status] || "#94a3b8"}15` }}
+            >
               {quote.status.replace("_", " ")}
-            </Badge>
+            </span>
           </div>
 
           {error && (
-            <div className="mb-6 p-3.5 rounded-lg bg-rose-50 text-rose-700 border border-rose-200 text-sm">
+            <div className={s.errorBox}>
               {error}
             </div>
           )}
 
-          <h3 className="text-base font-semibold text-gray-900 mb-3">Products &amp; services</h3>
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm tabular">
-              <thead>
-                <tr className="border-b border-[var(--paper-border)] bg-[var(--paper)]">
-                  <th className="p-3 font-semibold text-gray-900">Item</th>
-                  <th className="p-3 font-semibold text-gray-900 text-right">Qty</th>
-                  <th className="p-3 font-semibold text-gray-900 text-right">Price</th>
-                  <th className="p-3 font-semibold text-gray-900 text-right">Total</th>
-                </tr>
-              </thead>
-              <tbody>
-                {quote.lines.map((line: any) => (
-                  <tr key={line.id} className="border-b border-[var(--paper-border)] last:border-0">
-                    <td className="p-3">
-                      <div className="font-medium text-gray-900">{line.product.name}</div>
-                      <div className="text-xs text-gray-500">{line.product.sku}</div>
-                    </td>
-                    <td className="p-3 text-right">{line.qty}</td>
-                    <td className="p-3 text-right">
-                      {quote.currency} {Number(line.unitPrice).toLocaleString()}
-                      {Number(line.discountPct) > 0 && (
-                        <div className="text-xs text-emerald-600">
-                          −{Number(line.discountPct)}% applied
-                        </div>
-                      )}
-                    </td>
-                    <td className="p-3 text-right font-medium text-gray-900">
-                      {quote.currency} {Number(line.lineTotal).toLocaleString()}
-                    </td>
+          {/* Products Table */}
+          <div className={s.tableSection}>
+            <h3 className={s.tableTitle}>Products &amp; Services</h3>
+            <div className={s.tableWrap}>
+              <table className={s.table}>
+                <thead>
+                  <tr>
+                    <th>Item</th>
+                    <th className={s.alignRight}>Qty</th>
+                    <th className={s.alignRight}>Unit Price</th>
+                    <th className={s.alignRight}>Total</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {quote.lines.map((line: any) => (
+                    <tr key={line.id}>
+                      <td>
+                        <div className={s.itemName}>{line.product.name}</div>
+                        <div className={s.itemSku}>{line.product.sku}</div>
+                      </td>
+                      <td className={s.alignRight}>{line.qty}</td>
+                      <td className={s.alignRight}>
+                        <div>{quote.currency} {Number(line.unitPrice).toLocaleString()}</div>
+                        {Number(line.discountPct) > 0 && (
+                          <div className={s.discountNote}>
+                            −{Number(line.discountPct).toFixed(1)}% applied
+                          </div>
+                        )}
+                      </td>
+                      <td className={`${s.alignRight} ${s.totalCell}`}>
+                        {quote.currency} {Number(line.lineTotal).toLocaleString()}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
-        </Card>
+        </div>
 
+        {/* Discussion */}
         {quote.negotiationComments.length > 0 && (
-          <Card tone="paper">
-            <CardHeader>
-              <CardTitle>Discussion</CardTitle>
-            </CardHeader>
-            <ul className="space-y-3">
+          <div className={`${s.card} ${s.animateFadeIn}`} id="discussion">
+            <h3 className={s.cardTitle}>Discussion</h3>
+            <div className={s.discussionList}>
               {quote.negotiationComments.map((comment: any) => (
-                <li
+                <div
                   key={comment.id}
-                  className={`p-3.5 rounded-lg text-sm border ${
-                    comment.actorId
-                      ? "bg-indigo-50 border-indigo-100 ml-8"
-                      : "bg-[var(--paper)] border-[var(--paper-border)] mr-8"
-                  }`}
+                  className={`${s.commentBubble} ${comment.actorId ? s.commentRep : s.commentCustomer}`}
                 >
-                  <div className="font-medium text-gray-900 mb-1">
-                    {comment.actorId ? quote.owner.name : quote.customer.contactName}
-                    <span className="text-gray-400 text-xs ml-2">
+                  <div className={s.commentMeta}>
+                    <span className={s.commentAuthor}>
+                      {comment.actorId ? quote.owner.name : quote.customer.contactName}
+                    </span>
+                    <span className={s.commentTime}>
                       {new Date(comment.createdAt).toLocaleString()}
                     </span>
                   </div>
-                  <p className="text-gray-700 whitespace-pre-wrap">{comment.content}</p>
-                </li>
+                  <p className={s.commentText}>{comment.content}</p>
+                </div>
               ))}
-            </ul>
-          </Card>
+            </div>
+          </div>
+        )}
+
+        {/* Status Banner */}
+        {isNegotiating && (
+          <div className={`${s.card} ${s.statusBannerNegotiating} ${s.animateFadeIn}`}>
+            <div className={s.statusBannerIcon}>⏳</div>
+            <div>
+              <p className={s.statusBannerTitle}>Your request is being reviewed</p>
+              <p className={s.statusBannerText}>The sales team will be in touch shortly.</p>
+            </div>
+          </div>
+        )}
+
+        {isConfirmed && (
+          <div className={`${s.card} ${s.statusBannerConfirmed} ${s.animateFadeIn}`}>
+            <div className={s.statusBannerIcon}>✅</div>
+            <div>
+              <p className={s.statusBannerTitle}>Order confirmed</p>
+              <p className={s.statusBannerText}>This order has been placed successfully.</p>
+            </div>
+          </div>
+        )}
+
+        {isPending && (
+          <div className={`${s.card} ${s.statusBannerPending} ${s.animateFadeIn}`}>
+            <div className={s.statusBannerIcon}>⏳</div>
+            <div>
+              <p className={s.statusBannerTitle}>Awaiting approval</p>
+              <p className={s.statusBannerText}>This quote is pending internal approval.</p>
+            </div>
+          </div>
+        )}
+
+        {isDraft && (
+          <div className={`${s.card} ${s.statusBannerDraft} ${s.animateFadeIn}`}>
+            <div className={s.statusBannerIcon}>📝</div>
+            <div>
+              <p className={s.statusBannerTitle}>Quote in draft</p>
+              <p className={s.statusBannerText}>Your sales rep is still working on this quote.</p>
+            </div>
+          </div>
+        )}
+
+        {isRejected && (
+          <div className={`${s.card} ${s.statusBannerRejected} ${s.animateFadeIn}`}>
+            <div className={s.statusBannerIcon}>❌</div>
+            <div>
+              <p className={s.statusBannerTitle}>Quote rejected</p>
+              <p className={s.statusBannerText}>Please contact your sales rep for more information.</p>
+            </div>
+          </div>
         )}
       </div>
 
-      <div>
-        <Card tone="paper" className="sticky top-6">
-          <CardHeader>
-            <CardTitle>Order summary</CardTitle>
-          </CardHeader>
-          <div className="space-y-2 text-sm border-b border-[var(--paper-border)] pb-4 mb-4 tabular">
-            <Row label="Subtotal" value={`${quote.currency} ${Number(quote.subtotal).toLocaleString()}`} />
+      {/* Right column — sticky summary */}
+      <div className={s.rightCol}>
+        <div className={`${s.card} ${s.summaryCard} ${s.animateFadeIn}`}>
+          <h3 className={s.cardTitle}>Order Summary</h3>
+
+          <div className={s.summaryRows}>
+            <div className={s.summaryRow}>
+              <span>Subtotal</span>
+              <span>{quote.currency} {Number(quote.subtotal).toLocaleString()}</span>
+            </div>
             {Number(quote.discountTotal) > 0 && (
-              <Row label="Discount" value={`−${quote.currency} ${Number(quote.discountTotal).toLocaleString()}`} tone="positive" />
+              <div className={`${s.summaryRow} ${s.summaryRowDiscount}`}>
+                <span>Discount</span>
+                <span>−{quote.currency} {Number(quote.discountTotal).toLocaleString()}</span>
+              </div>
             )}
-            <Row label="Tax" value={`${quote.currency} ${Number(quote.taxTotal).toLocaleString()}`} />
+            <div className={s.summaryRow}>
+              <span>Tax</span>
+              <span>{quote.currency} {Number(quote.taxTotal).toLocaleString()}</span>
+            </div>
           </div>
-          <div className="flex justify-between items-center text-lg font-semibold text-gray-900 mb-6 tabular">
+
+          <div className={s.summaryTotal}>
             <span>Total</span>
-            <span>{quote.currency} {Number(quote.grandTotal).toLocaleString()}</span>
+            <span className={s.grandTotal}>
+              {quote.currency} {Number(quote.grandTotal).toLocaleString()}
+            </span>
           </div>
 
           {isApproved && !isCountering && (
-            <div className="space-y-2">
-              <Button variant="primary" className="w-full" loading={loading} onClick={handleConfirm}>
-                Accept &amp; confirm order
-              </Button>
-              <Button variant="secondary" className="w-full" disabled={loading} onClick={() => setIsCountering(true)}>
+            <div className={s.actionButtons}>
+              <button
+                className={s.btnPrimary}
+                onClick={handleConfirm}
+                disabled={loading}
+              >
+                {loading ? "Processing..." : "Accept & confirm order"}
+              </button>
+              <button
+                className={s.btnSecondary}
+                onClick={() => setIsCountering(true)}
+                disabled={loading}
+              >
                 Request changes
-              </Button>
+              </button>
             </div>
           )}
 
           {isCountering && (
-            <form onSubmit={handleCounterOffer} className="space-y-3">
-              <Field label="What would you like to negotiate?" htmlFor="counter">
-                <Textarea
-                  id="counter"
-                  value={counterOfferText}
-                  onChange={(e) => setCounterOfferText(e.target.value)}
-                  placeholder="Tell us what you’d like to discuss…"
-                  rows={4}
-                />
-              </Field>
-              <div className="flex gap-2">
-                <Button variant="ghost" className="flex-1" type="button" onClick={() => setIsCountering(false)}>
+            <form onSubmit={handleCounterOffer} className={s.negotiateForm}>
+              <label className={s.negotiateLabel}>
+                What would you like to negotiate?
+              </label>
+              <textarea
+                className={s.negotiateTextarea}
+                value={counterOfferText}
+                onChange={(e) => setCounterOfferText(e.target.value)}
+                placeholder="Tell us what you'd like to discuss…"
+                rows={4}
+              />
+              <div className={s.negotiateActions}>
+                <button
+                  type="button"
+                  className={s.btnGhost}
+                  onClick={() => setIsCountering(false)}
+                >
                   Cancel
-                </Button>
-                <Button variant="primary" className="flex-1" type="submit" loading={loading} disabled={!counterOfferText.trim()}>
-                  Send request
-                </Button>
+                </button>
+                <button
+                  type="submit"
+                  className={s.btnPrimary}
+                  disabled={!counterOfferText.trim() || loading}
+                >
+                  {loading ? "Sending..." : "Send request"}
+                </button>
               </div>
             </form>
           )}
 
-          {isNegotiating && (
-            <div className="p-4 bg-amber-50 text-amber-800 rounded-lg border border-amber-200 text-sm text-center">
-              Your request is being reviewed. The sales team will be in touch shortly.
-            </div>
-          )}
-
-          {isConfirmed && (
-            <div className="p-4 bg-emerald-50 text-emerald-800 rounded-lg border border-emerald-200 text-sm text-center">
-              This order has been confirmed.
-            </div>
-          )}
-
           {!["APPROVED", "NEGOTIATING", "CONFIRMED"].includes(quote.status) && (
-            <div className="p-4 bg-[var(--paper)] text-gray-700 rounded-lg border border-[var(--paper-border)] text-sm text-center">
+            <div className={s.inactiveNote}>
               This quote is not currently actionable.
             </div>
           )}
-        </Card>
-      </div>
-    </div>
-  );
-}
+        </div>
 
-function Row({
-  label,
-  value,
-  tone,
-}: {
-  label: string;
-  value: string;
-  tone?: "positive";
-}) {
-  return (
-    <div className={`flex justify-between ${tone === "positive" ? "text-emerald-700" : "text-gray-600"}`}>
-      <span>{label}</span>
-      <span>{value}</span>
+        {/* Contact Sales */}
+        <div className={`${s.card} ${s.contactCard} ${s.animateFadeIn}`}>
+          <p className={s.contactLabel}>Your sales representative</p>
+          <div className={s.contactPerson}>
+            <div className={s.contactAvatar}>
+              {quote.owner.name?.charAt(0).toUpperCase()}
+            </div>
+            <div>
+              <p className={s.contactName}>{quote.owner.name}</p>
+              <p className={s.contactEmail}>{quote.owner.email}</p>
+            </div>
+          </div>
+          <a href={`mailto:${quote.owner.email}`} className={s.contactBtn}>
+            Send a message
+          </a>
+        </div>
+      </div>
     </div>
   );
 }

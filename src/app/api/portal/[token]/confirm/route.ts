@@ -3,6 +3,7 @@ export const runtime = "nodejs";
 import { NextRequest, NextResponse } from "next/server";
 import { validatePortalToken } from "@/lib/services/portal";
 import { convertQuoteToOrder } from "@/lib/services/order";
+import { serializeForApi } from "@/lib/api-response";
 
 export async function POST(
   req: NextRequest,
@@ -28,7 +29,7 @@ export async function POST(
   try {
     // Pass customerId as the actor
     const newOrder = await convertQuoteToOrder(quoteRef.id, quoteRef.customerId);
-    return NextResponse.json({ success: true, data: newOrder });
+    return NextResponse.json({ success: true, data: serializeForApi(newOrder) });
   } catch (error: any) {
     return NextResponse.json(
       { success: false, error: { code: "SERVER_ERROR", message: error.message } },

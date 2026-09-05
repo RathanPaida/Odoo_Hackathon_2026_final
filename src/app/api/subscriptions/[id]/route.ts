@@ -3,6 +3,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireRole } from "@/lib/auth/rbac";
 import { getSubscriptionLineById } from "@/lib/services/subscription";
+import { serializeForApi } from "@/lib/api-response";
 
 export const runtime = "nodejs";
 
@@ -23,7 +24,7 @@ export async function GET(
         { status: 404 }
       );
     }
-    return NextResponse.json({ success: true, data: subscription });
+    return NextResponse.json({ success: true, data: serializeForApi(subscription) });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Unknown error";
     return NextResponse.json(

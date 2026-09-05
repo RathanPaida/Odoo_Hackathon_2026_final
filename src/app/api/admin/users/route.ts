@@ -6,6 +6,7 @@ export const dynamic = "force-dynamic";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { requireRole } from "@/lib/auth/rbac";
+import { serializeForApi } from "@/lib/api-response";
 
 export async function GET() {
   const { user, response } = await requireRole("ADMIN");
@@ -23,5 +24,5 @@ export async function GET() {
     orderBy: { createdAt: "desc" },
   });
 
-  return NextResponse.json({ users });
+  return NextResponse.json({ success: true, data: serializeForApi({ users }) });
 }

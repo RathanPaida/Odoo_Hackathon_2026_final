@@ -5,6 +5,7 @@ import { z } from "zod";
 import { requireRole } from "@/lib/auth/rbac";
 import { listInvoices, createOneTimeInvoice } from "@/lib/services/billing";
 import { InvoiceStatus } from "@/lib/contracts/billing";
+import { serializeForApi } from "@/lib/api-response";
 
 const CreateInvoiceSchema = z.object({
   quoteId: z.string().min(1),
@@ -30,7 +31,7 @@ export async function GET(request: NextRequest) {
       offset,
     });
 
-    return NextResponse.json({ success: true, data: { invoices, total } });
+    return NextResponse.json({ success: true, data: serializeForApi({ invoices, total }) });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Unknown error";
     return NextResponse.json(
@@ -50,7 +51,7 @@ export async function POST(request: NextRequest) {
 
     const invoice = await createOneTimeInvoice(quoteId, dueDays);
 
-    return NextResponse.json({ success: true, data: invoice }, { status: 201 });
+    return NextResponse.json({ success: true, data: serializeForApi(invoice) }, { status: 201 });
   } catch (err) {
     if (err instanceof z.ZodError) {
       return NextResponse.json(

@@ -69,7 +69,7 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    return NextResponse.json({ success: true, data });
+    return NextResponse.json({ success: true, data: Array.isArray(data) ? data : [] });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Unknown error";
     return NextResponse.json(

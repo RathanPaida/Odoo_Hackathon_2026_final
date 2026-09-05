@@ -7,6 +7,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth/session";
 import { prisma } from "@/lib/db";
 import { hashPassword, verifyPassword } from "@/lib/auth/password";
+import { serializeForApi } from "@/lib/api-response";
 import { z } from "zod";
 
 const UpdateProfileSchema = z.object({
@@ -37,12 +38,15 @@ export async function GET() {
   });
 
   return NextResponse.json({
-    user: dbUser ?? {
-      id: user.id,
-      email: user.email,
-      name: user.name,
-      role: user.role,
-    },
+    success: true,
+    data: serializeForApi(
+      dbUser ?? {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        role: user.role,
+      }
+    ),
   });
 }
 
@@ -105,7 +109,10 @@ export async function PATCH(req: NextRequest) {
       },
     });
 
-    return NextResponse.json({ success: true, user: updated });
+    return NextResponse.json({
+      success: true,
+      data: serializeForApi(updated),
+    });
   } catch (err: any) {
     if (err instanceof z.ZodError) {
       return NextResponse.json(

@@ -25,7 +25,7 @@ export default async function QuotesPage({
   searchParams: Promise<{ status?: QuoteStatus }>;
 }) {
   const user = await getCurrentUser();
-  if (!user || (user.role !== "SALES_REP" && user.role !== "SALES_MANAGER" && user.role !== "ADMIN")) {
+  if (!user || (user.role !== "SALES_REP" && user.role !== "SALES_MANAGER" && user.role !== "ADMIN" && user.role !== "FINANCE")) {
     redirect("/login");
   }
 

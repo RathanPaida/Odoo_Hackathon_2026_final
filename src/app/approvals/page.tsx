@@ -12,6 +12,7 @@ import {
   Sparkles,
   X,
 } from "lucide-react";
+import { RoleSidebar } from "@/components/navbar/RoleSidebar";
 import styles from "./approvals.module.css";
 
 interface RiskBreakdown {
@@ -198,8 +199,9 @@ export default function ApprovalsPage() {
   };
 
   return (
-    <main className={styles.page}>
-      <div className={styles.container}>
+    <RoleSidebar>
+      <main className={styles.page}>
+        <div className={styles.container}>
         <header className={styles.header}>
           <div className={styles.headerContent}>
             <div className={styles.headerIcon}>
@@ -508,5 +510,6 @@ export default function ApprovalsPage() {
         )}
       </div>
     </main>
+    </RoleSidebar>
   );
 }

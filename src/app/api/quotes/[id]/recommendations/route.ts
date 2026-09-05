@@ -3,6 +3,7 @@ export const runtime = "nodejs";
 import { NextRequest, NextResponse } from "next/server";
 import { getRecommendationsForQuote } from "@/lib/services/recommendations";
 import { requireRole } from "@/lib/auth/rbac";
+import { serializeForApi } from "@/lib/api-response";
 
 export async function GET(
   req: NextRequest,
@@ -15,7 +16,7 @@ export async function GET(
   
   try {
     const recommendations = await getRecommendationsForQuote(id);
-    return NextResponse.json({ success: true, data: recommendations });
+    return NextResponse.json({ success: true, data: serializeForApi(recommendations) });
   } catch (error: any) {
     return NextResponse.json(
       { success: false, error: { code: "SERVER_ERROR", message: error.message } },

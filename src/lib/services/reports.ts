@@ -52,6 +52,7 @@ export async function getQuoteReport(filters: ReportFilters): Promise<ReportRow[
     where,
     include: {
       customer: true,
+      owner: { select: { id: true, name: true } },
     },
     orderBy: { createdAt: "desc" },
   });
@@ -60,11 +61,12 @@ export async function getQuoteReport(filters: ReportFilters): Promise<ReportRow[
     quoteId: q.id,
     quoteNumber: q.quoteNumber,
     customerName: q.customer.companyName,
-    repName: "Sales Rep", // user table isn't easily accessible directly if relation isn't explicitly defined
+    repName: q.owner?.name ?? "Sales Rep",
+    repId: q.owner?.id ?? null,
     status: q.status,
-    subtotal: q.subtotal.toString(),
-    discountPct: q.blendedDiscountPct.toString(),
-    marginPct: q.marginPct.toString(),
+    subtotal: Number(q.subtotal),
+    discountPct: Number(q.blendedDiscountPct),
+    marginPct: Number(q.marginPct),
     createdAt: q.createdAt.toISOString(),
     confirmedAt: q.status === "CONFIRMED" ? q.updatedAt.toISOString() : null,
   }));
@@ -85,6 +87,15 @@ export async function getRevenueReport(filters: ReportFilters): Promise<RevenueR
   });
 
   const byMonth: Record<string, { revenue: number; count: number }> = {};
+
+  // Ensure every month in range has at least a zero entry
+  const cursor = new Date(start.getFullYear(), start.getMonth(), 1);
+  const endCursor = new Date(end.getFullYear(), end.getMonth(), 1);
+  while (cursor <= endCursor) {
+    const key = `${cursor.getFullYear()}-${String(cursor.getMonth() + 1).padStart(2, "0")}`;
+    if (!byMonth[key]) byMonth[key] = { revenue: 0, count: 0 };
+    cursor.setMonth(cursor.getMonth() + 1);
+  }
 
   for (const q of quotes) {
     const monthKey = `${q.updatedAt.getFullYear()}-${String(q.updatedAt.getMonth() + 1).padStart(2, "0")}`;
@@ -119,6 +130,10 @@ export async function getProductPerformanceReport(filters: ReportFilters): Promi
     select: { id: true },
   });
   const confirmedQuoteIds = confirmedQuotes.map((q) => q.id);
+
+  if (confirmedQuoteIds.length === 0) {
+    return [];
+  }
 
   const lineWhere: Record<string, unknown> = {
     quoteId: { in: confirmedQuoteIds },
@@ -160,8 +175,63 @@ export async function getProductPerformanceReport(filters: ReportFilters): Promi
 }
 
 export async function getApprovalMetricsReport(filters: ReportFilters): Promise<ApprovalMetricsRow[]> {
-  // Stubbed for now to avoid dealing with ApprovalRequest relations.
-  return [];
+  const { start, end } = getDateRange(filters.period);
+
+  const quotes = await prisma.quote.findMany({
+    where: {
+      createdAt: { gte: start, lte: end },
+      ...(filters.repId ? { ownerId: filters.repId } : {}),
+    },
+    include: {
+      owner: { select: { id: true, name: true } },
+      approvals: { select: { status: true, decidedAt: true, createdAt: true } },
+    },
+  });
+
+  const byRep: Record<string, { name: string; submitted: number; approved: number; rejected: number; pending: number; turnaroundSum: number; turnaroundCount: number }> = {};
+
+  for (const q of quotes) {
+    const repId = q.owner?.id ?? "unknown";
+    if (!byRep[repId]) {
+      byRep[repId] = {
+        name: q.owner?.name ?? "Unknown",
+        submitted: 0,
+        approved: 0,
+        rejected: 0,
+        pending: 0,
+        turnaroundSum: 0,
+        turnaroundCount: 0,
+      };
+    }
+    const entry = byRep[repId];
+    if (q.status === "PENDING_APPROVAL") entry.pending += 1;
+    if (q.status === "APPROVED" || q.status === "CONFIRMED") entry.approved += 1;
+    if (q.status === "REJECTED") entry.rejected += 1;
+    if (q.approvals.length > 0) {
+      entry.submitted += q.approvals.length;
+      for (const a of q.approvals) {
+        if (a.decidedAt) {
+          const hours = (a.decidedAt.getTime() - a.createdAt.getTime()) / (1000 * 60 * 60);
+          entry.turnaroundSum += hours;
+          entry.turnaroundCount += 1;
+        }
+      }
+    }
+  }
+
+  return Object.entries(byRep).map(([repId, data]) => {
+    const decided = data.approved + data.rejected;
+    return {
+      repId,
+      repName: data.name,
+      submitted: data.submitted,
+      approved: data.approved,
+      rejected: data.rejected,
+      pending: data.pending,
+      approvalRate: decided > 0 ? Math.round((data.approved / decided) * 10000) / 100 : 0,
+      avgTurnaroundHours: data.turnaroundCount > 0 ? Math.round((data.turnaroundSum / data.turnaroundCount) * 100) / 100 : null,
+    };
+  });
 }
 
 export function formatCSV<T extends Record<string, unknown>>(rows: T[], columns: (keyof T)[]): string {

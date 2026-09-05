@@ -2,19 +2,19 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { 
-  Users, 
-  UserPlus, 
-  Search, 
+import { useRouter } from "next/navigation";
+import {
+  Users,
+  UserPlus,
+  Search,
   ChevronRight,
   Building2,
-  Mail,
-  Phone
 } from "lucide-react";
 import { RoleSidebar } from "@/components/navbar/RoleSidebar";
 import s from "./customer.module.css";
 
 export default function RepCustomerPage() {
+  const router = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
 
   const customers = [

@@ -6,6 +6,7 @@ import { prisma } from "@/lib/db";
 import { requireRole } from "@/lib/auth/rbac";
 import { UpdateCustomerSchema } from "@/lib/contracts/customer";
 import { writeAudit } from "@/lib/audit";
+import { serializeForApi } from "@/lib/api-response";
 
 export async function GET(
   _req: NextRequest,
@@ -39,7 +40,7 @@ export async function GET(
     );
   }
 
-  return NextResponse.json({ success: true, data: customer });
+  return NextResponse.json({ success: true, data: serializeForApi(customer) });
 }
 
 export async function PATCH(
@@ -99,7 +100,7 @@ export async function PATCH(
     after: updated,
   });
 
-  return NextResponse.json({ success: true, data: updated });
+  return NextResponse.json({ success: true, data: serializeForApi(updated) });
 }
 
 export async function DELETE(

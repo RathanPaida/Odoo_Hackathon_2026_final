@@ -3,6 +3,7 @@ export const runtime = "nodejs";
 import { NextRequest, NextResponse } from "next/server";
 import { validatePortalToken } from "@/lib/services/portal";
 import { prisma } from "@/lib/db";
+import { serializeForApi } from "@/lib/api-response";
 
 /**
  * GET /api/portal/:token/comments — List all negotiation comments for this quote
@@ -26,7 +27,7 @@ export async function GET(
     orderBy: { createdAt: "asc" },
   });
 
-  return NextResponse.json({ success: true, data: comments });
+  return NextResponse.json({ success: true, data: serializeForApi(comments) });
 }
 
 /**
@@ -91,5 +92,5 @@ export async function POST(
     },
   });
 
-  return NextResponse.json({ success: true, data: comment }, { status: 201 });
+  return NextResponse.json({ success: true, data: serializeForApi(comment) }, { status: 201 });
 }

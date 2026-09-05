@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { validatePortalToken } from "@/lib/services/portal";
 import { prisma } from "@/lib/db";
 import PortalView from "./PortalView";
+import { RoleSidebar } from "@/components/navbar/RoleSidebar";
 
 export const dynamic = "force-dynamic";
 
@@ -41,19 +42,50 @@ export default async function PortalPage({
 
   if (!quote) notFound();
 
+  const serializedQuote = JSON.parse(JSON.stringify(quote));
+
   return (
-    <main className="surface-paper min-h-screen">
-      <header className="bg-[var(--primary)] text-white shadow-sm">
-        <div className="max-w-5xl mx-auto px-6 py-5 flex justify-between items-center">
-          <h1 className="text-lg font-semibold tracking-tight">DealFlow360</h1>
-          <span className="text-sm text-indigo-100">
-            Prepared for {quote.customer.companyName}
+    <RoleSidebar
+      role="CUSTOMER"
+      userName={quote.customer.companyName}
+      userEmail={quote.customer.email}
+    >
+      <div
+        style={{
+          maxWidth: "80rem",
+          margin: "0 auto",
+          padding: "2rem 1.5rem",
+        }}
+      >
+        {/* Topbar */}
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            padding: "1rem 0",
+            borderBottom: "1px solid rgba(139,92,246,0.1)",
+            marginBottom: "2rem",
+          }}
+        >
+          <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
+            <span
+              style={{
+                fontSize: "0.875rem",
+                color: "#94a3b8",
+              }}
+            >
+              Quote <strong style={{ color: "#c4b5fd" }}>{quote.quoteNumber}</strong>
+              &nbsp;&mdash;&nbsp; {quote.status.replace("_", " ")}
+            </span>
+          </div>
+          <span style={{ fontSize: "0.8125rem", color: "#64748b" }}>
+            Last updated {new Date(quote.updatedAt).toLocaleDateString()}
           </span>
         </div>
-      </header>
-      <div className="max-w-5xl mx-auto px-6 py-10">
-        <PortalView quote={quote} token={token} />
+
+        <PortalView quote={serializedQuote} token={token} />
       </div>
-    </main>
+    </RoleSidebar>
   );
 }

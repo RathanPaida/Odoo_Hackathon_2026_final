@@ -8,6 +8,7 @@ import { recomputeQuotationTotals } from "@/lib/services/quotation";
 import { generatePortalToken } from "@/lib/services/portal";
 import { writeAudit } from "@/lib/audit";
 import { Prisma } from "@/generated/prisma";
+import { apiSuccess, apiError, serializeForApi } from "@/lib/api-response";
 import { z } from "zod";
 
 const CustomerRequestQuoteSchema = z.object({
@@ -158,7 +159,8 @@ export async function POST(req: NextRequest) {
     {
       success: true,
       data: {
-        quote: updatedQuote,
+        quote: serializeForApi(updatedQuote),
+        salesManager: serializeForApi(salesRep),
         portalToken: rawToken,
         portalUrl: `/portal/${rawToken}`,
       },

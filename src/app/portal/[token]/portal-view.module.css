@@ -1,0 +1,535 @@
+/* portal-view.module.css — matches the app's dark theme (dashboard.module.css) */
+
+.layout {
+  display: grid;
+  grid-template-columns: 1fr 22rem;
+  gap: 1.5rem;
+  align-items: start;
+}
+
+@media (max-width: 1024px) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+.leftCol {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.rightCol {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  position: sticky;
+  top: 1rem;
+}
+
+/* Card base — matches .card in dashboard.module.css */
+.card {
+  background: linear-gradient(145deg, rgba(30, 27, 75, 0.85) 0%, rgba(15, 15, 35, 0.95) 100%);
+  border: 1px solid rgba(139, 92, 246, 0.2);
+  border-radius: 1.25rem;
+  padding: 1.5rem;
+  backdrop-filter: blur(12px);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(139, 92, 246, 0.1);
+}
+
+.animateFadeIn {
+  animation: fadeIn 0.4s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.cardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding-bottom: 1.25rem;
+  border-bottom: 1px solid rgba(139, 92, 246, 0.15);
+  margin-bottom: 1.25rem;
+}
+
+.cardTitle {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #f1f5f9;
+  margin: 0 0 0.25rem 0;
+}
+
+.cardMeta {
+  font-size: 0.8125rem;
+  color: #64748b;
+  margin: 0;
+}
+
+/* Status badge */
+.statusBadge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border: 1px solid;
+  letter-spacing: 0.025em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* Error */
+.errorBox {
+  padding: 0.75rem 1rem;
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: 0.75rem;
+  color: #fca5a5;
+  font-size: 0.875rem;
+  margin-bottom: 1rem;
+}
+
+/* Table */
+.tableSection {
+  margin-top: 0.5rem;
+}
+
+.tableTitle {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: #e2e8f0;
+  margin: 0 0 1rem 0;
+}
+
+.tableWrap {
+  overflow-x: auto;
+  border-radius: 0.75rem;
+  border: 1px solid rgba(139, 92, 246, 0.1);
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+.table thead tr {
+  border-bottom: 1px solid rgba(139, 92, 246, 0.15);
+}
+
+.table th {
+  padding: 0.75rem 1rem;
+  text-align: left;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #a78bfa;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  background: rgba(139, 92, 246, 0.05);
+}
+
+.table tbody tr {
+  border-bottom: 1px solid rgba(139, 92, 246, 0.08);
+  transition: background 0.15s;
+}
+
+.table tbody tr:last-child {
+  border-bottom: none;
+}
+
+.table tbody tr:hover {
+  background: rgba(139, 92, 246, 0.04);
+}
+
+.table td {
+  padding: 0.875rem 1rem;
+  color: #94a3b8;
+  vertical-align: middle;
+}
+
+.alignRight {
+  text-align: right !important;
+}
+
+.itemName {
+  font-weight: 600;
+  color: #e2e8f0;
+  font-size: 0.875rem;
+}
+
+.itemSku {
+  font-size: 0.75rem;
+  color: #475569;
+  margin-top: 0.125rem;
+}
+
+.discountNote {
+  font-size: 0.75rem;
+  color: #34d399;
+  margin-top: 0.125rem;
+}
+
+.totalCell {
+  font-weight: 600;
+  color: #f1f5f9 !important;
+}
+
+/* Discussion */
+.discussionList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+}
+
+.commentBubble {
+  padding: 0.875rem 1rem;
+  border-radius: 0.75rem;
+  font-size: 0.875rem;
+}
+
+.commentRep {
+  background: rgba(139, 92, 246, 0.1);
+  border: 1px solid rgba(139, 92, 246, 0.2);
+  margin-left: 1.5rem;
+}
+
+.commentCustomer {
+  background: rgba(15, 15, 35, 0.6);
+  border: 1px solid rgba(139, 92, 246, 0.1);
+  margin-right: 1.5rem;
+}
+
+.commentMeta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.375rem;
+}
+
+.commentAuthor {
+  font-weight: 600;
+  color: #c4b5fd;
+  font-size: 0.8125rem;
+}
+
+.commentTime {
+  font-size: 0.6875rem;
+  color: #475569;
+}
+
+.commentText {
+  color: #cbd5e1;
+  margin: 0;
+  line-height: 1.5;
+  white-space: pre-wrap;
+}
+
+/* Status banners */
+.statusBannerNegotiating {
+  border-color: rgba(251, 191, 36, 0.3) !important;
+  background: linear-gradient(145deg, rgba(251, 191, 36, 0.08) 0%, rgba(15, 15, 35, 0.95) 100%) !important;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.statusBannerConfirmed {
+  border-color: rgba(52, 211, 153, 0.3) !important;
+  background: linear-gradient(145deg, rgba(52, 211, 153, 0.08) 0%, rgba(15, 15, 35, 0.95) 100%) !important;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.statusBannerPending {
+  border-color: rgba(251, 191, 36, 0.3) !important;
+  background: linear-gradient(145deg, rgba(251, 191, 36, 0.06) 0%, rgba(15, 15, 35, 0.95) 100%) !important;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.statusBannerDraft {
+  border-color: rgba(148, 163, 184, 0.3) !important;
+  background: linear-gradient(145deg, rgba(148, 163, 184, 0.06) 0%, rgba(15, 15, 35, 0.95) 100%) !important;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.statusBannerRejected {
+  border-color: rgba(248, 113, 113, 0.3) !important;
+  background: linear-gradient(145deg, rgba(248, 113, 113, 0.06) 0%, rgba(15, 15, 35, 0.95) 100%) !important;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.statusBannerIcon {
+  font-size: 1.5rem;
+  flex-shrink: 0;
+}
+
+.statusBannerTitle {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: #f1f5f9;
+  margin: 0 0 0.25rem 0;
+}
+
+.statusBannerText {
+  font-size: 0.8125rem;
+  color: #94a3b8;
+  margin: 0;
+}
+
+/* Summary card */
+.summaryCard {
+  position: sticky;
+  top: 1rem;
+}
+
+.summaryRows {
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid rgba(139, 92, 246, 0.15);
+  margin-bottom: 1rem;
+}
+
+.summaryRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.875rem;
+  color: #94a3b8;
+}
+
+.summaryRow span:last-child {
+  color: #cbd5e1;
+  font-family: inherit;
+}
+
+.summaryRowDiscount span:last-child {
+  color: #34d399 !important;
+}
+
+.summaryTotal {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.summaryTotal span:first-child {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: #e2e8f0;
+}
+
+.grandTotal {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #f1f5f9 !important;
+}
+
+/* Buttons */
+.actionButtons {
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+}
+
+.btnPrimary {
+  width: 100%;
+  padding: 0.75rem 1.25rem;
+  background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
+  border: none;
+  border-radius: 0.75rem;
+  color: #fff;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 4px 14px rgba(109, 40, 217, 0.4);
+}
+
+.btnPrimary:hover:not(:disabled) {
+  background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+  box-shadow: 0 6px 20px rgba(109, 40, 217, 0.5);
+  transform: translateY(-1px);
+}
+
+.btnPrimary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btnSecondary {
+  width: 100%;
+  padding: 0.625rem 1.25rem;
+  background: rgba(109, 40, 217, 0.15);
+  border: 1px solid rgba(139, 92, 246, 0.3);
+  border-radius: 0.75rem;
+  color: #c4b5fd;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btnSecondary:hover:not(:disabled) {
+  background: rgba(109, 40, 217, 0.25);
+  border-color: rgba(139, 92, 246, 0.5);
+}
+
+.btnSecondary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btnGhost {
+  padding: 0.5rem 1rem;
+  background: transparent;
+  border: 1px solid rgba(139, 92, 246, 0.2);
+  border-radius: 0.5rem;
+  color: #94a3b8;
+  font-size: 0.8125rem;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.btnGhost:hover {
+  background: rgba(139, 92, 246, 0.08);
+  color: #c4b5fd;
+}
+
+/* Negotiation form */
+.negotiateForm {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.negotiateLabel {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: #a78bfa;
+}
+
+.negotiateTextarea {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  background: rgba(15, 15, 35, 0.8);
+  border: 1px solid rgba(139, 92, 246, 0.25);
+  border-radius: 0.75rem;
+  color: #f1f5f9;
+  font-size: 0.875rem;
+  font-family: inherit;
+  resize: vertical;
+  outline: none;
+  transition: border-color 0.2s;
+  box-sizing: border-box;
+}
+
+.negotiateTextarea:focus {
+  border-color: rgba(139, 92, 246, 0.5);
+}
+
+.negotiateTextarea::placeholder {
+  color: #475569;
+}
+
+.negotiateActions {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: flex-end;
+}
+
+/* Inactive note */
+.inactiveNote {
+  padding: 0.875rem 1rem;
+  background: rgba(139, 92, 246, 0.06);
+  border: 1px solid rgba(139, 92, 246, 0.15);
+  border-radius: 0.75rem;
+  color: #64748b;
+  font-size: 0.8125rem;
+  text-align: center;
+}
+
+/* Contact card */
+.contactCard {
+  display: flex;
+  flex-direction: column;
+  gap: 0.875rem;
+}
+
+.contactLabel {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  color: #475569;
+  text-transform: uppercase;
+  letter-spacing: 0.075em;
+  margin: 0;
+}
+
+.contactPerson {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.contactAvatar {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 50%;
+  background: rgba(139, 92, 246, 0.2);
+  border: 1px solid rgba(139, 92, 246, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: #c4b5fd;
+  flex-shrink: 0;
+}
+
+.contactName {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #f1f5f9;
+  margin: 0;
+}
+
+.contactEmail {
+  font-size: 0.75rem;
+  color: #64748b;
+  margin: 0.125rem 0 0 0;
+}
+
+.contactBtn {
+  display: block;
+  text-align: center;
+  padding: 0.5rem 0.875rem;
+  background: rgba(109, 40, 217, 0.15);
+  border: 1px solid rgba(139, 92, 246, 0.25);
+  border-radius: 0.5rem;
+  color: #c4b5fd;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  text-decoration: none;
+  transition: all 0.15s;
+}
+
+.contactBtn:hover {
+  background: rgba(109, 40, 217, 0.25);
+  border-color: rgba(139, 92, 246, 0.4);
+  color: #ddd6fe;
+}

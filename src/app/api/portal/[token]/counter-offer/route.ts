@@ -4,6 +4,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { validatePortalToken } from "@/lib/services/portal";
 import { prisma } from "@/lib/db";
 import { transitionQuotation } from "@/lib/services/quotation";
+import { serializeForApi } from "@/lib/api-response";
 
 export async function POST(
   req: NextRequest,
@@ -43,5 +44,5 @@ export async function POST(
   // Transition to NEGOTIATING
   await transitionQuotation(quoteRef.id, "NEGOTIATE", quoteRef.customerId);
 
-  return NextResponse.json({ success: true, data: comment });
+  return NextResponse.json({ success: true, data: serializeForApi(comment) });
 }

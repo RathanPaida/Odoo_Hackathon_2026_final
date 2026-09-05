@@ -3,6 +3,7 @@ export const runtime = "nodejs";
 import { NextRequest, NextResponse } from "next/server";
 import { validatePortalToken } from "@/lib/services/portal";
 import { prisma } from "@/lib/db";
+import { serializeForApi } from "@/lib/api-response";
 
 export async function GET(
   _req: NextRequest,
@@ -32,5 +33,5 @@ export async function GET(
     }
   });
 
-  return NextResponse.json({ success: true, data: quote });
+  return NextResponse.json({ success: true, data: serializeForApi(quote) });
 }

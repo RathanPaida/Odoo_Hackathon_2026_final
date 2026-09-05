@@ -9,6 +9,7 @@ import { requireRole } from "@/lib/auth/rbac";
 import { CreateCustomerSchema, CustomerQuerySchema } from "@/lib/contracts/customer";
 import { writeAudit } from "@/lib/audit";
 import { Prisma } from "@/generated/prisma";
+import { serializeForApi } from "@/lib/api-response";
 
 export async function GET(req: NextRequest) {
   const { user, response } = await requireRole("SALES_REP", "SALES_MANAGER", "ADMIN");
@@ -50,7 +51,7 @@ export async function GET(req: NextRequest) {
   return NextResponse.json({
     success: true,
     data: {
-      customers,
+      customers: serializeForApi(customers),
       pagination: { page, limit, total, totalPages: Math.ceil(total / limit) },
     },
   });
@@ -97,5 +98,5 @@ export async function POST(req: NextRequest) {
     after: customer,
   });
 
-  return NextResponse.json({ success: true, data: customer }, { status: 201 });
+  return NextResponse.json({ success: true, data: serializeForApi(customer) }, { status: 201 });
 }
