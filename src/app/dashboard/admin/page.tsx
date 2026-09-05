@@ -5,6 +5,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { LogoutButton } from "@/components/LogoutButton";
+import { RoleSidebar } from "@/components/navbar/RoleSidebar";
 import styles from "../dashboard.module.css";
 
 interface Metrics {
@@ -49,17 +50,18 @@ export default function AdminDashboardPage() {
   }, []);
 
   return (
-    <main className={styles.page}>
-      <div className={styles.container}>
-        <header className={styles.header}>
-          <div className={styles.headerLeft}>
-            <h1 className={styles.title}>Administration</h1>
-            <p className={styles.subtitle}>Platform overview and management</p>
-          </div>
-          <div className={styles.headerActions}>
-            <LogoutButton />
-          </div>
-        </header>
+    <RoleSidebar role="ADMIN" userName="Administrator" userEmail="admin@dealflow.com">
+      <main className={styles.page}>
+        <div className={styles.container}>
+          <header className={styles.header}>
+            <div className={styles.headerLeft}>
+              <h1 className={styles.title}>Administration Overview</h1>
+              <p className={styles.subtitle}>Platform operations, governance, and real-time metrics</p>
+            </div>
+            <div className={styles.headerActions}>
+              <LogoutButton />
+            </div>
+          </header>
 
         <div className={`${styles.cardGrid} ${styles.cardGrid4}`}>
           <MetricCard title="Total Quotations" value={metrics?.totalQuotations ?? 0} />
@@ -147,6 +149,7 @@ export default function AdminDashboardPage() {
         </div>
       </div>
     </main>
+    </RoleSidebar>
   );
 }
 
