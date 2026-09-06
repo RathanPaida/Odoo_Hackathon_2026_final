@@ -14,10 +14,10 @@
 .selectInput {
   width: 100%;
   padding: 0.75rem 2.75rem 0.75rem 1rem;
-  background: rgba(15, 15, 35, 0.9);
-  border: 1px solid rgba(139, 92, 246, 0.3);
+  background: rgba(0, 0, 0, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.18);
   border-radius: 0.875rem;
-  color: #f1f5f9;
+  color: #ffffff;
   font-size: 0.875rem;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
   cursor: pointer;
@@ -29,19 +29,19 @@
 
 .selectInput:focus {
   outline: none;
-  border-color: rgba(139, 92, 246, 0.6);
+  border-color: rgba(255, 255, 255, 0.36);
   box-shadow: 
-    0 0 0 3px rgba(109, 40, 217, 0.25),
-    0 0 20px rgba(109, 40, 217, 0.15);
+    0 0 0 3px rgba(255, 255, 255, 0.14),
+    0 0 20px rgba(255, 255, 255, 0.08);
 }
 
 .selectInput:hover:not(:focus) {
-  border-color: rgba(139, 92, 246, 0.45);
-  background: rgba(15, 15, 35, 0.95);
+  border-color: rgba(255, 255, 255, 0.27);
+  background: rgba(0, 0, 0, 0.95);
 }
 
 .selectInput::placeholder {
-  color: #64748b;
+  color: #666666;
 }
 
 .selectIcon {
@@ -49,13 +49,13 @@
   right: 0.875rem;
   top: 50%;
   transform: translateY(-50%);
-  color: #a78bfa;
+  color: #aaaaaa;
   pointer-events: none;
   transition: transform 0.2s ease;
 }
 
 .selectWrapper:focus-within .selectIcon {
-  color: #c4b5fd;
+  color: #cccccc;
 }
 
 /* Select with search */
@@ -67,10 +67,10 @@
   width: 100%;
   padding: 0.75rem 1rem;
   padding-left: 2.75rem;
-  background: rgba(15, 15, 35, 0.9);
-  border: 1px solid rgba(139, 92, 246, 0.3);
+  background: rgba(0, 0, 0, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.18);
   border-radius: 0.875rem;
-  color: #f1f5f9;
+  color: #ffffff;
   font-size: 0.875rem;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
   transition: all 0.2s ease;
@@ -78,14 +78,14 @@
 
 .selectSearchInput:focus {
   outline: none;
-  border-color: rgba(139, 92, 246, 0.6);
+  border-color: rgba(255, 255, 255, 0.36);
   box-shadow: 
-    0 0 0 3px rgba(109, 40, 217, 0.25),
-    0 0 20px rgba(109, 40, 217, 0.15);
+    0 0 0 3px rgba(255, 255, 255, 0.14),
+    0 0 20px rgba(255, 255, 255, 0.08);
 }
 
 .selectSearchInput::placeholder {
-  color: #64748b;
+  color: #666666;
 }
 
 .selectSearchIcon {
@@ -93,7 +93,7 @@
   left: 1rem;
   top: 50%;
   transform: translateY(-50%);
-  color: #64748b;
+  color: #666666;
 }
 
 /* Custom dropdown panel */
@@ -102,13 +102,13 @@
   top: calc(100% + 0.5rem);
   left: 0;
   right: 0;
-  background: linear-gradient(145deg, rgba(30, 27, 75, 0.98) 0%, rgba(15, 15, 35, 0.99) 100%);
-  border: 1px solid rgba(139, 92, 246, 0.35);
+  background: #111111;
+  border: 1px solid rgba(255, 255, 255, 0.21);
   border-radius: 1rem;
   box-shadow: 
     0 25px 50px -12px rgba(0, 0, 0, 0.7),
-    0 0 0 1px rgba(139, 92, 246, 0.15),
-    0 0 40px rgba(109, 40, 217, 0.2);
+    0 0 0 1px rgba(255, 255, 255, 0.09),
+    0 0 40px rgba(255, 255, 255, 0.11);
   z-index: 1000;
   max-height: 280px;
   overflow-y: auto;
@@ -131,17 +131,17 @@
 }
 
 .dropdownPanel::-webkit-scrollbar-track {
-  background: rgba(15, 15, 35, 0.5);
+  background: rgba(0, 0, 0, 0.5);
   border-radius: 3px;
 }
 
 .dropdownPanel::-webkit-scrollbar-thumb {
-  background: rgba(139, 92, 246, 0.4);
+  background: rgba(255, 255, 255, 0.24);
   border-radius: 3px;
 }
 
 .dropdownPanel::-webkit-scrollbar-thumb:hover {
-  background: rgba(139, 92, 246, 0.6);
+  background: rgba(255, 255, 255, 0.36);
 }
 
 .dropdownOption {
@@ -151,7 +151,7 @@
   padding: 0.75rem 1rem;
   cursor: pointer;
   transition: all 0.15s ease;
-  border-bottom: 1px solid rgba(139, 92, 246, 0.08);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .dropdownOption:last-child {
@@ -159,27 +159,27 @@
 }
 
 .dropdownOption:hover {
-  background: rgba(109, 40, 217, 0.2);
+  background: rgba(255, 255, 255, 0.11);
 }
 
 .dropdownOptionSelected {
-  background: rgba(109, 40, 217, 0.3) !important;
+  background: rgba(255, 255, 255, 0.17) !important;
 }
 
 .dropdownOptionLabel {
   font-size: 0.875rem;
-  color: #e2e8f0;
+  color: #eeeeee;
   font-weight: 500;
 }
 
 .dropdownOptionDescription {
   font-size: 0.75rem;
-  color: #64748b;
+  color: #666666;
   margin-top: 0.125rem;
 }
 
 .dropdownOptionCheck {
-  color: #a78bfa;
+  color: #aaaaaa;
   flex-shrink: 0;
 }
 
@@ -190,7 +190,7 @@
 
 .dropdownEmptyText {
   font-size: 0.875rem;
-  color: #64748b;
+  color: #666666;
 }
 
 /* ============================================
@@ -200,17 +200,17 @@
 .formSelect {
   width: 100%;
   padding: 0.75rem 1rem;
-  background: rgba(15, 15, 35, 0.8);
-  border: 1px solid rgba(139, 92, 246, 0.25);
+  background: rgba(0, 0, 0, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.15);
   border-radius: 0.75rem;
-  color: #f1f5f9;
+  color: #ffffff;
   font-size: 0.875rem;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
   transition: all 0.2s ease;
   cursor: pointer;
   appearance: none;
   -webkit-appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23a78bfa' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23aaaaaa' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 0.875rem center;
   padding-right: 2.5rem;
@@ -218,20 +218,20 @@
 
 .formSelect:focus {
   outline: none;
-  border-color: rgba(139, 92, 246, 0.5);
+  border-color: rgba(255, 255, 255, 0.3);
   box-shadow: 
-    0 0 0 3px rgba(109, 40, 217, 0.2),
-    0 0 20px rgba(109, 40, 217, 0.1);
+    0 0 0 3px rgba(255, 255, 255, 0.11),
+    0 0 20px rgba(255, 255, 255, 0.06);
 }
 
 .formSelect:hover:not(:focus) {
-  border-color: rgba(139, 92, 246, 0.4);
-  background-color: rgba(15, 15, 35, 0.9);
+  border-color: rgba(255, 255, 255, 0.24);
+  background-color: rgba(0, 0, 0, 0.9);
 }
 
 .formSelect option {
-  background: #1a1a2e;
-  color: #f1f5f9;
+  background: #000000;
+  color: #ffffff;
   padding: 0.5rem;
 }
 
@@ -265,8 +265,8 @@
   gap: 0.5rem;
   padding: 0.5rem;
   padding-bottom: 0.25rem;
-  background: rgba(15, 15, 35, 0.8);
-  border: 1px solid rgba(139, 92, 246, 0.25);
+  background: rgba(0, 0, 0, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.15);
   border-radius: 0.75rem;
   min-height: 44px;
   cursor: pointer;
@@ -274,8 +274,8 @@
 }
 
 .multiSelectTags:focus-within {
-  border-color: rgba(139, 92, 246, 0.5);
-  box-shadow: 0 0 0 3px rgba(109, 40, 217, 0.2);
+  border-color: rgba(255, 255, 255, 0.3);
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.11);
 }
 
 .multiSelectTag {
@@ -283,8 +283,8 @@
   align-items: center;
   gap: 0.375rem;
   padding: 0.25rem 0.625rem;
-  background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
-  color: white;
+  background: #ffffff;
+  color: #000000;
   font-size: 0.75rem;
   font-weight: 600;
   border-radius: 0.5rem;
@@ -319,7 +319,7 @@
 }
 
 .multiSelectPlaceholder {
-  color: #64748b;
+  color: #666666;
   font-size: 0.875rem;
   padding: 0.25rem;
 }
@@ -341,7 +341,7 @@
   left: 1rem;
   top: 50%;
   transform: translateY(-50%);
-  color: #a78bfa;
+  color: #aaaaaa;
   pointer-events: none;
 }
 
@@ -359,10 +359,10 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.5rem 0.875rem;
-  background: rgba(109, 40, 217, 0.15);
-  border: 1px solid rgba(139, 92, 246, 0.25);
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
   border-radius: 0.75rem;
-  color: #c4b5fd;
+  color: #cccccc;
   font-size: 0.875rem;
   font-weight: 500;
   cursor: pointer;
@@ -370,9 +370,9 @@
 }
 
 .dropdownMenuTrigger:hover {
-  background: rgba(109, 40, 217, 0.25);
-  border-color: rgba(139, 92, 246, 0.4);
-  color: #e9d5ff;
+  background: rgba(255, 255, 255, 0.14);
+  border-color: rgba(255, 255, 255, 0.24);
+  color: #eeeeee;
 }
 
 .dropdownMenuAvatar {
@@ -381,11 +381,11 @@
   justify-content: center;
   width: 2rem;
   height: 2rem;
-  background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
+  background: #ffffff;
   border-radius: 0.5rem;
   font-size: 0.75rem;
   font-weight: 700;
-  color: white;
+  color: #000000;
 }
 
 .dropdownMenuPanel {
@@ -393,13 +393,13 @@
   top: calc(100% + 0.5rem);
   right: 0;
   min-width: 200px;
-  background: linear-gradient(145deg, rgba(30, 27, 75, 0.98) 0%, rgba(15, 15, 35, 0.99) 100%);
-  border: 1px solid rgba(139, 92, 246, 0.35);
+  background: #111111;
+  border: 1px solid rgba(255, 255, 255, 0.21);
   border-radius: 1rem;
   box-shadow: 
     0 25px 50px -12px rgba(0, 0, 0, 0.7),
-    0 0 0 1px rgba(139, 92, 246, 0.15),
-    0 0 40px rgba(109, 40, 217, 0.2);
+    0 0 0 1px rgba(255, 255, 255, 0.09),
+    0 0 40px rgba(255, 255, 255, 0.11);
   z-index: 1000;
   padding: 0.5rem;
   animation: dropdownFadeIn 0.2s ease-out;
@@ -411,7 +411,7 @@
   gap: 0.75rem;
   padding: 0.75rem 1rem;
   border-radius: 0.625rem;
-  color: #e2e8f0;
+  color: #eeeeee;
   font-size: 0.875rem;
   cursor: pointer;
   transition: all 0.15s ease;
@@ -419,18 +419,18 @@
 }
 
 .dropdownMenuItem:hover {
-  background: rgba(109, 40, 217, 0.2);
-  color: #f1f5f9;
+  background: rgba(255, 255, 255, 0.11);
+  color: #ffffff;
 }
 
 .dropdownMenuItemIcon {
-  color: #a78bfa;
+  color: #aaaaaa;
   flex-shrink: 0;
 }
 
 .dropdownMenuDivider {
   height: 1px;
-  background: rgba(139, 92, 246, 0.15);
+  background: rgba(255, 255, 255, 0.09);
   margin: 0.5rem 0;
 }
 

@@ -3,17 +3,17 @@
 @import url("https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=Inter:wght@400;500;600&display=swap");
 
 .page {
-  --ink: #0e1319;
-  --slate: #59646f;
-  --muted: #97a1ab;
-  --paper: #e9ecef;
-  --card: #ffffff;
-  --line: #d3d9df;
-  --line-soft: #e4e8ec;
-  --accent: #1f3bd8;
-  --signal: #0b7a5e;
-  --warn: #a26800;
-  --danger: #b3261e;
+  --ink: #ffffff;
+  --slate: #aaaaaa;
+  --muted: #888888;
+  --paper: #000000;
+  --card: #111111;
+  --line: #222222;
+  --line-soft: #1a1a1a;
+  --accent: #ffffff;
+  --signal: #34d399;
+  --warn: #fbbf24;
+  --danger: #f87171;
 
   min-height: 100dvh;
   padding: 2.5rem 1.5rem 4rem;
@@ -230,7 +230,7 @@
 
 .action:hover {
   border-color: var(--accent);
-  background: #f5f7ff;
+  background: #1a1a1a;
 }
 
 .actionName {
@@ -251,7 +251,7 @@
   height: 1.75rem;
   width: 3.5rem;
   border-radius: 5px;
-  background: linear-gradient(90deg, #e8ebee 25%, #f2f4f6 50%, #e8ebee 75%);
+  background: linear-gradient(90deg, #1a1a1a 25%, #262626 50%, #1a1a1a 75%);
   background-size: 200% 100%;
   animation: shimmer 1.3s linear infinite;
 }

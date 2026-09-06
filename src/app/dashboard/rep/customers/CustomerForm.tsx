@@ -78,19 +78,20 @@ export default function CustomerForm({ initialData }: { initialData?: Customer }
 
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: "1.25rem" }}>
         <div>
-          <label style={{ display: "block", fontSize: "0.875rem", fontWeight: 500, color: "#c4b5fd", marginBottom: "0.5rem" }}>Company Name</label>
+          <label style={{ display: "block", fontSize: "0.875rem", fontWeight: 600, color: "#ffffff", marginBottom: "0.5rem" }}>Company Name</label>
           <input
             type="text"
             name="companyName"
             defaultValue={initialData?.companyName}
             required
+            placeholder="e.g. Acme Corporation"
             style={{
               width: "100%",
               padding: "0.75rem 1rem",
-              background: "rgba(15, 15, 35, 0.8)",
-              border: "1px solid rgba(139, 92, 246, 0.25)",
+              background: "rgba(0, 0, 0, 0.8)",
+              border: "1px solid rgba(255, 255, 255, 0.15)",
               borderRadius: "0.75rem",
-              color: "#f1f5f9",
+              color: "#ffffff",
               fontSize: "0.875rem",
               outline: "none",
             }}
@@ -98,19 +99,20 @@ export default function CustomerForm({ initialData }: { initialData?: Customer }
         </div>
 
         <div>
-          <label style={{ display: "block", fontSize: "0.875rem", fontWeight: 500, color: "#c4b5fd", marginBottom: "0.5rem" }}>Contact Name</label>
+          <label style={{ display: "block", fontSize: "0.875rem", fontWeight: 600, color: "#ffffff", marginBottom: "0.5rem" }}>Contact Name</label>
           <input
             type="text"
             name="contactName"
             defaultValue={initialData?.contactName}
             required
+            placeholder="e.g. Jane Doe"
             style={{
               width: "100%",
               padding: "0.75rem 1rem",
-              background: "rgba(15, 15, 35, 0.8)",
-              border: "1px solid rgba(139, 92, 246, 0.25)",
+              background: "rgba(0, 0, 0, 0.8)",
+              border: "1px solid rgba(255, 255, 255, 0.15)",
               borderRadius: "0.75rem",
-              color: "#f1f5f9",
+              color: "#ffffff",
               fontSize: "0.875rem",
               outline: "none",
             }}
@@ -118,19 +120,20 @@ export default function CustomerForm({ initialData }: { initialData?: Customer }
         </div>
 
         <div>
-          <label style={{ display: "block", fontSize: "0.875rem", fontWeight: 500, color: "#c4b5fd", marginBottom: "0.5rem" }}>Email Address</label>
+          <label style={{ display: "block", fontSize: "0.875rem", fontWeight: 600, color: "#ffffff", marginBottom: "0.5rem" }}>Email Address</label>
           <input
             type="email"
             name="email"
             defaultValue={initialData?.email}
             required
+            placeholder="contact@example.com"
             style={{
               width: "100%",
               padding: "0.75rem 1rem",
-              background: "rgba(15, 15, 35, 0.8)",
-              border: "1px solid rgba(139, 92, 246, 0.25)",
+              background: "rgba(0, 0, 0, 0.8)",
+              border: "1px solid rgba(255, 255, 255, 0.15)",
               borderRadius: "0.75rem",
-              color: "#f1f5f9",
+              color: "#ffffff",
               fontSize: "0.875rem",
               outline: "none",
             }}
@@ -138,18 +141,19 @@ export default function CustomerForm({ initialData }: { initialData?: Customer }
         </div>
 
         <div>
-          <label style={{ display: "block", fontSize: "0.875rem", fontWeight: 500, color: "#c4b5fd", marginBottom: "0.5rem" }}>Phone (Optional)</label>
+          <label style={{ display: "block", fontSize: "0.875rem", fontWeight: 600, color: "#ffffff", marginBottom: "0.5rem" }}>Phone (Optional)</label>
           <input
             type="tel"
             name="phone"
             defaultValue={initialData?.phone || ""}
+            placeholder="+1 (555) 000-0000"
             style={{
               width: "100%",
               padding: "0.75rem 1rem",
-              background: "rgba(15, 15, 35, 0.8)",
-              border: "1px solid rgba(139, 92, 246, 0.25)",
+              background: "rgba(0, 0, 0, 0.8)",
+              border: "1px solid rgba(255, 255, 255, 0.15)",
               borderRadius: "0.75rem",
-              color: "#f1f5f9",
+              color: "#ffffff",
               fontSize: "0.875rem",
               outline: "none",
             }}
@@ -157,63 +161,63 @@ export default function CustomerForm({ initialData }: { initialData?: Customer }
         </div>
 
         <div>
-          <label style={{ display: "block", fontSize: "0.875rem", fontWeight: 500, color: "#c4b5fd", marginBottom: "0.5rem" }}>Customer Tier</label>
+          <label style={{ display: "block", fontSize: "0.875rem", fontWeight: 600, color: "#ffffff", marginBottom: "0.5rem" }}>Customer Tier</label>
           <select
             name="tier"
             defaultValue={initialData?.tier || "BRONZE"}
             style={{
               width: "100%",
               padding: "0.75rem 1rem",
-              background: "rgba(15, 15, 35, 0.8)",
-              border: "1px solid rgba(139, 92, 246, 0.25)",
+              background: "rgba(0, 0, 0, 0.8)",
+              border: "1px solid rgba(255, 255, 255, 0.15)",
               borderRadius: "0.75rem",
-              color: "#f1f5f9",
+              color: "#ffffff",
               fontSize: "0.875rem",
               outline: "none",
               cursor: "pointer",
             }}
           >
-            <option value="BRONZE" style={{ background: "#1e1b4b" }}>Bronze</option>
-            <option value="SILVER" style={{ background: "#1e1b4b" }}>Silver</option>
-            <option value="GOLD" style={{ background: "#1e1b4b" }}>Gold</option>
-            <option value="PLATINUM" style={{ background: "#1e1b4b" }}>Platinum</option>
+            <option value="BRONZE" style={{ background: "#111111", color: "#ffffff" }}>Bronze (Standard Tier)</option>
+            <option value="SILVER" style={{ background: "#111111", color: "#ffffff" }}>Silver (Preferred)</option>
+            <option value="GOLD" style={{ background: "#111111", color: "#ffffff" }}>Gold (High Volume)</option>
+            <option value="PLATINUM" style={{ background: "#111111", color: "#ffffff" }}>Platinum (Enterprise)</option>
           </select>
         </div>
 
         <div>
-          <label style={{ display: "block", fontSize: "0.875rem", fontWeight: 500, color: "#c4b5fd", marginBottom: "0.5rem" }}>Currency</label>
+          <label style={{ display: "block", fontSize: "0.875rem", fontWeight: 600, color: "#ffffff", marginBottom: "0.5rem" }}>Currency</label>
           <select
             name="currency"
             defaultValue={initialData?.currency || "INR"}
             style={{
               width: "100%",
               padding: "0.75rem 1rem",
-              background: "rgba(15, 15, 35, 0.8)",
-              border: "1px solid rgba(139, 92, 246, 0.25)",
+              background: "rgba(0, 0, 0, 0.8)",
+              border: "1px solid rgba(255, 255, 255, 0.15)",
               borderRadius: "0.75rem",
-              color: "#f1f5f9",
+              color: "#ffffff",
               fontSize: "0.875rem",
               outline: "none",
               cursor: "pointer",
             }}
           >
-            <option value="INR" style={{ background: "#1e1b4b" }}>INR</option>
-            <option value="USD" style={{ background: "#1e1b4b" }}>USD</option>
-            <option value="EUR" style={{ background: "#1e1b4b" }}>EUR</option>
+            <option value="INR" style={{ background: "#111111", color: "#ffffff" }}>INR (₹)</option>
+            <option value="USD" style={{ background: "#111111", color: "#ffffff" }}>USD ($)</option>
+            <option value="EUR" style={{ background: "#111111", color: "#ffffff" }}>EUR (€)</option>
           </select>
         </div>
 
         {isEdit && (
-          <div style={{ gridColumn: "1 / -1", display: "flex", alignItems: "center", gap: "0.5rem", marginTop: "0.5rem" }}>
+          <div style={{ gridColumn: "1 / -1", display: "flex", alignItems: "center", gap: "0.625rem", marginTop: "0.5rem" }}>
             <input
               type="checkbox"
               name="active"
               id="active"
               defaultChecked={initialData?.active !== false}
-              style={{ width: "1rem", height: "1rem", accentColor: "#7c3aed", cursor: "pointer" }}
+              style={{ width: "1.125rem", height: "1.125rem", accentColor: "#ffffff", cursor: "pointer" }}
             />
-            <label htmlFor="active" style={{ fontSize: "0.875rem", fontWeight: 500, color: "#e2e8f0", cursor: "pointer" }}>
-              Active Customer
+            <label htmlFor="active" style={{ fontSize: "0.875rem", fontWeight: 500, color: "#ffffff", cursor: "pointer" }}>
+              Active Customer Account
             </label>
           </div>
         )}
@@ -224,7 +228,7 @@ export default function CustomerForm({ initialData }: { initialData?: Customer }
         justifyContent: "flex-end",
         gap: "0.75rem",
         paddingTop: "1.25rem",
-        borderTop: "1px solid rgba(139, 92, 246, 0.15)",
+        borderTop: "1px solid rgba(255, 255, 255, 0.1)",
         marginTop: "0.5rem",
       }}>
         <button
@@ -232,12 +236,14 @@ export default function CustomerForm({ initialData }: { initialData?: Customer }
           onClick={() => router.back()}
           style={{
             padding: "0.625rem 1.25rem",
-            background: "rgba(109, 40, 217, 0.15)",
-            border: "1px solid rgba(139, 92, 246, 0.25)",
+            background: "rgba(255, 255, 255, 0.08)",
+            border: "1px solid rgba(255, 255, 255, 0.15)",
             borderRadius: "0.625rem",
-            color: "#c4b5fd",
+            color: "#ffffff",
             fontSize: "0.875rem",
+            fontWeight: 500,
             cursor: "pointer",
+            transition: "all 0.2s ease",
           }}
         >
           Cancel
@@ -247,15 +253,16 @@ export default function CustomerForm({ initialData }: { initialData?: Customer }
           disabled={loading}
           style={{
             padding: "0.625rem 1.25rem",
-            background: "linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%)",
+            background: "#ffffff",
             border: "none",
             borderRadius: "0.75rem",
-            color: "white",
+            color: "#000000",
             fontSize: "0.875rem",
             fontWeight: 600,
             cursor: loading ? "not-allowed" : "pointer",
-            boxShadow: "0 4px 14px 0 rgba(109, 40, 217, 0.4)",
+            boxShadow: "0 4px 14px 0 rgba(255, 255, 255, 0.22)",
             opacity: loading ? 0.6 : 1,
+            transition: "all 0.2s ease",
           }}
         >
           {loading ? "Saving..." : isEdit ? "Update Customer" : "Create Customer"}

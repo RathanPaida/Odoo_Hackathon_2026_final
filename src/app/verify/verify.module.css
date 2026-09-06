@@ -3,15 +3,15 @@
 @import url("https://fonts.googleapis.com/css2?family=Archivo:wght@600;700&family=Inter:wght@400;500;600&display=swap");
 
 .page {
-  --ink: #0e1319;
-  --ink-2: #161d26;
-  --slate: #59646f;
-  --paper: #e9ecef;
-  --card: #ffffff;
-  --line: #d3d9df;
-  --accent: #1f3bd8;
-  --signal: #0b7a5e;
-  --danger: #b3261e;
+  --ink: #ffffff;
+  --ink-2: #eeeeee;
+  --slate: #aaaaaa;
+  --paper: #000000;
+  --card: #111111;
+  --line: #222222;
+  --accent: #ffffff;
+  --signal: #34d399;
+  --danger: #f87171;
 
   display: grid;
   grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
@@ -30,7 +30,7 @@
   justify-content: space-between;
   gap: 3rem;
   padding: 3rem 3.5rem;
-  background: var(--ink);
+  background: #0a0a0a;
   color: #fff;
   box-shadow: inset -1px 0 0 rgba(255, 255, 255, 0.08);
 }
@@ -249,17 +249,17 @@
   padding: 0.8125rem 1rem;
   border: 0;
   border-radius: 7px;
-  background: var(--ink);
-  color: #fff;
+  background: #ffffff;
+  color: #000000;
   font: inherit;
   font-size: 0.9375rem;
-  font-weight: 500;
+  font-weight: 600;
   cursor: pointer;
   transition: background-color 140ms ease;
 }
 
 .submit:hover:not(:disabled) {
-  background: var(--ink-2);
+  background: #e0e0e0;
 }
 
 .submit:disabled {

@@ -163,76 +163,134 @@ export function CustomerNewQuoteButton({ className }: { className?: string }) {
         description="Select the products and quantities you need. Our team will tailor the pricing for your account."
         size="xl"
       >
-        <div className="space-y-6">
+        <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
           {/* Main Grid: Products Catalog on Left, Order Selection on Right */}
-          <div className="grid grid-cols-1 md:grid-cols-12 gap-5">
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(12, 1fr)", gap: "1.25rem" }}>
             {/* Catalog (7 cols) */}
-            <div className="md:col-span-7 flex flex-col space-y-3">
-              <div className="flex gap-2">
+            <div style={{ gridColumn: "span 7", display: "flex", flexDirection: "column", gap: "0.875rem" }}>
+              <div style={{ display: "flex", gap: "0.625rem" }}>
                 <input
                   type="text"
                   placeholder="Search products or SKU..."
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  className="flex-1 px-3 py-2 bg-[var(--surface-input)] border border-[var(--border)] rounded-lg text-sm text-[var(--foreground)] placeholder-[var(--muted-foreground)] focus:outline-none focus:border-[var(--primary)]"
+                  style={{
+                    flex: 1,
+                    padding: "0.625rem 0.875rem",
+                    borderRadius: "0.625rem",
+                    background: "#161616",
+                    border: "1px solid rgba(255, 255, 255, 0.16)",
+                    color: "#ffffff",
+                    fontSize: "0.875rem",
+                    outline: "none",
+                  }}
                 />
                 <select
                   value={selectedCategory}
                   onChange={(e) => setSelectedCategory(e.target.value)}
-                  className="px-3 py-2 bg-[var(--surface-input)] border border-[var(--border)] rounded-lg text-xs text-[var(--foreground)] focus:outline-none focus:border-[var(--primary)]"
+                  style={{
+                    padding: "0.625rem 0.875rem",
+                    borderRadius: "0.625rem",
+                    background: "#161616",
+                    border: "1px solid rgba(255, 255, 255, 0.16)",
+                    color: "#ffffff",
+                    fontSize: "0.8125rem",
+                    cursor: "pointer",
+                    outline: "none",
+                  }}
                 >
                   {categories.map((c) => (
-                    <option key={c} value={c}>
+                    <option key={c} value={c} style={{ background: "#161616", color: "#ffffff" }}>
                       {c === "ALL" ? "All Categories" : c}
                     </option>
                   ))}
                 </select>
               </div>
 
-              <div className={`border border-[var(--border)] rounded-xl overflow-hidden bg-[rgba(15,15,35,0.4)] max-h-[340px] overflow-y-auto ${s.customScrollbar}`}>
+              <div
+                className={s.customScrollbar}
+                style={{
+                  border: "1px solid rgba(255, 255, 255, 0.12)",
+                  borderRadius: "0.875rem",
+                  background: "#111111",
+                  maxHeight: "340px",
+                  overflowY: "auto",
+                }}
+              >
                 {fetchingProducts ? (
-                  <div className="py-12 text-center text-sm text-[var(--muted-foreground)]">
+                  <div style={{ padding: "3rem 1rem", textAlign: "center", fontSize: "0.875rem", color: "#888888" }}>
                     Loading product catalog...
                   </div>
                 ) : filteredProducts.length === 0 ? (
-                  <div className="py-12 text-center text-sm text-[var(--muted-foreground)]">
+                  <div style={{ padding: "3rem 1rem", textAlign: "center", fontSize: "0.875rem", color: "#888888" }}>
                     No products found matching your search.
                   </div>
                 ) : (
-                  <div className="divide-y divide-[var(--border)]">
-                    {filteredProducts.map((p) => {
+                  <div style={{ display: "flex", flexDirection: "column" }}>
+                    {filteredProducts.map((p, idx) => {
                       const inCart = items.find((i) => i.productId === p.id);
                       return (
                         <div
                           key={p.id}
-                          className="p-3 flex items-center justify-between hover:bg-[rgba(109,40,217,0.1)] transition-colors"
+                          style={{
+                            padding: "0.875rem 1rem",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "space-between",
+                            borderBottom: idx === filteredProducts.length - 1 ? "none" : "1px solid rgba(255, 255, 255, 0.06)",
+                            transition: "background 0.15s ease",
+                          }}
+                          onMouseEnter={(e) => e.currentTarget.style.background = "rgba(255, 255, 255, 0.04)"}
+                          onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}
                         >
-                          <div className="pr-3">
-                            <div className="flex items-center gap-2">
-                              <span className="font-semibold text-sm text-[var(--foreground)]">
+                          <div style={{ paddingRight: "0.75rem", flex: 1, minWidth: 0 }}>
+                            <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                              <span style={{ fontWeight: 600, fontSize: "0.875rem", color: "#ffffff" }}>
                                 {p.name}
                               </span>
-                              <span className="text-[10px] uppercase font-mono px-1.5 py-0.5 rounded bg-[var(--muted)] text-[var(--muted-foreground)] border border-[var(--border)]">
+                              <span style={{
+                                fontSize: "0.625rem",
+                                fontWeight: 700,
+                                textTransform: "uppercase",
+                                padding: "0.125rem 0.4rem",
+                                borderRadius: "0.375rem",
+                                background: "rgba(255, 255, 255, 0.08)",
+                                color: "#aaaaaa",
+                                border: "1px solid rgba(255, 255, 255, 0.12)",
+                              }}>
                                 {p.category}
                               </span>
                             </div>
-                            <div className="text-xs text-[var(--muted-foreground)] mt-0.5">
-                              SKU: {p.sku} • {p.billingType === "RECURRING" ? "Recurring / Month" : "One-Time"}
+                            <div style={{ fontSize: "0.75rem", color: "#888888", marginTop: "0.2rem" }}>
+                              SKU: {p.sku} &middot; {p.billingType === "RECURRING" ? "Recurring / Month" : "One-Time"}
                             </div>
-                            <div className="text-xs font-semibold text-violet-400 mt-1">
+                            <div style={{ fontSize: "0.875rem", fontWeight: 700, color: "#ffffff", marginTop: "0.35rem" }}>
                               ₹{Number(p.listPrice).toLocaleString()}
                             </div>
                           </div>
 
-                          <Button
-                            size="sm"
-                            variant={inCart ? "secondary" : "primary"}
+                          <button
+                            type="button"
                             onClick={() => handleAddItem(p.id)}
-                            className="shrink-0 text-xs gap-1"
+                            style={{
+                              display: "inline-flex",
+                              alignItems: "center",
+                              gap: "0.375rem",
+                              padding: "0.45rem 0.85rem",
+                              borderRadius: "0.5rem",
+                              fontSize: "0.75rem",
+                              fontWeight: 600,
+                              cursor: "pointer",
+                              border: inCart ? "1px solid rgba(255, 255, 255, 0.25)" : "none",
+                              background: inCart ? "rgba(255, 255, 255, 0.12)" : "#ffffff",
+                              color: inCart ? "#ffffff" : "#000000",
+                              transition: "all 0.15s ease",
+                              flexShrink: 0,
+                            }}
                           >
-                            <Plus size={13} />
-                            {inCart ? `Add (${inCart.qty})` : "Add"}
-                          </Button>
+                            <Plus size={13} strokeWidth={2.5} />
+                            {inCart ? `Added (${inCart.qty})` : "Add"}
+                          </button>
                         </div>
                       );
                     })}
@@ -242,46 +300,67 @@ export function CustomerNewQuoteButton({ className }: { className?: string }) {
             </div>
 
             {/* Selected Items (5 cols) */}
-            <div className="md:col-span-5 flex flex-col space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold uppercase tracking-wider text-[var(--muted-foreground)] flex items-center gap-1.5">
-                  <ShoppingCart size={14} /> Selected Products ({items.length})
+            <div style={{ gridColumn: "span 5", display: "flex", flexDirection: "column", gap: "0.875rem" }}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                <span style={{ fontSize: "0.75rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "#cccccc", display: "flex", alignItems: "center", gap: "0.375rem" }}>
+                  <ShoppingCart size={14} color="#ffffff" /> Selected Products ({items.length})
                 </span>
                 {items.length > 0 && (
                   <button
+                    type="button"
                     onClick={() => setItems([])}
-                    className="text-xs text-rose-400 hover:text-rose-300"
+                    style={{ fontSize: "0.75rem", color: "#f87171", background: "none", border: "none", cursor: "pointer", textDecoration: "underline" }}
                   >
                     Clear all
                   </button>
                 )}
               </div>
 
-              <div className={`border border-[var(--border)] rounded-xl overflow-hidden bg-[rgba(15,15,35,0.4)] flex-1 min-h-[160px] max-h-[220px] overflow-y-auto ${s.customScrollbar}`}>
+              <div
+                className={s.customScrollbar}
+                style={{
+                  border: "1px solid rgba(255, 255, 255, 0.12)",
+                  borderRadius: "0.875rem",
+                  background: "#111111",
+                  minHeight: "150px",
+                  maxHeight: "185px",
+                  overflowY: "auto",
+                  padding: items.length === 0 ? "2.5rem 1rem" : 0,
+                }}
+              >
                 {items.length === 0 ? (
-                  <div className="py-10 px-4 text-center text-xs text-[var(--muted-foreground)]">
+                  <div style={{ textAlign: "center", fontSize: "0.75rem", color: "#888888", lineHeight: 1.5 }}>
                     No items selected yet. Click &quot;Add&quot; on any product from the catalog to build your quote.
                   </div>
                 ) : (
-                  <div className="divide-y divide-[var(--border)]">
-                    {items.map((item) => {
+                  <div style={{ display: "flex", flexDirection: "column" }}>
+                    {items.map((item, idx) => {
                       const prod = products.find((p) => p.id === item.productId);
                       if (!prod) return null;
                       const lineTotal = Number(prod.listPrice) * item.qty;
 
                       return (
-                        <div key={item.productId} className="p-2.5 flex items-center justify-between">
-                          <div className="flex-1 pr-2 min-w-0">
-                            <div className="text-xs font-medium text-[var(--foreground)] truncate">
+                        <div
+                          key={item.productId}
+                          style={{
+                            padding: "0.625rem 0.875rem",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "space-between",
+                            borderBottom: idx === items.length - 1 ? "none" : "1px solid rgba(255, 255, 255, 0.06)",
+                          }}
+                        >
+                          <div style={{ flex: 1, paddingRight: "0.5rem", minWidth: 0 }}>
+                            <div style={{ fontSize: "0.8125rem", fontWeight: 600, color: "#ffffff", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                               {prod.name}
                             </div>
-                            <div className="text-[11px] text-[var(--muted-foreground)]">
-                              ₹{Number(prod.listPrice).toLocaleString()} × {item.qty} ={" "}
-                              <span className="text-violet-300 font-medium">₹{lineTotal.toLocaleString()}</span>
+                            <div style={{ fontSize: "0.75rem", color: "#888888", marginTop: "0.1rem" }}>
+                              ₹{Number(prod.listPrice).toLocaleString()} &times; {item.qty} ={" "}
+                              <span style={{ color: "#ffffff", fontWeight: 600 }}>₹{lineTotal.toLocaleString()}</span>
                             </div>
                           </div>
 
-                          <div className="flex items-center gap-1.5">
+                          <div style={{ display: "flex", alignItems: "center", gap: "0.375rem" }}>
                             <input
                               type="number"
                               min={1}
@@ -289,14 +368,34 @@ export function CustomerNewQuoteButton({ className }: { className?: string }) {
                               onChange={(e) =>
                                 handleUpdateQty(item.productId, parseInt(e.target.value) || 1)
                               }
-                              className="w-12 px-1.5 py-1 text-center bg-[var(--surface-input)] border border-[var(--border)] rounded text-xs text-[var(--foreground)]"
+                              style={{
+                                width: "3.25rem",
+                                padding: "0.25rem 0.4rem",
+                                textAlign: "center",
+                                background: "#161616",
+                                border: "1px solid rgba(255, 255, 255, 0.2)",
+                                borderRadius: "0.375rem",
+                                fontSize: "0.75rem",
+                                color: "#ffffff",
+                                outline: "none",
+                              }}
                             />
                             <button
+                              type="button"
                               onClick={() => handleRemoveItem(item.productId)}
-                              className="p-1 text-[var(--muted-foreground)] hover:text-rose-400 transition-colors"
+                              style={{
+                                padding: "0.3rem",
+                                background: "none",
+                                border: "none",
+                                color: "#888888",
+                                cursor: "pointer",
+                                transition: "color 0.15s ease",
+                              }}
+                              onMouseEnter={(e) => e.currentTarget.style.color = "#f87171"}
+                              onMouseLeave={(e) => e.currentTarget.style.color = "#888888"}
                               title="Remove item"
                             >
-                              <Trash2 size={13} />
+                              <Trash2 size={14} />
                             </button>
                           </div>
                         </div>
@@ -307,18 +406,26 @@ export function CustomerNewQuoteButton({ className }: { className?: string }) {
               </div>
 
               {/* Estimate Total */}
-              <div className="p-3 bg-[rgba(109,40,217,0.15)] border border-[rgba(139,92,246,0.3)] rounded-xl flex items-center justify-between">
-                <span className="text-xs font-medium text-[var(--muted-foreground)]">
+              <div style={{
+                padding: "0.875rem 1rem",
+                background: "rgba(255, 255, 255, 0.06)",
+                border: "1px solid rgba(255, 255, 255, 0.15)",
+                borderRadius: "0.75rem",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+              }}>
+                <span style={{ fontSize: "0.8125rem", fontWeight: 500, color: "#aaaaaa" }}>
                   Estimated List Total
                 </span>
-                <span className="text-sm font-bold text-white">
+                <span style={{ fontSize: "1.125rem", fontWeight: 700, color: "#ffffff" }}>
                   ₹{calculateEstimate().toLocaleString()}
                 </span>
               </div>
 
               {/* Additional Notes */}
               <div>
-                <label className="block text-[11px] font-semibold uppercase tracking-wider text-[var(--muted-foreground)] mb-1">
+                <label style={{ display: "block", fontSize: "0.6875rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "#888888", marginBottom: "0.35rem" }}>
                   Special Notes or Requirements
                 </label>
                 <textarea
@@ -326,29 +433,75 @@ export function CustomerNewQuoteButton({ className }: { className?: string }) {
                   rows={2}
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
-                  className="w-full px-3 py-2 bg-[var(--surface-input)] border border-[var(--border)] rounded-lg text-xs text-[var(--foreground)] placeholder-[var(--muted-foreground)] focus:outline-none focus:border-[var(--primary)] resize-none"
+                  style={{
+                    width: "100%",
+                    padding: "0.5rem 0.75rem",
+                    background: "#161616",
+                    border: "1px solid rgba(255, 255, 255, 0.15)",
+                    borderRadius: "0.5rem",
+                    fontSize: "0.75rem",
+                    color: "#ffffff",
+                    resize: "none",
+                    outline: "none",
+                  }}
                 />
               </div>
             </div>
           </div>
 
           {/* Modal Footer */}
-          <div className="pt-4 border-t border-[var(--border)] flex justify-between items-center">
-            <p className="text-xs text-[var(--muted-foreground)]">
+          <div style={{
+            paddingTop: "1rem",
+            borderTop: "1px solid rgba(255, 255, 255, 0.08)",
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            gap: "1rem",
+          }}>
+            <p style={{ fontSize: "0.75rem", color: "#888888", margin: 0, flex: 1, lineHeight: 1.4 }}>
               Your quotation will be drafted immediately and assigned to our sales team for custom discounts.
             </p>
-            <div className="flex gap-2">
-              <Button variant="ghost" onClick={() => setOpen(false)} disabled={loading}>
-                Cancel
-              </Button>
-              <Button
-                variant="primary"
-                onClick={handleSubmit}
-                loading={loading}
-                disabled={items.length === 0}
+            <div style={{ display: "flex", gap: "0.625rem", flexShrink: 0 }}>
+              <button
+                type="button"
+                onClick={() => setOpen(false)}
+                disabled={loading}
+                style={{
+                  padding: "0.55rem 1.125rem",
+                  borderRadius: "0.625rem",
+                  background: "rgba(255, 255, 255, 0.08)",
+                  border: "1px solid rgba(255, 255, 255, 0.15)",
+                  color: "#ffffff",
+                  fontSize: "0.8125rem",
+                  fontWeight: 500,
+                  cursor: "pointer",
+                }}
               >
-                Submit Request
-              </Button>
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleSubmit}
+                disabled={loading || items.length === 0}
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "0.5rem",
+                  padding: "0.55rem 1.25rem",
+                  borderRadius: "0.625rem",
+                  background: "#ffffff",
+                  color: "#000000",
+                  fontSize: "0.8125rem",
+                  fontWeight: 600,
+                  border: "none",
+                  cursor: loading || items.length === 0 ? "not-allowed" : "pointer",
+                  opacity: loading || items.length === 0 ? 0.5 : 1,
+                  boxShadow: "0 2px 10px rgba(255, 255, 255, 0.15)",
+                  transition: "all 0.15s ease",
+                }}
+              >
+                {loading ? "Submitting..." : "Submit Request"}
+              </button>
             </div>
           </div>
         </div>

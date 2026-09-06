@@ -3,6 +3,8 @@ import { prisma } from "@/lib/db";
 import { Prisma } from "@/generated/prisma";
 import { transitionQuotation } from "./quotation";
 import { writeAudit } from "@/lib/audit";
+import { createOneTimeInvoice } from "./billing";
+import { createSubscriptionsForQuote } from "./subscription";
 
 export async function convertQuoteToOrder(quotationId: string, actorId: string) {
   const quote = await prisma.quote.findUnique({
@@ -54,6 +56,14 @@ export async function convertQuoteToOrder(quotationId: string, actorId: string) 
 
   // 3. Transition Quote to CONFIRMED
   await transitionQuotation(quotationId, "CONFIRM", actorId);
+
+  // 4. Spec §6.4 & §7 Phase 6: Automatically generate initial invoice and recurring subscriptions
+  try {
+    const invoiceResult = await createOneTimeInvoice(quotationId, 30);
+    await createSubscriptionsForQuote(quotationId, new Date(), 12, invoiceResult.invoiceId);
+  } catch (billingErr) {
+    console.error("Auto billing/subscription generation warning:", billingErr);
+  }
 
   await writeAudit({
     entityType: "Order",

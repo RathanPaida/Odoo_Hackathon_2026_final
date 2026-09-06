@@ -57,7 +57,7 @@ const STATUS_COLORS: Record<string, string> = {
   CANCELLED: "#64748b",
 };
 
-const CHART_COLORS = ["#8b5cf6", "#06b6d4", "#f59e0b", "#ef4444", "#10b981", "#3b82f6"];
+const CHART_COLORS = ["#ffffff", "#06b6d4", "#f59e0b", "#ef4444", "#10b981", "#3b82f6"];
 
 export default function FinanceDashboardPage() {
   const router = useRouter();
@@ -205,8 +205,8 @@ export default function FinanceDashboardPage() {
                     />
                     <Tooltip
                       contentStyle={{
-                        backgroundColor: "#1e1b4b",
-                        borderColor: "rgba(139,92,246,0.4)",
+                        backgroundColor: "#111111",
+                        borderColor: "rgba(255,255,255,0.2)",
                         borderRadius: "0.75rem",
                         color: "#fff",
                         fontSize: "0.8125rem",
@@ -253,8 +253,8 @@ export default function FinanceDashboardPage() {
                     </Pie>
                     <Tooltip
                       contentStyle={{
-                        backgroundColor: "#1e1b4b",
-                        borderColor: "rgba(139,92,246,0.4)",
+                        backgroundColor: "#111111",
+                        borderColor: "rgba(255,255,255,0.2)",
                         borderRadius: "0.75rem",
                         color: "#fff",
                         fontSize: "0.8125rem",
@@ -290,7 +290,7 @@ export default function FinanceDashboardPage() {
                 {data?.recentInvoices.map((invoice) => (
                   <div
                     key={invoice.id}
-                    className="flex items-center justify-between py-3 border-b border-[rgba(139,92,246,0.1)] last:border-0"
+                    className="flex items-center justify-between py-3 border-b border-[rgba(255,255,255,0.1)] last:border-0"
                   >
                     <div>
                       <p className="font-medium text-sm text-[#f1f5f9]">{invoice.invoiceNumber}</p>
@@ -322,7 +322,7 @@ export default function FinanceDashboardPage() {
               Financial health indicators
             </p>
             <div className="space-y-4">
-              <div className="flex items-center justify-between py-3 border-b border-[rgba(139,92,246,0.1)]">
+              <div className="flex items-center justify-between py-3 border-b border-[rgba(255,255,255,0.1)]">
                 <div>
                   <p className="text-sm text-[#94a3b8]">Collection Rate</p>
                   <p className="text-lg font-semibold text-[#f1f5f9]">
@@ -335,7 +335,7 @@ export default function FinanceDashboardPage() {
                   Paid
                 </span>
               </div>
-              <div className="flex items-center justify-between py-3 border-b border-[rgba(139,92,246,0.1)]">
+              <div className="flex items-center justify-between py-3 border-b border-[rgba(255,255,255,0.1)]">
                 <div>
                   <p className="text-sm text-[#94a3b8]">Outstanding Rate</p>
                   <p className="text-lg font-semibold text-[#f1f5f9]">

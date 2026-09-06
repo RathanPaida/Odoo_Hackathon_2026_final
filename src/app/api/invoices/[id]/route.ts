@@ -4,6 +4,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { requireRole } from "@/lib/auth/rbac";
 import { getInvoiceById, cancelInvoice } from "@/lib/services/billing";
 import { serializeForApi } from "@/lib/api-response";
+import { prisma } from "@/lib/db";
 
 export const runtime = "nodejs";
 
@@ -11,7 +12,7 @@ export async function GET(
   _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const { user, response } = await requireRole("ADMIN", "FINANCE");
+  const { user, response } = await requireRole("ADMIN", "FINANCE", "CUSTOMER");
   if (response) return response;
 
   const { id } = await params;
@@ -24,6 +25,19 @@ export async function GET(
         { status: 404 }
       );
     }
+
+    if (user!.role === "CUSTOMER") {
+      const customer = await prisma.customer.findFirst({
+        where: { email: user!.email },
+      });
+      if (!customer || customer.id !== invoice.customerId) {
+        return NextResponse.json(
+          { success: false, error: { code: "FORBIDDEN", message: "Access denied to invoice" } },
+          { status: 403 }
+        );
+      }
+    }
+
     return NextResponse.json({ success: true, data: serializeForApi(invoice) });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Unknown error";

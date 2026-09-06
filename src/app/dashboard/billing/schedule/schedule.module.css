@@ -3,18 +3,18 @@
 @import url("https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=Inter:wght@400;500;600&display=swap");
 
 .page {
-  --ink: #0e1319;
-  --slate: #59646f;
-  --muted: #97a1ab;
-  --paper: #e9ecef;
-  --card: #ffffff;
-  --line: #d3d9df;
-  --line-soft: #e4e8ec;
-  --accent: #1f3bd8;
-  --accent-soft: #f5f7ff;
-  --paid: #0b7a5e;
-  --warn: #a26800;
-  --danger: #b3261e;
+  --ink: #ffffff;
+  --slate: #aaaaaa;
+  --muted: #888888;
+  --paper: #000000;
+  --card: #111111;
+  --line: #222222;
+  --line-soft: #1a1a1a;
+  --accent: #ffffff;
+  --accent-soft: #1a1a1a;
+  --paid: #34d399;
+  --warn: #fbbf24;
+  --danger: #f87171;
 
   min-height: 100dvh;
   padding: 2.5rem 1.5rem 4rem;
@@ -207,7 +207,7 @@
 }
 
 .table tbody tr:hover td {
-  background: #fafbfc;
+  background: #1a1a1a;
 }
 
 .numHead {
@@ -257,7 +257,7 @@
   min-width: 4.75rem;
   padding: 0.1875rem 0.5rem;
   border-radius: 4px;
-  background: #f0f2f4;
+  background: #222222;
   color: var(--slate);
   font-size: 0.75rem;
   font-weight: 500;
@@ -266,18 +266,18 @@
 }
 
 .pill[data-status="ACTIVE"] {
-  background: #e6f3ef;
+  background: rgba(16, 185, 129, 0.2);
   color: var(--paid);
 }
 
 .pill[data-status="PAST_DUE"],
 .pill[data-status="CANCELLED"] {
-  background: #fdecea;
+  background: rgba(239, 68, 68, 0.2);
   color: var(--danger);
 }
 
 .pill[data-status="PAUSED"] {
-  background: #fbf1de;
+  background: rgba(245, 158, 11, 0.2);
   color: var(--warn);
 }
 
@@ -315,7 +315,7 @@
 
 .skeletonRow {
   height: 3rem;
-  background: linear-gradient(90deg, #f4f6f7 25%, #fafbfc 50%, #f4f6f7 75%);
+  background: linear-gradient(90deg, #1a1a1a 25%, #262626 50%, #1a1a1a 75%);
   background-size: 200% 100%;
   animation: shimmer 1.3s linear infinite;
 }
@@ -330,11 +330,11 @@
   display: flex;
   gap: 0.5rem;
   padding: 0.875rem 1rem;
-  border: 1px solid #f3d5d2;
+  border: 1px solid rgba(239, 68, 68, 0.3);
   border-left: 2px solid var(--danger);
   border-radius: 0 8px 8px 0;
-  background: #fdf2f1;
-  color: #8c1d18;
+  background: rgba(239, 68, 68, 0.1);
+  color: #fca5a5;
   font-size: 0.875rem;
 }
 

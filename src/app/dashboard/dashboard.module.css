@@ -4,7 +4,7 @@
 
 .page {
   min-height: 100vh;
-  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f0f23 100%);
+  background: #000000;
   padding: 2.5rem 1.5rem;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
 }
@@ -32,14 +32,14 @@
 .title {
   font-size: 2rem;
   font-weight: 700;
-  color: #f1f5f9;
+  color: #ffffff;
   margin: 0;
   letter-spacing: -0.025em;
 }
 
 .subtitle {
   font-size: 0.875rem;
-  color: #a78bfa;
+  color: #aaaaaa;
   margin: 0;
 }
 
@@ -48,14 +48,14 @@
   align-items: center;
   gap: 0.5rem;
   font-size: 0.875rem;
-  color: #a78bfa;
+  color: #aaaaaa;
   text-decoration: none;
   transition: color 0.2s ease;
   margin-bottom: 0.5rem;
 }
 
 .backLink:hover {
-  color: #c4b5fd;
+  color: #cccccc;
 }
 
 .headerActions {
@@ -89,35 +89,35 @@
 .sectionHeader {
   margin-bottom: 1.5rem;
   padding-bottom: 0.75rem;
-  border-bottom: 1px solid rgba(139, 92, 246, 0.15);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.09);
 }
 
 .sectionTitle {
   font-size: 1.25rem;
   font-weight: 700;
-  color: #f1f5f9;
+  color: #ffffff;
   margin: 0;
 }
 
 .card {
-  background: linear-gradient(145deg, rgba(30, 27, 75, 0.85) 0%, rgba(15, 15, 35, 0.95) 100%);
-  border: 1px solid rgba(139, 92, 246, 0.2);
+  background: #111111;
+  border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 1.25rem;
   padding: 1.5rem;
   backdrop-filter: blur(12px);
   box-shadow:
     0 25px 50px -12px rgba(0, 0, 0, 0.5),
-    0 0 0 1px rgba(139, 92, 246, 0.1),
+    0 0 0 1px rgba(255, 255, 255, 0.06),
     inset 0 1px 0 rgba(255, 255, 255, 0.05);
   transition: all 0.3s ease;
 }
 
 .card:hover {
-  border-color: rgba(139, 92, 246, 0.35);
+  border-color: rgba(255, 255, 255, 0.21);
   box-shadow:
     0 25px 50px -12px rgba(0, 0, 0, 0.6),
-    0 0 0 1px rgba(139, 92, 246, 0.15),
-    0 8px 20px rgba(109, 40, 217, 0.15),
+    0 0 0 1px rgba(255, 255, 255, 0.09),
+    0 8px 20px rgba(255, 255, 255, 0.08),
     inset 0 1px 0 rgba(255, 255, 255, 0.08);
   transform: translateY(-2px);
 }
@@ -125,28 +125,28 @@
 .cardTitle {
   font-size: 1.125rem;
   font-weight: 600;
-  color: #f1f5f9;
+  color: #ffffff;
   margin: 0 0 0.5rem 0;
 }
 
 .cardDescription {
   font-size: 0.875rem;
-  color: #94a3b8;
+  color: #888888;
   margin: 0;
   line-height: 1.5;
 }
 
 .cardSmall {
-  background: linear-gradient(145deg, rgba(30, 27, 75, 0.7) 0%, rgba(15, 15, 35, 0.85) 100%);
-  border: 1px solid rgba(139, 92, 246, 0.15);
+  background: #111111;
+  border: 1px solid rgba(255, 255, 255, 0.09);
   border-radius: 1rem;
   padding: 1.25rem;
   backdrop-filter: blur(8px);
 }
 
 .metricCard {
-  background: linear-gradient(145deg, rgba(30, 27, 75, 0.8) 0%, rgba(15, 15, 35, 0.9) 100%);
-  border: 1px solid rgba(139, 92, 246, 0.18);
+  background: #111111;
+  border: 1px solid rgba(255, 255, 255, 0.11);
   border-radius: 1rem;
   padding: 1.25rem;
   backdrop-filter: blur(10px);
@@ -154,7 +154,7 @@
 }
 
 .metricCard:hover {
-  border-color: rgba(139, 92, 246, 0.3);
+  border-color: rgba(255, 255, 255, 0.18);
 }
 
 .metricTitle {
@@ -162,14 +162,14 @@
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: #a78bfa;
+  color: #aaaaaa;
   margin-bottom: 0.5rem;
 }
 
 .metricValue {
   font-size: 2rem;
   font-weight: 700;
-  color: #f1f5f9;
+  color: #ffffff;
   line-height: 1;
 }
 
@@ -224,37 +224,37 @@
   text-decoration: none;
   transition: all 0.2s ease;
   background: rgba(76, 29, 149, 0.3);
-  color: #c4b5fd;
-  border: 1px solid rgba(139, 92, 246, 0.2);
+  color: #cccccc;
+  border: 1px solid rgba(255, 255, 255, 0.12);
 }
 
 .filterTab:hover {
-  background: rgba(109, 40, 217, 0.4);
-  border-color: rgba(139, 92, 246, 0.4);
-  color: #e9d5ff;
+  background: rgba(255, 255, 255, 0.22);
+  border-color: rgba(255, 255, 255, 0.24);
+  color: #eeeeee;
 }
 
 .filterTabActive {
-  background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
-  color: #ffffff;
+  background: #ffffff;
+  color: #000000;
   border-color: transparent;
-  box-shadow: 0 4px 14px 0 rgba(109, 40, 217, 0.4);
+  box-shadow: 0 4px 14px 0 rgba(255, 255, 255, 0.22);
 }
 
 .filterTabActive:hover {
-  background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
-  color: #ffffff;
+  background: #e8e8e8;
+  color: #111111;
 }
 
 .tableCard {
-  background: linear-gradient(145deg, rgba(30, 27, 75, 0.8) 0%, rgba(15, 15, 35, 0.9) 100%);
-  border: 1px solid rgba(139, 92, 246, 0.2);
+  background: #111111;
+  border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 1.25rem;
   padding: 1.5rem;
   backdrop-filter: blur(12px);
   box-shadow:
     0 25px 50px -12px rgba(0, 0, 0, 0.5),
-    0 0 0 1px rgba(139, 92, 246, 0.1),
+    0 0 0 1px rgba(255, 255, 255, 0.06),
     inset 0 1px 0 rgba(255, 255, 255, 0.05);
 }
 
@@ -271,7 +271,7 @@
 }
 
 .table thead tr {
-  border-bottom: 1px solid rgba(139, 92, 246, 0.15);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.09);
 }
 
 .table th {
@@ -280,12 +280,12 @@
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: #a78bfa;
+  color: #aaaaaa;
 }
 
 .table tbody tr {
   transition: background 0.15s ease;
-  border-bottom: 1px solid rgba(139, 92, 246, 0.08);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .table tbody tr:last-child {
@@ -293,22 +293,22 @@
 }
 
 .table tbody tr:hover {
-  background: rgba(109, 40, 217, 0.15);
+  background: rgba(255, 255, 255, 0.08);
 }
 
 .table td {
   padding: 1rem;
   font-size: 0.875rem;
-  color: #e2e8f0;
+  color: #eeeeee;
 }
 
 .cellPrimary {
   font-weight: 600;
-  color: #f1f5f9;
+  color: #ffffff;
 }
 
 .cellMuted {
-  color: #94a3b8;
+  color: #888888;
   font-size: 0.8125rem;
 }
 
@@ -321,9 +321,9 @@
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.03em;
-  background: rgba(109, 40, 217, 0.2);
-  color: #c4b5fd;
-  border: 1px solid rgba(139, 92, 246, 0.25);
+  background: rgba(255, 255, 255, 0.11);
+  color: #cccccc;
+  border: 1px solid rgba(255, 255, 255, 0.15);
 }
 
 .statusBadgeApproved {
@@ -346,7 +346,7 @@
 
 .statusBadgeDraft {
   background: rgba(100, 116, 139, 0.15);
-  color: #94a3b8;
+  color: #888888;
   border-color: rgba(100, 116, 139, 0.25);
 }
 
@@ -370,7 +370,7 @@
 
 .statusBadgeInactive {
   background: rgba(100, 116, 139, 0.2);
-  color: #94a3b8;
+  color: #888888;
   border-color: rgba(100, 116, 139, 0.3);
 }
 
@@ -378,21 +378,21 @@
   display: inline-block;
   font-size: 0.8125rem;
   font-weight: 500;
-  color: #a78bfa;
+  color: #aaaaaa;
   text-decoration: none;
   padding: 0.375rem 0.875rem;
   border-radius: 0.5rem;
-  background: rgba(109, 40, 217, 0.15);
-  border: 1px solid rgba(139, 92, 246, 0.2);
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
   transition: all 0.2s ease;
 }
 
 .actionLink:hover {
-  background: rgba(109, 40, 217, 0.3);
-  color: #c4b5fd;
-  border-color: rgba(139, 92, 246, 0.4);
+  background: rgba(255, 255, 255, 0.17);
+  color: #cccccc;
+  border-color: rgba(255, 255, 255, 0.24);
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(109, 40, 217, 0.3);
+  box-shadow: 0 4px 12px rgba(255, 255, 255, 0.17);
 }
 
 .primaryBtn {
@@ -400,8 +400,8 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.625rem 1.25rem;
-  background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
-  color: white;
+  background: #ffffff;
+  color: #000000;
   font-size: 0.875rem;
   font-weight: 600;
   border: none;
@@ -409,16 +409,16 @@
   cursor: pointer;
   transition: all 0.2s ease;
   box-shadow:
-    0 4px 14px 0 rgba(109, 40, 217, 0.4),
+    0 4px 14px 0 rgba(255, 255, 255, 0.22),
     0 0 0 1px rgba(255, 255, 255, 0.1) inset;
   text-decoration: none;
 }
 
 .primaryBtn:hover {
-  background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+  background: #e8e8e8;
   transform: translateY(-2px);
   box-shadow:
-    0 8px 20px 0 rgba(109, 40, 217, 0.5),
+    0 8px 20px 0 rgba(255, 255, 255, 0.28),
     0 0 0 1px rgba(255, 255, 255, 0.15) inset;
 }
 
@@ -437,11 +437,11 @@
   align-items: center;
   gap: 0.375rem;
   padding: 0.5rem 1rem;
-  background: rgba(109, 40, 217, 0.15);
-  color: #c4b5fd;
+  background: rgba(255, 255, 255, 0.08);
+  color: #cccccc;
   font-size: 0.8125rem;
   font-weight: 500;
-  border: 1px solid rgba(139, 92, 246, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0.15);
   border-radius: 0.625rem;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -449,9 +449,9 @@
 }
 
 .secondaryBtn:hover {
-  background: rgba(109, 40, 217, 0.25);
-  color: #e9d5ff;
-  border-color: rgba(139, 92, 246, 0.4);
+  background: rgba(255, 255, 255, 0.14);
+  color: #eeeeee;
+  border-color: rgba(255, 255, 255, 0.24);
 }
 
 .dangerBtn {
@@ -501,20 +501,20 @@
   flex-direction: column;
   gap: 0.5rem;
   padding: 1.5rem;
-  background: linear-gradient(145deg, rgba(30, 27, 75, 0.85) 0%, rgba(15, 15, 35, 0.95) 100%);
-  border: 1px solid rgba(139, 92, 246, 0.2);
+  background: #111111;
+  border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 1.25rem;
   text-decoration: none;
   transition: all 0.3s ease;
 }
 
 .navLink:hover {
-  border-color: rgba(139, 92, 246, 0.4);
+  border-color: rgba(255, 255, 255, 0.24);
   transform: translateY(-4px);
   box-shadow:
     0 20px 40px rgba(0, 0, 0, 0.4),
-    0 0 0 1px rgba(139, 92, 246, 0.15),
-    0 8px 16px rgba(109, 40, 217, 0.2);
+    0 0 0 1px rgba(255, 255, 255, 0.09),
+    0 8px 16px rgba(255, 255, 255, 0.11);
 }
 
 .navIcon {
@@ -524,13 +524,13 @@
 .navTitle {
   font-size: 1.125rem;
   font-weight: 600;
-  color: #f1f5f9;
+  color: #ffffff;
   margin: 0;
 }
 
 .navDescription {
   font-size: 0.875rem;
-  color: #94a3b8;
+  color: #888888;
   margin: 0;
   line-height: 1.5;
 }
@@ -538,12 +538,12 @@
 .emptyState {
   text-align: center;
   padding: 4rem 2rem;
-  color: #64748b;
+  color: #666666;
 }
 
 .emptyStateText {
   font-size: 1rem;
-  color: #64748b;
+  color: #666666;
 }
 
 .formGroup {
@@ -554,38 +554,38 @@
   display: block;
   font-size: 0.875rem;
   font-weight: 500;
-  color: #c4b5fd;
+  color: #cccccc;
   margin-bottom: 0.5rem;
 }
 
 .formInput {
   width: 100%;
   padding: 0.75rem 1rem;
-  background: rgba(15, 15, 35, 0.8);
-  border: 1px solid rgba(139, 92, 246, 0.25);
+  background: rgba(0, 0, 0, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.15);
   border-radius: 0.75rem;
-  color: #f1f5f9;
+  color: #ffffff;
   font-size: 0.875rem;
   transition: all 0.2s ease;
 }
 
 .formInput:focus {
   outline: none;
-  border-color: rgba(139, 92, 246, 0.5);
-  box-shadow: 0 0 0 3px rgba(109, 40, 217, 0.2);
+  border-color: rgba(255, 255, 255, 0.3);
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.11);
 }
 
 .formInput::placeholder {
-  color: #64748b;
+  color: #666666;
 }
 
 .formSelect {
   width: 100%;
   padding: 0.75rem 1rem;
-  background: rgba(15, 15, 35, 0.8);
-  border: 1px solid rgba(139, 92, 246, 0.25);
+  background: rgba(0, 0, 0, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.15);
   border-radius: 0.75rem;
-  color: #f1f5f9;
+  color: #ffffff;
   font-size: 0.875rem;
   transition: all 0.2s ease;
   cursor: pointer;
@@ -593,8 +593,8 @@
 
 .formSelect:focus {
   outline: none;
-  border-color: rgba(139, 92, 246, 0.5);
-  box-shadow: 0 0 0 3px rgba(109, 40, 217, 0.2);
+  border-color: rgba(255, 255, 255, 0.3);
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.11);
 }
 
 .pagination {
@@ -607,18 +607,18 @@
 
 .pageBtn {
   padding: 0.5rem 1rem;
-  background: rgba(109, 40, 217, 0.15);
-  border: 1px solid rgba(139, 92, 246, 0.2);
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 0.5rem;
-  color: #c4b5fd;
+  color: #cccccc;
   font-size: 0.875rem;
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
 .pageBtn:hover:not(:disabled) {
-  background: rgba(109, 40, 217, 0.3);
-  border-color: rgba(139, 92, 246, 0.4);
+  background: rgba(255, 255, 255, 0.17);
+  border-color: rgba(255, 255, 255, 0.24);
 }
 
 .pageBtn:disabled {
@@ -627,8 +627,8 @@
 }
 
 .pageBtnActive {
-  background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
-  color: white;
+  background: #ffffff;
+  color: #000000;
   border-color: transparent;
 }
 
@@ -639,9 +639,9 @@
   border-radius: 0.375rem;
   font-size: 0.75rem;
   font-weight: 600;
-  background: rgba(109, 40, 217, 0.2);
-  color: #c4b5fd;
-  border: 1px solid rgba(139, 92, 246, 0.25);
+  background: rgba(255, 255, 255, 0.11);
+  color: #cccccc;
+  border: 1px solid rgba(255, 255, 255, 0.15);
 }
 
 .roleBadgeSalesRep {
@@ -670,7 +670,7 @@
 
 .roleBadgeCustomer {
   background: rgba(100, 116, 139, 0.15);
-  color: #94a3b8;
+  color: #888888;
   border-color: rgba(100, 116, 139, 0.25);
 }
 
@@ -709,7 +709,7 @@
 }
 
 .rowHighlight {
-  background: rgba(109, 40, 217, 0.15) !important;
+  background: rgba(255, 255, 255, 0.08) !important;
 }
 
 .textGood {

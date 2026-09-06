@@ -11,44 +11,44 @@
    ──────────────────────────────────────────────────────────────────────────── */
 
 :root {
-  /* Surfaces (dark, internal) */
-  --background: #0a0a0f;
-  --foreground: #e2e8f0;
-  --card: #111827;
-  --card-foreground: #f1f5f9;
-  --border: #1e293b;
-  --input: #1e293b;
-  --secondary: #1e293b;
+  /* Surfaces (dark, internal) - Monochrome Black & White */
+  --background: #000000;
+  --foreground: #ffffff;
+  --card: #111111;
+  --card-foreground: #ffffff;
+  --border: #222222;
+  --input: #1a1a1a;
+  --secondary: #1a1a1a;
 
-  /* Surfaces (light, portal) — used by the customer portal only */
-  --paper: #f5f6f8;          /* page bg */
-  --paper-card: #ffffff;     /* card bg */
-  --paper-border: #e2e5ea;  /* card border */
+  /* Surfaces (portal & paper) */
+  --paper: #000000;          /* page bg */
+  --paper-card: #111111;     /* card bg */
+  --paper-border: #222222;  /* card border */
 
-  /* Aliases for legacy components still referencing --ink / --paper */
+  /* Aliases for legacy components */
   --ink: var(--foreground);
-  --muted: #1e293b;
-  --muted-foreground: #94a3b8;
+  --muted: #1a1a1a;
+  --muted-foreground: #888888;
 
-  /* Brand */
-  --primary: #6366f1;
-  --primary-hover: #818cf8;
-  --primary-foreground: #ffffff;
-  --accent: #6366f1;
-  --ring: #6366f1;
+  /* Brand - High contrast White & Black */
+  --primary: #ffffff;
+  --primary-hover: #e0e0e0;
+  --primary-foreground: #000000;
+  --accent: #ffffff;
+  --ring: #ffffff;
 
-  /* Semantic status — used for quote / approval / payment pills */
-  --status-pending-fg: #fbbf24;        --status-pending-bg: #422006;        --status-pending-bd: #92400e;
-  --status-approved-fg: #34d399;       --status-approved-bg: #052e2b;       --status-approved-bd: #065f46;
-  --status-rejected-fg: #f87171;       --status-rejected-bg: #450a0a;       --status-rejected-bd: #991b1b;
-  --status-info-fg: #93c5fd;           --status-info-bg: #0c2547;           --status-info-bd: #1e40af;
-  --status-neutral-fg: #cbd5e1;        --status-neutral-bg: #1e293b;        --status-neutral-bd: #475569;
-  --status-negotiating-fg: #c4b5fd;    --status-negotiating-bg: #2e1065;    --status-negotiating-bd: #5b21b6;
+  /* Semantic status — monochrome with subtle contrasts */
+  --status-pending-fg: #fbbf24;        --status-pending-bg: #221805;        --status-pending-bd: #4d380e;
+  --status-approved-fg: #34d399;       --status-approved-bg: #03201a;       --status-approved-bd: #0a4f3b;
+  --status-rejected-fg: #f87171;       --status-rejected-bg: #2b0808;       --status-rejected-bd: #5c1818;
+  --status-info-fg: #93c5fd;           --status-info-bg: #0a192f;           --status-info-bd: #1a365d;
+  --status-neutral-fg: #cccccc;        --status-neutral-bg: #1a1a1a;        --status-neutral-bd: #333333;
+  --status-negotiating-fg: #ffffff;    --status-negotiating-bg: #222222;    --status-negotiating-bd: #444444;
 
-  /* Risk tiers (computed by backend; this UI only renders) */
-  --risk-low-fg: #6ee7b7;       --risk-low-bg: #052e2b;       --risk-low-bd: #065f46;
-  --risk-medium-fg: #fcd34d;    --risk-medium-bg: #422006;    --risk-medium-bd: #92400e;
-  --risk-high-fg: #fca5a5;      --risk-high-bg: #450a0a;      --risk-high-bd: #991b1b;
+  /* Risk tiers */
+  --risk-low-fg: #6ee7b7;       --risk-low-bg: #03201a;       --risk-low-bd: #0a4f3b;
+  --risk-medium-fg: #fcd34d;    --risk-medium-bg: #221805;    --risk-medium-bd: #4d380e;
+  --risk-high-fg: #fca5a5;      --risk-high-bg: #2b0808;      --risk-high-bd: #5c1818;
 
   /* Destructive */
   --destructive: #ef4444;
@@ -56,8 +56,8 @@
 
   /* Radius & shadow */
   --radius: 0.625rem;
-  --shadow-card: 0 1px 0 rgba(255, 255, 255, 0.04) inset, 0 1px 2px rgba(0, 0, 0, 0.4);
-  --shadow-pop: 0 10px 30px rgba(0, 0, 0, 0.45);
+  --shadow-card: 0 1px 0 rgba(255, 255, 255, 0.04) inset, 0 1px 2px rgba(0, 0, 0, 0.6);
+  --shadow-pop: 0 10px 30px rgba(0, 0, 0, 0.6);
 }
 
 * {

@@ -64,105 +64,276 @@ export default function SettingsPage() {
             </div>
           )}
 
-          <form onSubmit={handleSaveSettings} className="space-y-6 max-w-4xl">
+          <form onSubmit={handleSaveSettings} style={{ display: "flex", flexDirection: "column", gap: "1.75rem", maxWidth: "52rem" }}>
             {/* Preferences */}
-            <div className={`${styles.card} p-6`}>
-              <h2 className="text-lg font-bold text-white mb-6 flex items-center gap-2">
-                <Sliders size={20} className="text-[#a78bfa]" />
-                Workspace Preferences
-              </h2>
+            <div className={styles.card} style={{ padding: "1.75rem 2rem" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "0.625rem", marginBottom: "1.5rem" }}>
+                <Sliders size={20} color="#ffffff" />
+                <h2 style={{ fontSize: "1.125rem", fontWeight: 700, color: "#ffffff", margin: 0 }}>
+                  Workspace Preferences
+                </h2>
+              </div>
 
-              <div className="space-y-6">
-                <div className="flex items-center justify-between pb-6 border-b border-[rgba(139,92,246,0.15)]">
-                  <div>
-                    <h3 className="text-sm font-semibold text-white">Default Currency</h3>
-                    <p className="text-xs text-[#94a3b8] mt-1">Primary currency used for quotations and revenue tracking</p>
+              <div style={{ display: "flex", flexDirection: "column" }}>
+                {/* Row 1: Default Currency */}
+                <div style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  padding: "1.125rem 0",
+                  borderBottom: "1px solid rgba(255, 255, 255, 0.08)",
+                  gap: "1.5rem",
+                }}>
+                  <div style={{ flex: 1 }}>
+                    <h3 style={{ fontSize: "0.9375rem", fontWeight: 600, color: "#ffffff", margin: 0 }}>
+                      Default Currency
+                    </h3>
+                    <p style={{ fontSize: "0.8125rem", color: "#888888", margin: "0.25rem 0 0 0" }}>
+                      Primary currency used for quotations and revenue tracking
+                    </p>
                   </div>
                   <select
                     value={currency}
                     onChange={(e) => setCurrency(e.target.value)}
-                    className="px-4 py-2.5 rounded-xl bg-[rgba(15,15,35,0.8)] border border-[rgba(139,92,246,0.25)] text-white text-sm focus:outline-none focus:border-[#a78bfa]"
+                    style={{
+                      padding: "0.55rem 1rem",
+                      borderRadius: "0.625rem",
+                      background: "#161616",
+                      border: "1px solid rgba(255, 255, 255, 0.18)",
+                      color: "#ffffff",
+                      fontSize: "0.875rem",
+                      fontWeight: 500,
+                      cursor: "pointer",
+                      outline: "none",
+                    }}
                   >
-                    <option value="INR">INR (₹)</option>
-                    <option value="USD">USD ($)</option>
-                    <option value="EUR">EUR (€)</option>
+                    <option value="INR" style={{ background: "#161616", color: "#ffffff" }}>INR (₹)</option>
+                    <option value="USD" style={{ background: "#161616", color: "#ffffff" }}>USD ($)</option>
+                    <option value="EUR" style={{ background: "#161616", color: "#ffffff" }}>EUR (€)</option>
                   </select>
                 </div>
 
-                <div className="flex items-center justify-between pb-6 border-b border-[rgba(139,92,246,0.15)]">
-                  <div>
-                    <h3 className="text-sm font-semibold text-white">Live Pipeline Auto-Refresh</h3>
-                    <p className="text-xs text-[#94a3b8] mt-1">Periodically update quotation risk status and metrics without manual reloads</p>
+                {/* Row 2: Live Pipeline Auto-Refresh */}
+                <div style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  padding: "1.125rem 0",
+                  borderBottom: "1px solid rgba(255, 255, 255, 0.08)",
+                  gap: "1.5rem",
+                }}>
+                  <div style={{ flex: 1 }}>
+                    <h3 style={{ fontSize: "0.9375rem", fontWeight: 600, color: "#ffffff", margin: 0 }}>
+                      Live Pipeline Auto-Refresh
+                    </h3>
+                    <p style={{ fontSize: "0.8125rem", color: "#888888", margin: "0.25rem 0 0 0" }}>
+                      Periodically update quotation risk status and metrics without manual reloads
+                    </p>
                   </div>
-                  <label className="relative inline-flex items-center cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={autoRefresh}
-                      onChange={(e) => setAutoRefresh(e.target.checked)}
-                      className="sr-only peer"
-                    />
-                    <div className="w-11 h-6 bg-[rgba(15,15,35,0.8)] border border-[rgba(139,92,246,0.3)] peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#7c3aed]"></div>
-                  </label>
+                  <button
+                    type="button"
+                    role="switch"
+                    aria-checked={autoRefresh}
+                    onClick={() => setAutoRefresh(!autoRefresh)}
+                    style={{
+                      width: "2.75rem",
+                      height: "1.5rem",
+                      borderRadius: "9999px",
+                      background: autoRefresh ? "#ffffff" : "rgba(255, 255, 255, 0.12)",
+                      border: `1px solid ${autoRefresh ? "#ffffff" : "rgba(255, 255, 255, 0.2)"}`,
+                      position: "relative",
+                      cursor: "pointer",
+                      padding: 0,
+                      outline: "none",
+                      transition: "all 0.25s cubic-bezier(0.4, 0, 0.2, 1)",
+                      flexShrink: 0,
+                    }}
+                  >
+                    <span style={{
+                      position: "absolute",
+                      top: "2px",
+                      left: autoRefresh ? "calc(100% - 1.25rem - 2px)" : "2px",
+                      width: "1.25rem",
+                      height: "1.25rem",
+                      borderRadius: "50%",
+                      background: autoRefresh ? "#000000" : "#ffffff",
+                      boxShadow: "0 1px 3px rgba(0,0,0,0.4)",
+                      transition: "all 0.25s cubic-bezier(0.4, 0, 0.2, 1)",
+                    }} />
+                  </button>
                 </div>
 
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className="text-sm font-semibold text-white">Interface Theme</h3>
-                    <p className="text-xs text-[#94a3b8] mt-1">Optimized ultra-deep violet theme for 24-hour high productivity</p>
+                {/* Row 3: Interface Theme */}
+                <div style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  padding: "1.125rem 0 0.25rem 0",
+                  gap: "1.5rem",
+                }}>
+                  <div style={{ flex: 1 }}>
+                    <h3 style={{ fontSize: "0.9375rem", fontWeight: 600, color: "#ffffff", margin: 0 }}>
+                      Interface Theme
+                    </h3>
+                    <p style={{ fontSize: "0.8125rem", color: "#888888", margin: "0.25rem 0 0 0" }}>
+                      High contrast monochrome dark theme for precision and readability
+                    </p>
                   </div>
-                  <span className="text-xs px-3 py-1.5 rounded-lg bg-[rgba(139,92,246,0.2)] text-[#c4b5fd] border border-[rgba(139,92,246,0.3)] font-medium">
-                    Dark Violet (Active)
+                  <span style={{
+                    fontSize: "0.75rem",
+                    fontWeight: 600,
+                    letterSpacing: "0.02em",
+                    padding: "0.4rem 0.75rem",
+                    borderRadius: "0.5rem",
+                    background: "rgba(255, 255, 255, 0.08)",
+                    color: "#ffffff",
+                    border: "1px solid rgba(255, 255, 255, 0.16)",
+                    whiteSpace: "nowrap",
+                  }}>
+                    Monochrome Dark (Active)
                   </span>
                 </div>
               </div>
             </div>
 
             {/* Notification Governance */}
-            <div className={`${styles.card} p-6`}>
-              <h2 className="text-lg font-bold text-white mb-6 flex items-center gap-2">
-                <Bell size={20} className="text-[#a78bfa]" />
-                Governance & Notification Alerts
-              </h2>
+            <div className={styles.card} style={{ padding: "1.75rem 2rem" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "0.625rem", marginBottom: "1.5rem" }}>
+                <Bell size={20} color="#ffffff" />
+                <h2 style={{ fontSize: "1.125rem", fontWeight: 700, color: "#ffffff", margin: 0 }}>
+                  Governance & Notification Alerts
+                </h2>
+              </div>
 
-              <div className="space-y-6">
-                <div className="flex items-center justify-between pb-6 border-b border-[rgba(139,92,246,0.15)]">
-                  <div>
-                    <h3 className="text-sm font-semibold text-white">Email Digest & Approval Notifications</h3>
-                    <p className="text-xs text-[#94a3b8] mt-1">Receive email alerts when quotations exceed discount ceilings or require sign-off</p>
+              <div style={{ display: "flex", flexDirection: "column" }}>
+                {/* Row 1: Email Digest */}
+                <div style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  padding: "1.125rem 0",
+                  borderBottom: "1px solid rgba(255, 255, 255, 0.08)",
+                  gap: "1.5rem",
+                }}>
+                  <div style={{ flex: 1 }}>
+                    <h3 style={{ fontSize: "0.9375rem", fontWeight: 600, color: "#ffffff", margin: 0 }}>
+                      Email Digest & Approval Notifications
+                    </h3>
+                    <p style={{ fontSize: "0.8125rem", color: "#888888", margin: "0.25rem 0 0 0" }}>
+                      Receive email alerts when quotations exceed discount ceilings or require sign-off
+                    </p>
                   </div>
-                  <label className="relative inline-flex items-center cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={emailNotifications}
-                      onChange={(e) => setEmailNotifications(e.target.checked)}
-                      className="sr-only peer"
-                    />
-                    <div className="w-11 h-6 bg-[rgba(15,15,35,0.8)] border border-[rgba(139,92,246,0.3)] peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#7c3aed]"></div>
-                  </label>
+                  <button
+                    type="button"
+                    role="switch"
+                    aria-checked={emailNotifications}
+                    onClick={() => setEmailNotifications(!emailNotifications)}
+                    style={{
+                      width: "2.75rem",
+                      height: "1.5rem",
+                      borderRadius: "9999px",
+                      background: emailNotifications ? "#ffffff" : "rgba(255, 255, 255, 0.12)",
+                      border: `1px solid ${emailNotifications ? "#ffffff" : "rgba(255, 255, 255, 0.2)"}`,
+                      position: "relative",
+                      cursor: "pointer",
+                      padding: 0,
+                      outline: "none",
+                      transition: "all 0.25s cubic-bezier(0.4, 0, 0.2, 1)",
+                      flexShrink: 0,
+                    }}
+                  >
+                    <span style={{
+                      position: "absolute",
+                      top: "2px",
+                      left: emailNotifications ? "calc(100% - 1.25rem - 2px)" : "2px",
+                      width: "1.25rem",
+                      height: "1.25rem",
+                      borderRadius: "50%",
+                      background: emailNotifications ? "#000000" : "#ffffff",
+                      boxShadow: "0 1px 3px rgba(0,0,0,0.4)",
+                      transition: "all 0.25s cubic-bezier(0.4, 0, 0.2, 1)",
+                    }} />
+                  </button>
                 </div>
 
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className="text-sm font-semibold text-white">Real-Time Risk Alerts</h3>
-                    <p className="text-xs text-[#94a3b8] mt-1">Immediate pop-up notification when customer requests an out-of-policy discount</p>
+                {/* Row 2: Real-Time Risk Alerts */}
+                <div style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  padding: "1.125rem 0 0.25rem 0",
+                  gap: "1.5rem",
+                }}>
+                  <div style={{ flex: 1 }}>
+                    <h3 style={{ fontSize: "0.9375rem", fontWeight: 600, color: "#ffffff", margin: 0 }}>
+                      Real-Time Risk Alerts
+                    </h3>
+                    <p style={{ fontSize: "0.8125rem", color: "#888888", margin: "0.25rem 0 0 0" }}>
+                      Immediate pop-up notification when customer requests an out-of-policy discount
+                    </p>
                   </div>
-                  <label className="relative inline-flex items-center cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={approvalAlerts}
-                      onChange={(e) => setApprovalAlerts(e.target.checked)}
-                      className="sr-only peer"
-                    />
-                    <div className="w-11 h-6 bg-[rgba(15,15,35,0.8)] border border-[rgba(139,92,246,0.3)] peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#7c3aed]"></div>
-                  </label>
+                  <button
+                    type="button"
+                    role="switch"
+                    aria-checked={approvalAlerts}
+                    onClick={() => setApprovalAlerts(!approvalAlerts)}
+                    style={{
+                      width: "2.75rem",
+                      height: "1.5rem",
+                      borderRadius: "9999px",
+                      background: approvalAlerts ? "#ffffff" : "rgba(255, 255, 255, 0.12)",
+                      border: `1px solid ${approvalAlerts ? "#ffffff" : "rgba(255, 255, 255, 0.2)"}`,
+                      position: "relative",
+                      cursor: "pointer",
+                      padding: 0,
+                      outline: "none",
+                      transition: "all 0.25s cubic-bezier(0.4, 0, 0.2, 1)",
+                      flexShrink: 0,
+                    }}
+                  >
+                    <span style={{
+                      position: "absolute",
+                      top: "2px",
+                      left: approvalAlerts ? "calc(100% - 1.25rem - 2px)" : "2px",
+                      width: "1.25rem",
+                      height: "1.25rem",
+                      borderRadius: "50%",
+                      background: approvalAlerts ? "#000000" : "#ffffff",
+                      boxShadow: "0 1px 3px rgba(0,0,0,0.4)",
+                      transition: "all 0.25s cubic-bezier(0.4, 0, 0.2, 1)",
+                    }} />
+                  </button>
                 </div>
               </div>
             </div>
 
-            <div className="flex justify-end">
+            {/* Bottom Actions */}
+            <div style={{ display: "flex", justifyContent: "flex-end", marginTop: "0.5rem" }}>
               <button
                 type="submit"
-                className="flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-[#7c3aed] to-[#6d28d9] text-white font-semibold text-sm hover:opacity-90 transition-opacity shadow-lg shadow-[rgba(109,40,217,0.3)]"
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "0.625rem",
+                  padding: "0.75rem 1.5rem",
+                  borderRadius: "0.75rem",
+                  background: "#ffffff",
+                  color: "#000000",
+                  fontSize: "0.875rem",
+                  fontWeight: 600,
+                  border: "none",
+                  cursor: "pointer",
+                  boxShadow: "0 4px 14px 0 rgba(255, 255, 255, 0.18)",
+                  transition: "all 0.2s ease",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = "#e8e8e8";
+                  e.currentTarget.style.transform = "translateY(-1px)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = "#ffffff";
+                  e.currentTarget.style.transform = "translateY(0)";
+                }}
               >
                 <Save size={16} />
                 Save Preferences

@@ -2,6 +2,7 @@
 // Spec §5 — GET /api/invoices, POST /api/invoices
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
+import { prisma } from "@/lib/db";
 import { requireRole } from "@/lib/auth/rbac";
 import { listInvoices, createOneTimeInvoice } from "@/lib/services/billing";
 import { InvoiceStatus } from "@/lib/contracts/billing";
@@ -15,21 +16,54 @@ const CreateInvoiceSchema = z.object({
 export const runtime = "nodejs";
 
 export async function GET(request: NextRequest) {
-  const { user, response } = await requireRole("ADMIN", "FINANCE");
+  const { user, response } = await requireRole("ADMIN", "FINANCE", "CUSTOMER");
   if (response) return response;
 
   const { searchParams } = new URL(request.url);
   const status = searchParams.get("status") as InvoiceStatus | null;
-  const customerId = searchParams.get("customerId") ?? undefined;
   const limit = parseInt(searchParams.get("limit") ?? "50", 10);
   const offset = parseInt(searchParams.get("offset") ?? "0", 10);
 
   try {
-    const { invoices, total } = await listInvoices({
-      status: status ?? undefined,
-      limit,
-      offset,
-    });
+    let customerFilterId: string | undefined = searchParams.get("customerId") ?? undefined;
+
+    if (user!.role === "CUSTOMER") {
+      const customer = await prisma.customer.findFirst({
+        where: { email: user!.email },
+      });
+      if (!customer) {
+        return NextResponse.json({ success: true, data: serializeForApi({ invoices: [], total: 0 }) });
+      }
+      customerFilterId = customer.id;
+    }
+
+    const whereClause: any = {};
+    if (status) {
+      whereClause.status = status;
+    }
+    if (customerFilterId) {
+      whereClause.customerId = customerFilterId;
+    }
+
+    const [invoices, total] = await Promise.all([
+      prisma.invoice.findMany({
+        where: whereClause,
+        include: {
+          quote: {
+            include: {
+              customer: true,
+              lines: { include: { product: true } },
+            },
+          },
+          lines: true,
+          customer: true,
+        },
+        orderBy: { issuedAt: "desc" },
+        take: limit,
+        skip: offset,
+      }),
+      prisma.invoice.count({ where: whereClause }),
+    ]);
 
     return NextResponse.json({ success: true, data: serializeForApi({ invoices, total }) });
   } catch (err) {

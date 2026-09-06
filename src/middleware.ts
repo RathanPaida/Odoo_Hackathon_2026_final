@@ -22,6 +22,9 @@ const PROTECTED_API_PREFIXES = [
   "/api/pricing",
   "/api/upsell",
   "/api/dashboard",
+  "/api/payments",
+  "/api/invoices",
+  "/api/subscriptions",
 ];
 
 // Public routes (no session needed)
@@ -102,5 +105,8 @@ export const config = {
     "/api/pricing/:path*",
     "/api/upsell/:path*",
     "/api/dashboard/:path*",
+    "/api/payments/:path*",
+    "/api/invoices/:path*",
+    "/api/subscriptions/:path*",
   ],
 };

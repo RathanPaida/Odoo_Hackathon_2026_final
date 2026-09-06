@@ -1,10 +1,13 @@
-// src/app/dashboard/billing/page.tsx - // src/app/dashboard/billing/page.tsx
+// src/app/dashboard/billing/page.tsx
 // Billing management — subscription plans, invoices, subscriptions.
 "use client";
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { Eye, CheckCircle, XCircle, Plus, FileText } from "lucide-react";
 import { RoleSidebar } from "@/components/navbar/RoleSidebar";
+import { InvoiceDetailModal } from "@/components/invoices/InvoiceDetailModal";
+import { useToast } from "@/components/ui";
 import styles from "../dashboard.module.css";
 
 type Tab = "invoices" | "subscriptions" | "plans";
@@ -30,7 +33,14 @@ interface Invoice {
   status: string;
   issuedAt: string;
   dueAt: string;
+  customer?: {
+    companyName?: string;
+    contactName?: string;
+    email?: string;
+    phone?: string;
+  };
   lines?: InvoiceLine[];
+  quote?: any;
 }
 
 interface SubscriptionLine {
@@ -86,11 +96,14 @@ interface SubscriptionPlan {
 }
 
 export default function BillingPage() {
+  const toast = useToast();
   const [activeTab, setActiveTab] = useState<Tab>("invoices");
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
   const [plans, setPlans] = useState<SubscriptionPlan[]>([]);
   const [selectedSubscription, setSelectedSubscription] = useState<Subscription | null>(null);
+  const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
+  const [isPaying, setIsPaying] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -128,6 +141,54 @@ export default function BillingPage() {
     fetchData();
   }, [activeTab]);
 
+  const handleMarkPaid = async (invoiceId: string) => {
+    setIsPaying(true);
+    try {
+      const res = await fetch(`/api/invoices/${invoiceId}/pay`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ paymentMethod: "FINANCE_DESK" }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error?.message || "Failed to update invoice");
+
+      toast.success("Invoice Settled", "Marked as PAID in database and recorded in audit log.");
+      setInvoices((prev) =>
+        prev.map((i) => (i.id === invoiceId ? { ...i, status: "PAID" } : i))
+      );
+      if (selectedInvoice?.id === invoiceId) {
+        setSelectedInvoice((prev: any) => ({ ...prev, status: "PAID" }));
+      }
+    } catch (err: any) {
+      toast.error("Action Failed", err.message);
+    } finally {
+      setIsPaying(false);
+    }
+  };
+
+  const handleCancelInvoice = async (invoiceId: string) => {
+    if (!confirm("Are you sure you want to cancel/void this invoice?")) return;
+    try {
+      const res = await fetch(`/api/invoices/${invoiceId}`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ reason: "Finance administrative void" }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error?.message || "Failed to cancel invoice");
+
+      toast.success("Invoice Cancelled", "Invoice status marked as CANCELLED.");
+      setInvoices((prev) =>
+        prev.map((i) => (i.id === invoiceId ? { ...i, status: "CANCELLED" } : i))
+      );
+      if (selectedInvoice?.id === invoiceId) {
+        setSelectedInvoice((prev: any) => ({ ...prev, status: "CANCELLED" }));
+      }
+    } catch (err: any) {
+      toast.error("Cancellation Failed", err.message);
+    }
+  };
+
   return (
     <RoleSidebar role="FINANCE">
       <main className={styles.page}>
@@ -135,79 +196,100 @@ export default function BillingPage() {
           <header className={styles.header}>
             <div className={styles.headerLeft}>
               <h1 className={styles.title}>Billing & Subscriptions</h1>
-              <p className={styles.subtitle}>Manage invoices, subscriptions, and billing configuration</p>
+              <p className={styles.subtitle}>Manage customer invoices, recurring subscription schedules, and audit records</p>
             </div>
           </header>
 
-        <div className={styles.filterTabs}>
-          {(["invoices", "subscriptions", "plans"] as Tab[]).map((tab) => (
-            <button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
-              className={`${styles.filterTab} ${activeTab === tab ? styles.filterTabActive : ""}`}
-            >
-              {tab.charAt(0).toUpperCase() + tab.slice(1)}
-            </button>
-          ))}
+          <div className={styles.filterTabs}>
+            {(["invoices", "subscriptions", "plans"] as Tab[]).map((tab) => (
+              <button
+                key={tab}
+                onClick={() => setActiveTab(tab)}
+                className={`${styles.filterTab} ${activeTab === tab ? styles.filterTabActive : ""}`}
+              >
+                {tab.charAt(0).toUpperCase() + tab.slice(1)}
+              </button>
+            ))}
+          </div>
+
+          {loading ? (
+            <div className={styles.emptyState}>
+              <p className={styles.emptyStateText}>Loading billing records...</p>
+            </div>
+          ) : error ? (
+            <div className={`${styles.card} ${styles.textBad}`}>
+              <p className={styles.emptyStateText}>{error}</p>
+            </div>
+          ) : (
+            <>
+              {activeTab === "invoices" && (
+                <InvoicesTab
+                  invoices={invoices}
+                  onViewInvoice={setSelectedInvoice}
+                  onMarkPaid={handleMarkPaid}
+                  onCancelInvoice={handleCancelInvoice}
+                />
+              )}
+              {activeTab === "subscriptions" && (
+                <SubscriptionsTab
+                  subscriptions={subscriptions}
+                  onSelectSubscription={setSelectedSubscription}
+                />
+              )}
+              {activeTab === "plans" && <PlansTab plans={plans} />}
+            </>
+          )}
+
+          {selectedSubscription && (
+            <SubscriptionDetailModal
+              subscription={selectedSubscription}
+              onClose={() => setSelectedSubscription(null)}
+            />
+          )}
+
+          {selectedInvoice && (
+            <InvoiceDetailModal
+              invoice={selectedInvoice}
+              onClose={() => setSelectedInvoice(null)}
+              onMarkPaid={handleMarkPaid}
+              isPaying={isPaying}
+              canPay={true}
+            />
+          )}
+
+          <div className={`${styles.cardGrid} ${styles.cardGrid3} mt-8`}>
+            <Link href="/dashboard/billing/schedule" className={styles.navLink}>
+              <h3 className={styles.navTitle}>Billing Schedule</h3>
+              <p className={styles.navDescription}>View upcoming subscription billing cycles</p>
+            </Link>
+            <Link href="/dashboard/reports" className={styles.navLink}>
+              <h3 className={styles.navTitle}>Reports</h3>
+              <p className={styles.navDescription}>Analytics with Period / Rep / Status filters</p>
+            </Link>
+            <div className={styles.card}>
+              <h3 className={styles.cardTitle}>Quick Metrics</h3>
+              <p className={styles.cardDescription}>
+                {invoices.filter((i) => i.status === "PAID").length} settled invoices · {subscriptions.filter((s) => s.status === "ACTIVE").length} active plans
+              </p>
+            </div>
+          </div>
         </div>
-
-        {loading ? (
-          <div className={styles.emptyState}>
-            <p className={styles.emptyStateText}>Loading...</p>
-          </div>
-        ) : error ? (
-          <div className={`${styles.card} ${styles.textBad}`}>
-            <p className={styles.emptyStateText}>{error}</p>
-          </div>
-        ) : (
-          <>
-            {activeTab === "invoices" && <InvoicesTab invoices={invoices} />}
-            {activeTab === "subscriptions" && (
-              <SubscriptionsTab
-                subscriptions={subscriptions}
-                onSelectSubscription={setSelectedSubscription}
-              />
-            )}
-            {activeTab === "plans" && <PlansTab plans={plans} />}
-          </>
-        )}
-
-        {selectedSubscription && (
-          <SubscriptionDetailModal
-            subscription={selectedSubscription}
-            onClose={() => setSelectedSubscription(null)}
-          />
-        )}
-
-        <div className={`${styles.cardGrid} ${styles.cardGrid3} mt-8`}>
-          <Link
-            href="/dashboard/billing/schedule"
-            className={styles.navLink}
-          >
-            <h3 className={styles.navTitle}>Billing Schedule</h3>
-            <p className={styles.navDescription}>View upcoming subscription billing dates</p>
-          </Link>
-          <Link
-            href="/dashboard/reports"
-            className={styles.navLink}
-          >
-            <h3 className={styles.navTitle}>Reports</h3>
-            <p className={styles.navDescription}>Analytics with Period / Rep / Status filters</p>
-          </Link>
-          <div className={styles.card}>
-            <h3 className={styles.cardTitle}>Quick Stats</h3>
-            <p className={styles.cardDescription}>
-              {subscriptions.filter((s) => s.status === "ACTIVE").length} active subscriptions
-            </p>
-          </div>
-        </div>
-      </div>
-    </main>
+      </main>
     </RoleSidebar>
   );
 }
 
-function InvoicesTab({ invoices }: { invoices: Invoice[] }) {
+function InvoicesTab({
+  invoices,
+  onViewInvoice,
+  onMarkPaid,
+  onCancelInvoice,
+}: {
+  invoices: Invoice[];
+  onViewInvoice: (inv: Invoice) => void;
+  onMarkPaid: (invoiceId: string) => void;
+  onCancelInvoice: (invoiceId: string) => void;
+}) {
   return (
     <div className={`${styles.tableCard} ${styles.animateFadeIn}`}>
       <div className={styles.tableWrapper}>
@@ -215,39 +297,73 @@ function InvoicesTab({ invoices }: { invoices: Invoice[] }) {
           <thead>
             <tr>
               <th>Invoice #</th>
+              <th>Customer</th>
               <th>Type</th>
               <th>Amount</th>
               <th>Status</th>
               <th>Issued</th>
               <th>Due</th>
+              <th style={{ textAlign: "right" }}>Actions</th>
             </tr>
           </thead>
           <tbody>
             {invoices.length === 0 ? (
               <tr>
-                <td colSpan={6} className={styles.emptyState}>
+                <td colSpan={8} className={styles.emptyState}>
                   No invoices found
                 </td>
               </tr>
             ) : (
-              invoices.map((invoice) => (
-                <tr key={invoice.id}>
-                  <td className={styles.cellPrimary}>{invoice.invoiceNumber}</td>
-                  <td>
-                    <span className={invoice.invoiceType === "RECURRING" ? styles.statusBadgeNegotiating : styles.statusBadge}>
-                      {invoice.invoiceType}
-                    </span>
-                  </td>
-                  <td className={styles.cellPrimary}>${Number(invoice.amount).toLocaleString()}</td>
-                  <td>
-                    <span className={`${styles.statusBadge} ${getInvoiceStatusClass(invoice.status)}`}>
-                      {invoice.status.replace("_", " ")}
-                    </span>
-                  </td>
-                  <td className={styles.cellMuted}>{new Date(invoice.issuedAt).toLocaleDateString()}</td>
-                  <td className={styles.cellMuted}>{new Date(invoice.dueAt).toLocaleDateString()}</td>
-                </tr>
-              ))
+              invoices.map((invoice) => {
+                const customerName = invoice.customer?.companyName || invoice.quote?.customer?.companyName || "Customer";
+                return (
+                  <tr key={invoice.id}>
+                    <td className={styles.cellPrimary}>{invoice.invoiceNumber}</td>
+                    <td className={styles.cellMuted}>{customerName}</td>
+                    <td>
+                      <span className={invoice.invoiceType === "RECURRING" ? styles.statusBadgeNegotiating : styles.statusBadge}>
+                        {invoice.invoiceType}
+                      </span>
+                    </td>
+                    <td className={styles.cellPrimary}>₹{Number(invoice.amount).toLocaleString()}</td>
+                    <td>
+                      <span className={`${styles.statusBadge} ${getInvoiceStatusClass(invoice.status)}`}>
+                        {invoice.status.replace("_", " ")}
+                      </span>
+                    </td>
+                    <td className={styles.cellMuted}>{new Date(invoice.issuedAt).toLocaleDateString()}</td>
+                    <td className={styles.cellMuted}>{new Date(invoice.dueAt).toLocaleDateString()}</td>
+                    <td style={{ textAlign: "right" }}>
+                      <div className="flex items-center justify-end gap-2">
+                        <button
+                          onClick={() => onViewInvoice(invoice)}
+                          className="px-2.5 py-1 rounded-lg bg-[#ffffff] text-[#000000] text-xs font-semibold hover:bg-[#e0e0e0] transition-colors"
+                        >
+                          View
+                        </button>
+                        {invoice.status !== "PAID" && invoice.status !== "CANCELLED" && (
+                          <>
+                            <button
+                              onClick={() => onMarkPaid(invoice.id)}
+                              title="Mark as Paid"
+                              className="px-2 py-1 rounded-lg bg-[#1a1a1a] text-[#34d399] border border-[rgba(52,211,153,0.3)] hover:bg-[#252525] text-xs transition-colors"
+                            >
+                              Settle
+                            </button>
+                            <button
+                              onClick={() => onCancelInvoice(invoice.id)}
+                              title="Cancel Invoice"
+                              className="px-2 py-1 rounded-lg bg-[#1a1a1a] text-[#f87171] border border-[rgba(248,113,113,0.3)] hover:bg-[#252525] text-xs transition-colors"
+                            >
+                              Void
+                            </button>
+                          </>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })
             )}
           </tbody>
         </table>
@@ -363,8 +479,8 @@ function SubscriptionDetailModal({
   const recurringAddons = sub.lines?.filter((l) => l.quoteLine?.billingType === "SUBSCRIPTION") ?? [];
 
   return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className={`${styles.card} max-w-2xl w-full max-h-[90vh] overflow-y-auto`}>
+    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div className={`${styles.card} max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-[rgba(255,255,255,0.2)]`}>
         <div className="flex items-center justify-between mb-6">
           <div>
             <h2 className={styles.cardTitle}>{sub.plan?.name ?? "Subscription details"}</h2>
@@ -375,7 +491,7 @@ function SubscriptionDetailModal({
 
         {loading ? (
           <div className={styles.emptyState}>
-            <p className={styles.emptyStateText}>Loading...</p>
+            <p className={styles.emptyStateText}>Loading details...</p>
           </div>
         ) : (
           <div className="space-y-6">
@@ -389,7 +505,7 @@ function SubscriptionDetailModal({
                 <p className={styles.metricValue}>{sub.quantity}</p>
               </div>
               <div className={styles.metricCard}>
-                <p className={styles.metricTitle}>Next Billing</p>
+                <p className={styles.metricTitle}>Next Renewal</p>
                 <p className={styles.cellPrimary}>{new Date(sub.nextBillingDate).toLocaleDateString()}</p>
               </div>
               <div className={styles.metricCard}>
@@ -408,53 +524,53 @@ function SubscriptionDetailModal({
                 ) : (
                   <ul className="mt-3 space-y-2">
                     {oneTimeCharges.map((line) => (
-                      <li key={line.id} className="flex justify-between py-2 border-b border-[rgba(139,92,246,0.1)] last:border-0">
+                      <li key={line.id} className="flex justify-between py-2 border-b border-[rgba(255,255,255,0.08)] last:border-0">
                         <div>
                           <p className={styles.cellPrimary}>{line.quoteLine?.product?.name ?? "Setup fee"}</p>
                           <p className={styles.cellMuted}>{line.quoteLine?.product?.category ?? "One-time"}</p>
                         </div>
-                        <span className={styles.cellPrimary}>${Number(line.proratedFirstAmount).toLocaleString()}</span>
+                        <span className={styles.cellPrimary}>₹{Number(line.proratedFirstAmount).toLocaleString()}</span>
                       </li>
                     ))}
                   </ul>
                 )}
-                <div className="mt-3 pt-3 border-t border-[rgba(139,92,246,0.1)] flex justify-between font-medium">
+                <div className="mt-3 pt-3 border-t border-[rgba(255,255,255,0.08)] flex justify-between font-medium">
                   <span>Subtotal</span>
-                  <span>${oneTimeSubtotal.toLocaleString()}</span>
+                  <span>₹{oneTimeSubtotal.toLocaleString()}</span>
                 </div>
               </div>
 
               <div className={`${styles.cardSmall}`}>
                 <h3 className={styles.cardTitle}>Recurring Charges</h3>
                 <ul className="mt-3 space-y-2">
-                  <li className="flex justify-between py-2 border-b border-[rgba(139,92,246,0.1)]">
+                  <li className="flex justify-between py-2 border-b border-[rgba(255,255,255,0.08)]">
                     <div>
                       <p className={styles.cellPrimary}>{sub.plan?.name ?? "Subscription"}</p>
                       <p className={styles.cellMuted}>
-                        {sub.quantity} × ${Number(sub.plan?.price ?? 0).toLocaleString()} / {sub.plan?.billingCycle?.toLowerCase()}
+                        {sub.quantity} × ₹{Number(sub.plan?.price ?? 0).toLocaleString()} / {sub.plan?.billingCycle?.toLowerCase()}
                       </p>
                     </div>
-                    <span className={styles.cellPrimary}>${recurringAmount.toLocaleString()}</span>
+                    <span className={styles.cellPrimary}>₹{recurringAmount.toLocaleString()}</span>
                   </li>
                   {recurringAddons.map((line) => (
-                    <li key={line.id} className="flex justify-between py-2 border-b border-[rgba(139,92,246,0.1)] last:border-0">
+                    <li key={line.id} className="flex justify-between py-2 border-b border-[rgba(255,255,255,0.08)] last:border-0">
                       <div>
                         <p className={styles.cellPrimary}>{line.quoteLine?.product?.name ?? "Add-on"}</p>
                         <p className={styles.cellMuted}>{line.quoteLine?.product?.category}</p>
                       </div>
-                      <span className={styles.cellPrimary}>${Number(line.monthlyAmount).toLocaleString()}</span>
+                      <span className={styles.cellPrimary}>₹{Number(line.monthlyAmount).toLocaleString()}</span>
                     </li>
                   ))}
                 </ul>
-                <div className="mt-3 pt-3 border-t border-[rgba(139,92,246,0.1)] flex justify-between font-medium">
+                <div className="mt-3 pt-3 border-t border-[rgba(255,255,255,0.08)] flex justify-between font-medium">
                   <span>Subtotal</span>
-                  <span>${recurringAmount.toLocaleString()}</span>
+                  <span>₹{recurringAmount.toLocaleString()}</span>
                 </div>
               </div>
 
               <div className={`${styles.cardSmall} flex justify-between font-semibold text-lg`}>
                 <span>Total</span>
-                <span className={styles.textGood}>${(oneTimeSubtotal + recurringAmount).toLocaleString()}</span>
+                <span className={styles.textGood}>₹{(oneTimeSubtotal + recurringAmount).toLocaleString()}</span>
               </div>
             </div>
 
@@ -505,7 +621,7 @@ function PlansTab({ plans }: { plans: SubscriptionPlan[] }) {
                 <tr key={plan.id}>
                   <td className={styles.cellPrimary}>{plan.name}</td>
                   <td className={styles.cellMuted}>{plan.billingCycle}</td>
-                  <td className={styles.cellPrimary}>${Number(plan.price).toLocaleString()}</td>
+                  <td className={styles.cellPrimary}>₹{Number(plan.price).toLocaleString()}</td>
                   <td className={styles.cellMuted}>{plan.prorationEnabled ? "Enabled" : "Disabled"}</td>
                   <td>
                     <span className={`${styles.statusBadge} ${plan.active ? styles.statusBadgeActive : styles.statusBadgeInactive}`}>
@@ -528,6 +644,7 @@ function getInvoiceStatusClass(status: string): string {
     case "OVERDUE": return styles.statusBadgeRejected;
     case "PARTIALLY_PAID": return styles.statusBadgePending;
     case "DRAFT": return styles.statusBadgeDraft;
+    case "CANCELLED": return styles.statusBadgeRejected;
     default: return styles.statusBadge;
   }
 }

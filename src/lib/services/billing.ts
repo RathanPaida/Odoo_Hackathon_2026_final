@@ -1,11 +1,10 @@
 // src/lib/services/billing.ts
 // Spec §16 — hybrid billing: one-time invoice + recurring subscription schedule.
 // Money is always Prisma.Decimal. Never use JS number for money.
-//
-// Uses generated Prisma client types.
 import { Prisma } from "@/generated/prisma";
 import { prisma } from "@/lib/db";
 import { writeAudit } from "@/lib/audit";
+import { computeProration } from "./subscription";
 
 export type DecimalInput = string | number | Prisma.Decimal;
 
@@ -46,7 +45,7 @@ function generateInvoiceNumber(): string {
 
 /**
  * Create an invoice for a confirmed quote.
- * Invoice is tied to Quote via quoteId (unique).
+ * Handles both one-time lines and prorated recurring first-period lines per Spec §6.4 & §16.
  */
 export async function createOneTimeInvoice(
   quoteId: string,
@@ -65,18 +64,35 @@ export async function createOneTimeInvoice(
   if (!quote) throw new Error(`Quote ${quoteId} not found`);
   if (quote.lines.length === 0) throw new Error("No lines to invoice");
 
-  // TEST 18 & 19: Only ONE_TIME lines go into the initial one-time invoice.
-  // Future recurring subscription charges must NOT be in the one-time invoice.
+  // Check if invoice already exists for this quote
+  const existing = await prisma.invoice.findUnique({ where: { quoteId } });
+  if (existing) {
+    return {
+      invoiceId: existing.id,
+      invoiceNumber: existing.invoiceNumber,
+      amount: existing.amount,
+      dueDate: existing.dueAt,
+      lineItems: [],
+    };
+  }
+
   const oneTimeLines = quote.lines.filter(
     (line) => line.billingType === "ONE_TIME"
+  );
+  const recurringLines = quote.lines.filter(
+    (line) => line.billingType === "RECURRING"
   );
 
   const lineItems: InvoiceLineItem[] = [];
   let totalAmount = new Prisma.Decimal(0);
+  let subtotalAmount = new Prisma.Decimal(0);
+  const now = new Date();
 
+  // 1. One-time items
   for (const line of oneTimeLines) {
     const lineTotal = dec(line.lineTotal);
     totalAmount = totalAmount.plus(lineTotal);
+    subtotalAmount = subtotalAmount.plus(dec(line.unitPrice).times(line.qty));
 
     lineItems.push({
       description: line.product.name,
@@ -88,7 +104,31 @@ export async function createOneTimeInvoice(
     });
   }
 
+  // 2. Spec §6.4: Recurring lines prorated first amount included on initial invoice
+  for (const line of recurringLines) {
+    const monthlyAmt = dec(line.lineTotal);
+    const proratedFirst = computeProration(monthlyAmt, now);
+    totalAmount = totalAmount.plus(proratedFirst);
+    subtotalAmount = subtotalAmount.plus(proratedFirst);
+
+    lineItems.push({
+      description: `${line.product.name} (First Month Proration)`,
+      productId: line.productId,
+      quantity: 1,
+      unitPrice: proratedFirst,
+      taxAmount: new Prisma.Decimal(0),
+      totalAmount: proratedFirst,
+    });
+  }
+
+  // If quote only had recurring or zero amount, ensure at least grandTotal or prorated
+  if (totalAmount.isZero() && quote.grandTotal && !dec(quote.grandTotal).isZero()) {
+    totalAmount = dec(quote.grandTotal);
+    subtotalAmount = dec(quote.subtotal);
+  }
+
   const roundedAmount = round2(totalAmount);
+  const roundedSubtotal = round2(subtotalAmount);
   const dueDate = new Date();
   dueDate.setDate(dueDate.getDate() + dueDays);
 
@@ -98,7 +138,19 @@ export async function createOneTimeInvoice(
       customer: { connect: { id: quote.customerId } },
       invoiceNumber: generateInvoiceNumber(),
       amount: roundedAmount,
+      subtotal: roundedSubtotal,
+      taxAmount: quote.taxTotal || new Prisma.Decimal(0),
       dueAt: dueDate,
+      lines: {
+        create: lineItems.map((item) => ({
+          description: item.description,
+          productId: item.productId,
+          quantity: item.quantity,
+          unitPrice: dec(item.unitPrice),
+          taxAmount: dec(item.taxAmount),
+          totalAmount: dec(item.totalAmount),
+        })),
+      },
     },
   });
 
@@ -129,6 +181,8 @@ export async function getInvoiceById(invoiceId: string) {
           lines: { include: { product: true } },
         },
       },
+      lines: true,
+      customer: true,
     },
   });
 }
@@ -140,8 +194,11 @@ export async function getInvoiceByQuoteId(quoteId: string) {
       quote: {
         include: {
           customer: true,
+          lines: { include: { product: true } },
         },
       },
+      lines: true,
+      customer: true,
     },
   });
 }
@@ -160,6 +217,8 @@ export async function listInvoices(options: {
         quote: {
           include: { customer: true },
         },
+        lines: true,
+        customer: true,
       },
       orderBy: { issuedAt: "desc" },
       take: limit,
@@ -177,7 +236,6 @@ export async function cancelInvoice(invoiceId: string, reason?: string) {
   const invoice = await prisma.invoice.findUnique({ where: { id: invoiceId } });
   if (!invoice) throw new Error(`Invoice ${invoiceId} not found`);
 
-  // Setting status to CANCELLED since generated client supports it
   await prisma.invoice.update({ 
     where: { id: invoiceId },
     data: { status: "CANCELLED" }

@@ -41,11 +41,21 @@ export async function POST(req: NextRequest) {
   }
 
   if (user!.role === "CUSTOMER") {
-    const customer = await prisma.customer.findFirst({
+    let customer = await prisma.customer.findFirst({
       where: { email: user!.email },
     });
 
-    if (!customer || quote.customerId !== customer.id) {
+    if (!customer && user!.name) {
+      customer = await prisma.customer.findFirst({
+        where: { companyName: { contains: user!.name, mode: "insensitive" } },
+      });
+    }
+
+    const hasAccess =
+      (customer && quote.customerId === customer.id) ||
+      quote.ownerId === user!.id;
+
+    if (!hasAccess) {
       return NextResponse.json(
         { success: false, error: { code: "FORBIDDEN", message: "You do not have access to this quote" } },
         { status: 403 }

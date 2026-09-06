@@ -3,10 +3,10 @@
 
 .page {
   min-height: 100vh;
-  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f0f23 100%);
+  background: #000000;
   padding: 2.5rem 1.5rem;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-  color: #f1f5f9;
+  color: #ffffff;
 }
 
 .main {
@@ -26,14 +26,14 @@
 .title {
   font-size: 2.25rem;
   font-weight: 800;
-  color: #f1f5f9;
+  color: #ffffff;
   margin: 0;
   letter-spacing: -0.025em;
 }
 
 .subtitle {
   font-size: 0.9375rem;
-  color: #94a3b8;
+  color: #888888;
   margin: 0.5rem 0 0 0;
   line-height: 1.6;
 }
@@ -50,32 +50,32 @@
   gap: 0.5rem;
   padding: 0.75rem 1.25rem;
   border-radius: 1rem;
-  background: linear-gradient(145deg, rgba(30, 27, 75, 0.8) 0%, rgba(15, 15, 35, 0.9) 100%);
-  border: 1px solid rgba(139, 92, 246, 0.2);
+  background: #111111;
+  border: 1px solid rgba(255, 255, 255, 0.12);
   font-size: 0.8125rem;
-  color: #94a3b8;
+  color: #888888;
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.2);
   transition: all 0.3s ease;
 }
 
 .stat:hover {
-  border-color: rgba(139, 92, 246, 0.4);
+  border-color: rgba(255, 255, 255, 0.24);
   transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(109, 40, 217, 0.2);
+  box-shadow: 0 8px 20px rgba(255, 255, 255, 0.11);
 }
 
 .statNum {
   font-weight: 800;
   font-size: 1.25rem;
-  color: #c4b5fd;
+  color: #cccccc;
   font-variant-numeric: tabular-nums;
 }
 
 /* ---------- Table ---------- */
 
 .tableWrap {
-  background: linear-gradient(145deg, rgba(30, 27, 75, 0.8) 0%, rgba(15, 15, 35, 0.9) 100%);
-  border: 1px solid rgba(139, 92, 246, 0.2);
+  background: #111111;
+  border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 1.25rem;
   overflow: hidden;
   box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.5);
@@ -89,7 +89,7 @@
 }
 
 .table thead tr {
-  border-bottom: 2px solid rgba(139, 92, 246, 0.25);
+  border-bottom: 2px solid rgba(255, 255, 255, 0.15);
 }
 
 .table th {
@@ -98,13 +98,13 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  color: #a78bfa;
-  background: rgba(30, 27, 75, 0.55);
+  color: #aaaaaa;
+  background: rgba(20, 20, 20, 0.55);
 }
 
 .table tbody tr {
   transition: background 0.15s ease;
-  border-bottom: 1px solid rgba(139, 92, 246, 0.08);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .table tbody tr:last-child {
@@ -112,13 +112,13 @@
 }
 
 .table tbody tr:hover {
-  background: rgba(109, 40, 217, 0.12);
+  background: rgba(255, 255, 255, 0.07);
 }
 
 .table td {
   padding: 1rem 1.25rem;
   font-size: 0.875rem;
-  color: #e2e8f0;
+  color: #eeeeee;
   vertical-align: middle;
 }
 
@@ -137,24 +137,24 @@
   width: 2.5rem;
   height: 2.5rem;
   border-radius: 0.625rem;
-  background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
-  color: #ffffff;
+  background: #ffffff;
+  color: #000000;
   font-weight: 700;
   font-size: 0.875rem;
   text-transform: uppercase;
   flex-shrink: 0;
-  box-shadow: 0 4px 10px rgba(109, 40, 217, 0.3);
+  box-shadow: 0 4px 10px rgba(255, 255, 255, 0.17);
 }
 
 .userName {
   font-weight: 600;
-  color: #f1f5f9;
+  color: #ffffff;
   font-size: 0.9375rem;
 }
 
 .userEmail {
   font-size: 0.84rem;
-  color: #94a3b8;
+  color: #888888;
   margin-top: 0.125rem;
 }
 
@@ -177,7 +177,7 @@
 .badgeManager    { background: rgba(16, 185, 129, 0.15); color: #6ee7b7; border-color: rgba(16, 185, 129, 0.35); }
 .badgeFinance    { background: rgba(245, 158, 11, 0.15); color: #fcd34d; border-color: rgba(245, 158, 11, 0.35); }
 .badgeAdmin      { background: rgba(239, 68, 68, 0.15); color: #fca5a5; border-color: rgba(239, 68, 68, 0.35); }
-.badgeCustomer   { background: rgba(148, 163, 184, 0.15); color: #e2e8f0; border-color: rgba(148, 163, 184, 0.35); }
+.badgeCustomer   { background: rgba(148, 163, 184, 0.15); color: #eeeeee; border-color: rgba(148, 163, 184, 0.35); }
 
 /* ---------- Elite Select ---------- */
 
@@ -185,14 +185,14 @@
   width: auto;
   min-width: 150px;
   padding: 0.625rem 2.5rem 0.625rem 1rem;
-  background-color: rgba(15, 15, 35, 0.85);
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23a78bfa' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-color: rgba(0, 0, 0, 0.85);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23aaaaaa' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 0.75rem center;
   background-size: 16px;
-  border: 1px solid rgba(139, 92, 246, 0.28);
+  border: 1px solid rgba(255, 255, 255, 0.17);
   border-radius: 0.75rem;
-  color: #f1f5f9;
+  color: #ffffff;
   font-size: 0.875rem;
   font-weight: 500;
   transition: all 0.2s ease;
@@ -204,20 +204,20 @@
 }
 
 .roleSelect:hover {
-  border-color: rgba(139, 92, 246, 0.45);
-  background-color: rgba(20, 18, 45, 0.95);
+  border-color: rgba(255, 255, 255, 0.27);
+  background-color: rgba(0, 0, 0, 0.95);
 }
 
 .roleSelect:focus {
   outline: none;
-  border-color: rgba(139, 92, 246, 0.65);
-  box-shadow: 0 0 0 3px rgba(109, 40, 217, 0.3);
-  background-color: rgba(22, 20, 50, 0.95);
+  border-color: rgba(255, 255, 255, 0.39);
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.17);
+  background-color: rgba(0, 0, 0, 0.95);
 }
 
 .roleSelect option {
-  background-color: #121124;
-  color: #f1f5f9;
+  background-color: #111111;
+  color: #ffffff;
   padding: 0.75rem;
 }
 
@@ -240,22 +240,22 @@
   justify-content: center;
   gap: 0.375rem;
   padding: 0.5rem 1rem;
-  background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
-  color: #ffffff;
+  background: #ffffff;
+  color: #000000;
   font-size: 0.8125rem;
   font-weight: 600;
   border: none;
   border-radius: 0.625rem;
   cursor: pointer;
   transition: all 0.2s ease;
-  box-shadow: 0 2px 8px rgba(109, 40, 217, 0.35);
+  box-shadow: 0 2px 8px rgba(255, 255, 255, 0.19);
   white-space: nowrap;
 }
 
 .saveBtn:hover:not(:disabled) {
-  background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+  background: #e8e8e8;
   transform: translateY(-1px);
-  box-shadow: 0 4px 14px rgba(109, 40, 217, 0.5);
+  box-shadow: 0 4px 14px rgba(255, 255, 255, 0.28);
 }
 
 .saveBtn:disabled {
@@ -269,20 +269,20 @@
   align-items: center;
   gap: 0.375rem;
   padding: 0.5rem 1rem;
-  background: rgba(109, 40, 217, 0.15);
-  color: #c4b5fd;
+  background: rgba(255, 255, 255, 0.08);
+  color: #cccccc;
   font-size: 0.8125rem;
   font-weight: 600;
-  border: 1px solid rgba(139, 92, 246, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0.15);
   border-radius: 0.625rem;
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
 .cancelBtn:hover:not(:disabled) {
-  background: rgba(109, 40, 217, 0.25);
-  color: #f1f5f9;
-  border-color: rgba(139, 92, 246, 0.4);
+  background: rgba(255, 255, 255, 0.14);
+  color: #ffffff;
+  border-color: rgba(255, 255, 255, 0.24);
 }
 
 .cancelBtn:disabled {
@@ -293,12 +293,12 @@
 /* ---------- Self row (current admin) ---------- */
 
 .selfRow td {
-  background: rgba(109, 40, 217, 0.08);
+  background: rgba(255, 255, 255, 0.04);
 }
 
 .selfBadge {
   font-size: 0.6875rem;
-  color: #a78bfa;
+  color: #aaaaaa;
   font-weight: 500;
   margin-left: 0.375rem;
   font-style: italic;
@@ -349,7 +349,7 @@
   justify-content: center;
   gap: 1rem;
   min-height: 40vh;
-  color: #a78bfa;
+  color: #aaaaaa;
   font-size: 0.9375rem;
 }
 
@@ -375,7 +375,7 @@
   display: inline-flex;
   align-items: center;
   gap: 0.375rem;
-  color: #94a3b8;
+  color: #888888;
   font-weight: 500;
 }
 

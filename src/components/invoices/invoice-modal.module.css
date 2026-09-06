@@ -1,0 +1,450 @@
+/* src/components/invoices/invoice-modal.module.css */
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background-color: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  overflow-y: auto;
+}
+
+.modalContainer {
+  background: #0d0d0d;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 1.25rem;
+  width: 100%;
+  max-width: 52rem;
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.9), 0 0 0 1px rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+  margin: auto;
+  color: #ffffff;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+.headerBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.125rem 1.75rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  background: #141414;
+}
+
+.headerLeft {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.invoiceNumBadge {
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: #ffffff;
+}
+
+.statusBadge {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  padding: 0.25rem 0.625rem;
+  border-radius: 9999px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border: 1px solid transparent;
+}
+
+.statusPaid {
+  background: rgba(16, 185, 129, 0.15);
+  color: #34d399;
+  border-color: rgba(16, 185, 129, 0.3);
+}
+
+.statusIssued {
+  background: rgba(245, 158, 11, 0.15);
+  color: #fbbf24;
+  border-color: rgba(245, 158, 11, 0.3);
+}
+
+.statusCancelled {
+  background: rgba(239, 68, 68, 0.15);
+  color: #f87171;
+  border-color: rgba(239, 68, 68, 0.3);
+}
+
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.iconBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.5rem 0.875rem;
+  border-radius: 0.625rem;
+  background: #1e1e1e;
+  color: #ffffff;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.iconBtn:hover {
+  background: #2a2a2a;
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.closeBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 0.625rem;
+  background: #1e1e1e;
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.closeBtn:hover {
+  background: #2a2a2a;
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+/* Printable invoice body */
+.invoiceBody {
+  padding: 2rem 2.25rem;
+  background: #0d0d0d;
+}
+
+.brandRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding-bottom: 1.75rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  gap: 1.5rem;
+}
+
+.brandLogo {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  margin-bottom: 0.5rem;
+}
+
+.logoBox {
+  width: 1.75rem;
+  height: 1.75rem;
+  background: #ffffff;
+  color: #000000;
+  font-weight: 900;
+  font-size: 0.875rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.375rem;
+}
+
+.brandName {
+  font-size: 1.125rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #ffffff;
+}
+
+.brandText {
+  font-size: 0.75rem;
+  color: #777777;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.invoiceMetaBlock {
+  text-align: right;
+  font-size: 0.75rem;
+  color: #777777;
+  line-height: 1.6;
+}
+
+.invoiceMetaNum {
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: #ffffff;
+  margin-bottom: 0.25rem;
+}
+
+.metaHighlight {
+  color: #ffffff;
+  font-weight: 600;
+}
+
+/* Info Cards Grid (Billed To & Summary) */
+.infoGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.25rem;
+  margin-top: 1.5rem;
+  margin-bottom: 1.75rem;
+}
+
+@media (max-width: 640px) {
+  .infoGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.infoCard {
+  background: #141414;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 0.875rem;
+  padding: 1.125rem 1.25rem;
+}
+
+.infoLabel {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #888888;
+  display: block;
+  margin-bottom: 0.375rem;
+}
+
+.infoVal {
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 0 0 0.25rem 0;
+}
+
+.infoSub {
+  font-size: 0.75rem;
+  color: #999999;
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* Items Table */
+.itemsSection {
+  margin-bottom: 1.75rem;
+}
+
+.sectionTitle {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #888888;
+  margin-bottom: 0.75rem;
+}
+
+.itemsTableWrapper {
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 0.875rem;
+  overflow: hidden;
+  background: #121212;
+}
+
+.itemsTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8125rem;
+}
+
+.itemsTable thead {
+  background: #181818;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.itemsTable th {
+  padding: 0.75rem 1rem;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #888888;
+  text-align: left;
+}
+
+.itemsTable tbody tr {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.itemsTable tbody tr:last-child {
+  border-bottom: none;
+}
+
+.itemsTable td {
+  padding: 0.875rem 1rem;
+  color: #dddddd;
+  vertical-align: middle;
+}
+
+.typeBadge {
+  display: inline-block;
+  padding: 0.125rem 0.5rem;
+  border-radius: 0.25rem;
+  background: #202020;
+  font-size: 0.625rem;
+  font-weight: 600;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #cccccc;
+}
+
+/* Totals section */
+.bottomSection {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1.5rem;
+  padding-top: 0.5rem;
+}
+
+@media (max-width: 640px) {
+  .bottomSection {
+    flex-direction: column;
+  }
+}
+
+.notesBlock {
+  max-width: 22rem;
+  font-size: 0.75rem;
+  color: #777777;
+  line-height: 1.5;
+}
+
+.notesTitle {
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: #ffffff;
+  margin-bottom: 0.25rem;
+}
+
+.totalsCard {
+  width: 18rem;
+  background: #141414;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 0.875rem;
+  padding: 1.125rem 1.25rem;
+}
+
+.totalsRow {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.75rem;
+  color: #888888;
+  margin-bottom: 0.5rem;
+}
+
+.totalsVal {
+  color: #ffffff;
+  font-weight: 500;
+}
+
+.totalsGrandRow {
+  display: flex;
+  justify-content: space-between;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  padding-top: 0.625rem;
+  margin-top: 0.5rem;
+  font-size: 0.9375rem;
+  font-weight: 800;
+  color: #ffffff;
+}
+
+/* Action Footer */
+.footerBar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.125rem 1.75rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  background: #141414;
+}
+
+.certifiedText {
+  font-size: 0.75rem;
+  color: #666666;
+}
+
+.footerButtons {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.settleBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1.375rem;
+  border-radius: 0.75rem;
+  background: #ffffff;
+  color: #000000;
+  font-size: 0.8125rem;
+  font-weight: 800;
+  border: none;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.settleBtn:hover {
+  background: #e2e2e2;
+  transform: translateY(-1px);
+}
+
+.settleBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.cancelActionBtn {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.625rem 1.125rem;
+  border-radius: 0.75rem;
+  background: #202020;
+  color: #ffffff;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.cancelActionBtn:hover {
+  background: #2c2c2c;
+}
+
+/* Print CSS */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  .printableContent,
+  .printableContent * {
+    visibility: visible;
+  }
+  .printableContent {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    color: #000000 !important;
+    background: #ffffff !important;
+  }
+}

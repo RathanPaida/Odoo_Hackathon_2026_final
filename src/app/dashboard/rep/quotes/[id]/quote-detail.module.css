@@ -4,10 +4,10 @@
 
 .page {
   min-height: 100vh;
-  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f0f23 100%);
+  background: #000000;
   padding: 2.5rem 1.5rem;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-  color: #f1f5f9;
+  color: #ffffff;
 }
 
 .container {
@@ -25,14 +25,14 @@
   align-items: center;
   gap: 0.5rem;
   font-size: 0.875rem;
-  color: #a78bfa;
+  color: #aaaaaa;
   text-decoration: none;
   transition: color 0.2s ease;
   margin-bottom: 1rem;
 }
 
 .backLink:hover {
-  color: #c4b5fd;
+  color: #cccccc;
 }
 
 .headerTop {
@@ -46,14 +46,14 @@
 .title {
   font-size: 2.25rem;
   font-weight: 800;
-  color: #f1f5f9;
+  color: #ffffff;
   margin: 0;
   letter-spacing: -0.025em;
 }
 
 .subtitle {
   font-size: 0.9375rem;
-  color: #94a3b8;
+  color: #888888;
   margin: 0.5rem 0 0 0;
   line-height: 1.6;
 }
@@ -68,9 +68,9 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  background: rgba(109, 40, 217, 0.2);
-  color: #c4b5fd;
-  border: 1px solid rgba(139, 92, 246, 0.3);
+  background: rgba(255, 255, 255, 0.11);
+  color: #cccccc;
+  border: 1px solid rgba(255, 255, 255, 0.18);
 }
 
 .statusApproved {
@@ -118,8 +118,8 @@
 
 /* ---------- Card ---------- */
 .card {
-  background: linear-gradient(145deg, rgba(30, 27, 75, 0.8) 0%, rgba(15, 15, 35, 0.9) 100%);
-  border: 1px solid rgba(139, 92, 246, 0.2);
+  background: #111111;
+  border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 1.25rem;
   padding: 1.75rem;
   box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
@@ -131,14 +131,14 @@
   align-items: center;
   justify-content: space-between;
   margin-bottom: 1.25rem;
-  border-bottom: 1px solid rgba(139, 92, 246, 0.15);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.09);
   padding-bottom: 1rem;
 }
 
 .cardTitle {
   font-size: 1.125rem;
   font-weight: 700;
-  color: #f1f5f9;
+  color: #ffffff;
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -170,16 +170,16 @@
 .formLabel {
   font-size: 0.8125rem;
   font-weight: 600;
-  color: #c4b5fd;
+  color: #cccccc;
 }
 
 .formInput {
   width: 100%;
   padding: 0.6875rem 1rem;
-  background: rgba(15, 15, 35, 0.8);
-  border: 1px solid rgba(139, 92, 246, 0.25);
+  background: rgba(0, 0, 0, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.15);
   border-radius: 0.75rem;
-  color: #f1f5f9;
+  color: #ffffff;
   font-size: 0.875rem;
   transition: all 0.2s ease;
   font-family: inherit;
@@ -187,9 +187,9 @@
 
 .formInput:focus {
   outline: none;
-  border-color: rgba(139, 92, 246, 0.55);
-  box-shadow: 0 0 0 3px rgba(109, 40, 217, 0.25);
-  background: rgba(20, 18, 45, 0.95);
+  border-color: rgba(255, 255, 255, 0.33);
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.14);
+  background: rgba(0, 0, 0, 0.95);
 }
 
 /* Elite Select Dropdown */
@@ -201,14 +201,14 @@
 .formSelect {
   width: 100%;
   padding: 0.6875rem 2.5rem 0.6875rem 1rem;
-  background-color: rgba(15, 15, 35, 0.85);
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23a78bfa' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-color: rgba(0, 0, 0, 0.85);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23aaaaaa' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 1rem center;
   background-size: 16px;
-  border: 1px solid rgba(139, 92, 246, 0.28);
+  border: 1px solid rgba(255, 255, 255, 0.17);
   border-radius: 0.75rem;
-  color: #f1f5f9;
+  color: #ffffff;
   font-size: 0.875rem;
   font-weight: 500;
   transition: all 0.2s ease;
@@ -219,20 +219,20 @@
 }
 
 .formSelect:hover {
-  border-color: rgba(139, 92, 246, 0.45);
-  background-color: rgba(20, 18, 45, 0.9);
+  border-color: rgba(255, 255, 255, 0.27);
+  background-color: rgba(0, 0, 0, 0.9);
 }
 
 .formSelect:focus {
   outline: none;
-  border-color: rgba(139, 92, 246, 0.65);
-  box-shadow: 0 0 0 3px rgba(109, 40, 217, 0.3);
-  background-color: rgba(22, 20, 50, 0.95);
+  border-color: rgba(255, 255, 255, 0.39);
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.17);
+  background-color: rgba(0, 0, 0, 0.95);
 }
 
 .formSelect option {
-  background-color: #121124;
-  color: #f1f5f9;
+  background-color: #111111;
+  color: #ffffff;
   padding: 0.75rem;
 }
 
@@ -249,15 +249,15 @@
   justify-content: center;
   gap: 0.5rem;
   padding: 0.6875rem 1.25rem;
-  background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
-  color: #ffffff;
+  background: #ffffff;
+  color: #000000;
   font-size: 0.875rem;
   font-weight: 600;
   border: none;
   border-radius: 0.75rem;
   cursor: pointer;
   transition: all 0.2s ease;
-  box-shadow: 0 4px 14px 0 rgba(109, 40, 217, 0.4);
+  box-shadow: 0 4px 14px 0 rgba(255, 255, 255, 0.22);
   white-space: nowrap;
   width: 100%;
 }
@@ -269,9 +269,9 @@
 }
 
 .primaryBtn:hover:not(:disabled) {
-  background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+  background: #e8e8e8;
   transform: translateY(-2px);
-  box-shadow: 0 8px 20px 0 rgba(109, 40, 217, 0.5);
+  box-shadow: 0 8px 20px 0 rgba(255, 255, 255, 0.28);
 }
 
 .primaryBtn:disabled {
@@ -290,11 +290,11 @@
   justify-content: center;
   gap: 0.5rem;
   padding: 0.6875rem 1.25rem;
-  background: rgba(109, 40, 217, 0.15);
-  color: #c4b5fd;
+  background: rgba(255, 255, 255, 0.08);
+  color: #cccccc;
   font-size: 0.875rem;
   font-weight: 600;
-  border: 1px solid rgba(139, 92, 246, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0.15);
   border-radius: 0.75rem;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -302,9 +302,9 @@
 }
 
 .secondaryBtn:hover:not(:disabled) {
-  background: rgba(109, 40, 217, 0.25);
-  color: #f1f5f9;
-  border-color: rgba(139, 92, 246, 0.4);
+  background: rgba(255, 255, 255, 0.14);
+  color: #ffffff;
+  border-color: rgba(255, 255, 255, 0.24);
 }
 
 .successBtn {
@@ -366,7 +366,7 @@
 }
 
 .table thead tr {
-  border-bottom: 2px solid rgba(139, 92, 246, 0.25);
+  border-bottom: 2px solid rgba(255, 255, 255, 0.15);
 }
 
 .table th {
@@ -375,13 +375,13 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  color: #a78bfa;
-  background: rgba(30, 27, 75, 0.55);
+  color: #aaaaaa;
+  background: rgba(20, 20, 20, 0.55);
 }
 
 .table tbody tr {
   transition: background 0.15s ease;
-  border-bottom: 1px solid rgba(139, 92, 246, 0.08);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .table tbody tr:last-child {
@@ -389,24 +389,24 @@
 }
 
 .table tbody tr:hover {
-  background: rgba(109, 40, 217, 0.12);
+  background: rgba(255, 255, 255, 0.07);
 }
 
 .table td {
   padding: 1rem 1.25rem;
   font-size: 0.875rem;
-  color: #e2e8f0;
+  color: #eeeeee;
   vertical-align: middle;
 }
 
 .productName {
   font-weight: 600;
-  color: #f1f5f9;
+  color: #ffffff;
 }
 
 .productMeta {
   font-size: 0.75rem;
-  color: #94a3b8;
+  color: #888888;
   margin-top: 0.25rem;
 }
 
@@ -420,16 +420,16 @@
 }
 
 .summaryLabel {
-  color: #e2e8f0;
+  color: #eeeeee;
 }
 
 .summaryLabelMuted {
-  color: #94a3b8;
+  color: #888888;
 }
 
 .summaryValue {
   font-weight: 600;
-  color: #f1f5f9;
+  color: #ffffff;
 }
 
 .summaryValuePositive {
@@ -444,7 +444,7 @@
 
 .summaryDivider {
   height: 1px;
-  background: rgba(139, 92, 246, 0.2);
+  background: rgba(255, 255, 255, 0.12);
   margin: 1rem 0;
 }
 
@@ -454,7 +454,7 @@
   align-items: center;
   font-size: 1.125rem;
   font-weight: 700;
-  color: #f1f5f9;
+  color: #ffffff;
   padding-top: 0.5rem;
 }
 
@@ -463,7 +463,7 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  color: #a78bfa;
+  color: #aaaaaa;
   margin-bottom: 0.75rem;
 }
 
@@ -478,8 +478,8 @@
 }
 
 .recItem {
-  background: rgba(15, 15, 35, 0.6);
-  border: 1px solid rgba(139, 92, 246, 0.15);
+  background: rgba(0, 0, 0, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.09);
   border-radius: 0.75rem;
   padding: 1rem;
 }
@@ -493,19 +493,19 @@
 
 .recName {
   font-weight: 600;
-  color: #f1f5f9;
+  color: #ffffff;
   font-size: 0.875rem;
 }
 
 .recPrice {
   font-weight: 700;
-  color: #c4b5fd;
+  color: #cccccc;
   font-size: 0.875rem;
 }
 
 .recReason {
   font-size: 0.75rem;
-  color: #94a3b8;
+  color: #888888;
   margin-bottom: 1rem;
   line-height: 1.4;
 }
@@ -513,7 +513,7 @@
 .emptyState {
   padding: 3rem 1.5rem;
   text-align: center;
-  color: #94a3b8;
+  color: #888888;
   font-size: 0.875rem;
 }
 

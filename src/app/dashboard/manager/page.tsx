@@ -128,7 +128,7 @@ export default function ManagerDashboardPage() {
     status: item.status.replace("_", " "),
     value: item.value,
     count: item.count,
-    color: STATUS_COLORS[item.status] || "#8b5cf6",
+    color: STATUS_COLORS[item.status] || "#ffffff",
   }));
 
   const statusDistribution = [
@@ -210,8 +210,8 @@ export default function ManagerDashboardPage() {
                       />
                       <Tooltip
                         contentStyle={{
-                          backgroundColor: "#1e1b4b",
-                          borderColor: "rgba(139,92,246,0.4)",
+                          backgroundColor: "#111111",
+                          borderColor: "rgba(255,255,255,0.2)",
                           borderRadius: "0.75rem",
                           color: "#fff",
                           fontSize: "0.8125rem",
@@ -260,8 +260,8 @@ export default function ManagerDashboardPage() {
                       </Pie>
                       <Tooltip
                         contentStyle={{
-                          backgroundColor: "#1e1b4b",
-                          borderColor: "rgba(139,92,246,0.4)",
+                          backgroundColor: "#111111",
+                          borderColor: "rgba(255,255,255,0.2)",
                           borderRadius: "0.75rem",
                           color: "#fff",
                           fontSize: "0.8125rem",
@@ -296,8 +296,8 @@ export default function ManagerDashboardPage() {
                       />
                       <Tooltip
                         contentStyle={{
-                          backgroundColor: "#1e1b4b",
-                          borderColor: "rgba(139,92,246,0.4)",
+                          backgroundColor: "#111111",
+                          borderColor: "rgba(255,255,255,0.2)",
                           borderRadius: "0.75rem",
                           color: "#fff",
                           fontSize: "0.8125rem",
@@ -309,9 +309,9 @@ export default function ManagerDashboardPage() {
                         type="monotone"
                         dataKey="revenue"
                         name="Revenue"
-                        stroke="#8b5cf6"
+                        stroke="#ffffff"
                         strokeWidth={2}
-                        dot={{ fill: "#8b5cf6", r: 4 }}
+                        dot={{ fill: "#ffffff", r: 4 }}
                         activeDot={{ r: 6, fill: "#c4b5fd" }}
                       />
                     </LineChart>

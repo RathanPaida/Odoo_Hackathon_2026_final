@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { 
   UserPlus, 
@@ -18,6 +18,7 @@ import { RoleSidebar } from "@/components/navbar/RoleSidebar";
 import s from "./newCustomer.module.css";
 
 export default function NewCustomerPage() {
+  const [user, setUser] = useState<{ name: string; email: string; role: any } | null>(null);
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -35,6 +36,17 @@ export default function NewCustomerPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetch("/api/auth/me")
+      .then(res => res.json())
+      .then(body => {
+        if (body.success && body.data) {
+          setUser(body.data);
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -101,12 +113,12 @@ export default function NewCustomerPage() {
   ];
 
   return (
-    <RoleSidebar role="SALES_REP" userName="Alex Mercer" userEmail="alex.mercer@dealflow.com">
+    <RoleSidebar role={user?.role || "SALES_REP"} userName={user?.name || "Sales Rep"} userEmail={user?.email || "rep@dealflow.com"}>
       <main className={s.page}>
       <div className={s.container}>
         <div className={`${s.header} ${s.animateFadeIn}`}>
           <div className={s.headerContent}>
-            <Link href="/dashboard/rep/customer" className={s.backLink}>
+            <Link href="/dashboard/rep/customers" className={s.backLink}>
               <ArrowLeft size={16} />
               Back to Customers
             </Link>
@@ -308,7 +320,7 @@ export default function NewCustomerPage() {
           </div>
 
           <div className={s.actions}>
-            <Link href="/dashboard/rep/customer" className={s.secondaryBtn}>
+            <Link href="/dashboard/rep/customers" className={s.secondaryBtn}>
               Cancel
             </Link>
             <button type="submit" className={s.primaryBtn} disabled={loading}>

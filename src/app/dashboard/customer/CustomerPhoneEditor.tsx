@@ -45,13 +45,13 @@ export function CustomerPhoneEditor({ initialPhone }: { initialPhone?: string | 
           value={inputValue}
           onChange={(e) => setInputValue(e.target.value)}
           placeholder="+91-9876543210"
-          className="px-2.5 py-1 bg-[rgba(15,15,35,0.8)] border border-[rgba(139,92,246,0.4)] rounded-lg text-xs text-white focus:outline-none focus:border-violet-400 w-36"
+          className="px-2.5 py-1 bg-[rgba(0,0,0,0.8)] border border-[rgba(255,255,255,0.25)] rounded-lg text-xs text-white focus:outline-none focus:border-white w-36"
           autoFocus
         />
         <button
           onClick={handleSave}
           disabled={saving}
-          className="p-1 rounded-md bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30 border border-emerald-500/30 transition-colors"
+          className="p-1 rounded-md bg-white text-black hover:bg-[#e0e0e0] transition-colors"
           title="Save"
         >
           <Check size={13} />
@@ -61,7 +61,7 @@ export function CustomerPhoneEditor({ initialPhone }: { initialPhone?: string | 
             setInputValue(phone);
             setEditing(false);
           }}
-          className="p-1 rounded-md bg-rose-500/20 text-rose-400 hover:bg-rose-500/30 border border-rose-500/30 transition-colors"
+          className="p-1 rounded-md bg-[rgba(255,255,255,0.1)] text-white hover:bg-[rgba(255,255,255,0.2)] border border-[rgba(255,255,255,0.15)] transition-colors"
           title="Cancel"
         >
           <X size={13} />
@@ -72,15 +72,15 @@ export function CustomerPhoneEditor({ initialPhone }: { initialPhone?: string | 
 
   return (
     <div className="flex items-center gap-2 group">
-      <p className="font-semibold text-[#f1f5f9] text-sm">
-        {phone || <span className="text-[#94a3b8] font-normal italic">Not provided</span>}
+      <p className="font-semibold text-white text-sm">
+        {phone || <span className="text-[#888888] font-normal italic">Not provided</span>}
       </p>
       <button
         onClick={() => {
           setInputValue(phone || "+91-");
           setEditing(true);
         }}
-        className="text-[#a78bfa] opacity-70 hover:opacity-100 hover:text-violet-300 transition-all p-0.5 rounded hover:bg-[rgba(139,92,246,0.15)]"
+        className="text-[#cccccc] opacity-70 hover:opacity-100 hover:text-white transition-all p-0.5 rounded hover:bg-[rgba(255,255,255,0.1)]"
         title="Edit phone number"
       >
         <Edit2 size={12} />

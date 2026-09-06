@@ -3,17 +3,17 @@
 @import url("https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=Inter:wght@400;500;600&display=swap");
 
 .page {
-  --ink: #0e1319;
-  --slate: #59646f;
-  --muted: #97a1ab;
-  --paper: #e9ecef;
-  --card: #ffffff;
-  --line: #d3d9df;
-  --line-soft: #e4e8ec;
-  --accent: #1f3bd8;
-  --paid: #0b7a5e;
-  --warn: #a26800;
-  --danger: #b3261e;
+  --ink: #ffffff;
+  --slate: #aaaaaa;
+  --muted: #888888;
+  --paper: #000000;
+  --card: #111111;
+  --line: #222222;
+  --line-soft: #1a1a1a;
+  --accent: #ffffff;
+  --paid: #34d399;
+  --warn: #fbbf24;
+  --danger: #f87171;
 
   min-height: 100dvh;
   padding: 2.5rem 1.5rem 4rem;
@@ -213,7 +213,7 @@
   min-width: 5.25rem;
   padding: 0.1875rem 0.5rem;
   border-radius: 4px;
-  background: #f0f2f4;
+  background: #222222;
   color: var(--slate);
   font-size: 0.75rem;
   font-weight: 500;
@@ -222,19 +222,19 @@
 }
 
 .pill[data-status="PAID"] {
-  background: #e6f3ef;
+  background: rgba(16, 185, 129, 0.2);
   color: var(--paid);
 }
 
 .pill[data-status="OVERDUE"] {
-  background: #fdecea;
+  background: rgba(239, 68, 68, 0.2);
   color: var(--danger);
 }
 
 .pill[data-status="PENDING"],
 .pill[data-status="SENT"],
 .pill[data-status="DRAFT"] {
-  background: #fbf1de;
+  background: rgba(245, 158, 11, 0.2);
   color: var(--warn);
 }
 
@@ -262,7 +262,7 @@
 
 .action:hover {
   border-color: var(--accent);
-  background: #f5f7ff;
+  background: #1a1a1a;
 }
 
 .actionName {
@@ -283,7 +283,7 @@
   height: 1.75rem;
   width: 4.5rem;
   border-radius: 5px;
-  background: linear-gradient(90deg, #e8ebee 25%, #f2f4f6 50%, #e8ebee 75%);
+  background: linear-gradient(90deg, #1a1a1a 25%, #262626 50%, #1a1a1a 75%);
   background-size: 200% 100%;
   animation: shimmer 1.3s linear infinite;
 }
@@ -292,7 +292,7 @@
   height: 2.75rem;
   margin: 0.5rem 0;
   border-radius: 6px;
-  background: #f1f3f5;
+  background: #1a1a1a;
 }
 
 @keyframes shimmer {
@@ -317,8 +317,8 @@
   padding: 0.75rem 0.875rem;
   border-left: 2px solid var(--danger);
   border-radius: 0 5px 5px 0;
-  background: #fdf2f1;
-  color: #8c1d18;
+  background: rgba(239, 68, 68, 0.1);
+  color: #fca5a5;
   font-size: 0.875rem;
   line-height: 1.45;
 }

@@ -14,7 +14,25 @@ const UpdateProfileSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters").optional(),
   currentPassword: z.string().optional(),
   newPassword: z.string().min(6, "New password must be at least 6 characters").optional(),
+  otp: z.string().optional(),
 });
+
+function isDummyEmail(email: string): boolean {
+  const normalized = email.toLowerCase().trim();
+  return (
+    normalized.endsWith(".local") ||
+    normalized.endsWith("@dealflow.local") ||
+    normalized.endsWith("@dealflow.com") ||
+    normalized.endsWith("@example.com") ||
+    normalized.endsWith("@test.com") ||
+    normalized.endsWith("@dummy.com") ||
+    normalized.endsWith(".corp") ||
+    normalized.endsWith(".sol") ||
+    normalized.endsWith(".ent") ||
+    normalized.endsWith(".ltd") ||
+    normalized.endsWith(".inc")
+  );
+}
 
 export async function GET() {
   const user = await getCurrentUser();
@@ -91,6 +109,40 @@ export async function PATCH(req: NextRequest) {
           { error: { code: "UNAUTHORIZED", message: "Current password is incorrect." } },
           { status: 400 }
         );
+      }
+
+      // Check if OTP verification is required (skip for dummy emails)
+      const email = dbUser.email;
+      const isDummy = isDummyEmail(email);
+
+      if (!isDummy) {
+        if (!data.otp || !data.otp.trim()) {
+          return NextResponse.json(
+            { error: { code: "OTP_REQUIRED", message: "A verification code (OTP) is required to change your password." } },
+            { status: 400 }
+          );
+        }
+
+        const otpRecord = await prisma.oTP.findFirst({
+          where: { email, code: data.otp.trim() },
+        });
+
+        if (!otpRecord) {
+          return NextResponse.json(
+            { error: { code: "INVALID_OTP", message: "Invalid verification code (OTP)." } },
+            { status: 400 }
+          );
+        }
+
+        if (new Date() > otpRecord.expiresAt) {
+          return NextResponse.json(
+            { error: { code: "EXPIRED_OTP", message: "Verification code has expired. Please request a new one." } },
+            { status: 400 }
+          );
+        }
+
+        // Clean up OTPs for this email after successful verification
+        await prisma.oTP.deleteMany({ where: { email } });
       }
 
       updateData.passwordHash = await hashPassword(data.newPassword);
