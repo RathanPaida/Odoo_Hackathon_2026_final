@@ -361,6 +361,20 @@ Each role sees a tailored dashboard with role-gated navigation:
 - Quotes within thresholds **auto-approve** on submit
 - Quotes exceeding thresholds create an `Approval` row and route to the appropriate role
 
+```mermaid
+flowchart TD
+    A[Sales Rep Submits Quote] --> B{Discount <= Auto-Approve Limit?}
+    B -- Yes --> C[Status: APPROVED]
+    B -- No --> D{Determine Required Role}
+    D --> E[Status: PENDING_APPROVAL]
+    E --> F[Route to Manager/Finance Queue]
+    F --> G{Approver Decision}
+    G -- Approve --> H[Status: APPROVED]
+    G -- Reject --> I[Status: REJECTED]
+    I --> J[Sales Rep Edits/Negotiates]
+    J --> A
+```
+
 ### Warehouse Allocation (Concurrency-Safe)
 ```sql
 SELECT id, "warehouseId", "qtyOnHand"
@@ -391,6 +405,28 @@ Three deterministic rules (no ML):
 ## Payment Integration
 
 DealFlow360 integrates **Razorpay** for subscription payments:
+
+```mermaid
+sequenceDiagram
+    actor Customer
+    participant Client
+    participant Server
+    participant Razorpay
+    
+    Customer->>Client: Clicks "Subscribe to Plan"
+    Client->>Server: POST /api/payments/razorpay/create-order
+    Server->>Razorpay: Create Order (amount in paise)
+    Razorpay-->>Server: return order_id
+    Server-->>Client: return order_id & key
+    Client->>Razorpay: Launch Checkout / Embedded Modal
+    Customer->>Razorpay: Enters Payment Details
+    Razorpay-->>Client: return payment_id & signature
+    Client->>Server: POST /api/payments/razorpay/verify
+    Server->>Server: Verify signature
+    Server->>Server: Create Subscription, Invoice, Payment
+    Server-->>Client: return success & objects
+    Client-->>Customer: Display Success & Update UI
+```
 
 1. **With valid Razorpay test/live keys** → Opens the official Razorpay Standard Checkout modal
 2. **Without keys (demo mode)** → Opens an embedded high-fidelity payment gateway modal with UPI, Card, and NetBanking options
